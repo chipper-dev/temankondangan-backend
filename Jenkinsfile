@@ -42,6 +42,6 @@ node{
             db_password = env.dbPassword
         }
         sh "echo password = $db_password"
-        sh "docker run --name $containerName -p 8181:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=${env.dbUsername} -e DB_PASSWORD=${env.dbPassword} --restart always -d $image"
+        sh "docker run --name $containerName -p 8181:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password --restart always -d $image"
     }
 }
