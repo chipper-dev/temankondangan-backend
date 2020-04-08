@@ -37,8 +37,8 @@ node{
         }
     }
     stage('Run Application') {
-        withCredentials([usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbPassword', usernamePassword: 'dbUsername')]) {
-            sh "echo passss $dbPassword"
+        withCredentials([usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+            sh "echo passss $dockerHubPassword"
             db_username = env.dbUsername
             db_password = env.dbPassword
         }
