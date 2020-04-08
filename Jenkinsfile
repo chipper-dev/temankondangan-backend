@@ -34,6 +34,7 @@ node{
         withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
                   sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
                   sh "docker push $image"
+         }
     }
     stage('Run Application') {
         sh "docker run --name $containerName -p 8181:8181 --network chipper --restart always -d $image"
