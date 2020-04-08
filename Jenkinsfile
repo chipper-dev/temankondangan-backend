@@ -1,7 +1,7 @@
 node{
     def app
     def build = "${env.BUILD_NUMBER}"
-    def image = 'chipper/chipper-backend:1.'+ build
+    def image = 'chippermitrais/temankondangan-backend:1.'+ build
     def containerName = 'chipper-backend'
     def mvnHome = tool name: 'maven-default', type: 'maven'
     def mvnCMD = "${mvnHome}/bin/mvn"
@@ -18,7 +18,7 @@ node{
                     echo 'Done.'
                 }
 
-                sh "docker images chipper/chipper-backend -q | xargs --no-run-if-empty docker rmi -f"
+                sh "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
             }
     }
     stage('SCM Checkout') {
