@@ -38,6 +38,7 @@ node{
     }
     stage('Run Application') {
         withCredentials([usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbPassword', usernamePassword: 'dbUsername')]) {
+            sh "echo passss $dbPassword"
             db_username = env.dbUsername
             db_password = env.dbPassword
         }
