@@ -39,8 +39,8 @@ node{
     stage('Run Application') {
         withCredentials([usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
             sh "echo passss $dockerHubPassword"
-            db_username = env.dbUsername
-            db_password = env.dbPassword
+            db_username = env.dockerHubUser
+            db_password = env.dockerHubPassword
         }
         sh "echo password = $db_password"
         sh "docker run --name $containerName -p 8181:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password --restart always -d $image"
