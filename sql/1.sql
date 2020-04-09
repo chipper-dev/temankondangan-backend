@@ -21,3 +21,14 @@ CREATE table public.profiles (
 	interest varchar(200) NULL,
 	CONSTRAINT profiles_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE public.config (
+	id serial NOT NULL,
+	config_key varchar NOT NULL,
+	config_value varchar NOT NULL,
+	created_by varchar NOT NULL,
+	created_date date NOT NULL,
+	modified_by varchar NOT NULL,
+	modified_date date NOT NULL,
+	CONSTRAINT config_pkey PRIMARY KEY (id)
+);
