@@ -41,8 +41,6 @@ public class Users {
 		this.modifiedDate = modifiedDate;
 	}
 
-	public Users() { }
-
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")

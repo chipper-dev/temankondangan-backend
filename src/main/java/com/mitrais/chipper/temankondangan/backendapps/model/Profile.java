@@ -42,8 +42,6 @@ public class Profile {
 		this.modifiedDate = modifiedDate;
 	}
 
-	public Profile() { }
-
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_seq_gen")
