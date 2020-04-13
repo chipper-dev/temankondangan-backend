@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -21,17 +22,22 @@ import org.springframework.data.annotation.LastModifiedDate;
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(Users user, String fullName, Date dob, String gender) {
+	public Profile(Users user, String fullName, Date dob, String gender,
+				   String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
 		this.gender = gender;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
 	}
 
 	public Profile() { }
 
 	@Id
-	@NotEmpty
+	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_seq_gen")
     @SequenceGenerator(name = "profile_id_seq_gen", sequenceName = "profile_id_seq", allocationSize = 1)
     @ApiModelProperty(notes = "Profile DB id")
@@ -45,7 +51,7 @@ public class Profile {
 	@ApiModelProperty(notes = "Profile full name")
 	private String fullName;
 
-	@NotEmpty
+	@NotNull
 	@JsonFormat(pattern = "dd/MM/yyyy", shape = JsonFormat.Shape.STRING)
 	@Temporal(javax.persistence.TemporalType.DATE)
 	@ApiModelProperty(notes = "Profile birth of date")
@@ -72,7 +78,7 @@ public class Profile {
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -83,7 +89,7 @@ public class Profile {
 	@ApiModelProperty(notes = "Who modified the data last time")
 	private String modifiedBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate

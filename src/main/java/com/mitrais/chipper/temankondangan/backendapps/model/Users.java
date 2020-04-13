@@ -12,7 +12,9 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -42,7 +44,7 @@ public class Users {
 	public Users() { }
 
 	@Id
-	@NotEmpty
+	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
     @SequenceGenerator(name = "user_id_seq_gen", sequenceName = "user_id_seq", allocationSize = 1)
     @ApiModelProperty(notes = "User DB id")
@@ -54,13 +56,14 @@ public class Users {
 
 	@NotEmpty
 	@ApiModelProperty(notes = "User hashed password")
+	@JsonIgnore
 	private String passwordHashed;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -71,7 +74,7 @@ public class Users {
 	@ApiModelProperty(notes = "Who modified the data last time")
 	private String modifiedBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate

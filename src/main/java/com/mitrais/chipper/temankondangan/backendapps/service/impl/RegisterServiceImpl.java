@@ -36,7 +36,12 @@ public class RegisterServiceImpl implements RegisterService {
                     new Date()
             );
             user = userRepository.save(user);
-            profileRepository.save(new Profile(user, register.getFullname(), register.getDob(), register.getGender()));
+            profileRepository.save(new Profile(
+                    user, register.getFullname(), register.getDob(), register.getGender(),
+                    register.getEmail(),
+                    new Date(),
+                    register.getEmail(),
+                    new Date()));
             return user;
         } else {
             return null;
