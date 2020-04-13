@@ -28,6 +28,19 @@ import lombok.Data;
 @ApiModel(description = "All details about User. ")
 public class Users {
 
+	public Users(String email,
+				 String passwordHashed,
+				 String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+		this.email = email;
+		this.passwordHashed = passwordHashed;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+	}
+
+	public Users() { }
+
 	@Id
 	@NotEmpty
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
