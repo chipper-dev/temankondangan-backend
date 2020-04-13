@@ -2,17 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -20,6 +10,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
 @Data
 @Entity
@@ -28,6 +20,15 @@ import lombok.Data;
 //@JsonIgnoreProperties(value = { "createdAt", "updatedAt" }, allowGetters = true)
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
+
+	public Profile(Users user, String fullName, Date dob, String gender) {
+		this.user = user;
+		this.fullName = fullName;
+		this.dob = dob;
+		this.gender = gender;
+	}
+
+	public Profile() { }
 
 	@Id
 	@NotEmpty
@@ -67,6 +68,27 @@ public class Profile {
 
 	@ApiModelProperty(notes = "Profile interest")
 	private String interest;
+	@NotEmpty
+	@ApiModelProperty(notes = "Who created the data")
+	private String createdBy;
+
+	@NotEmpty
+	@Column(nullable = false, updatable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	@CreatedDate
+	@ApiModelProperty(notes = "When is the data created")
+	private Date createdDate;
+
+	@NotEmpty
+	@ApiModelProperty(notes = "Who modified the data last time")
+	private String modifiedBy;
+
+	@NotEmpty
+	@Column(nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	@LastModifiedDate
+	@ApiModelProperty(notes = "When is the data modified last time")
+	private Date modifiedDate;
 
 	public Long getProfileId() {
 		return profileId;
@@ -140,4 +162,35 @@ public class Profile {
 		this.interest = interest;
 	}
 
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
 }
