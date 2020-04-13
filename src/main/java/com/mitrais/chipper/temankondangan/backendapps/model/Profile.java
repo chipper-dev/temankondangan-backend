@@ -8,17 +8,25 @@ import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 @Entity
 @Table(name = "profile")
-//@EntityListeners(AuditingEntityListener.class)
-//@JsonIgnoreProperties(value = { "createdAt", "updatedAt" }, allowGetters = true)
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(value = { "createdBy", "createdAt", "modifiedBy", "updatedAt" }, allowGetters = true)
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
