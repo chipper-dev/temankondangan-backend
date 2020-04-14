@@ -30,8 +30,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(Users user, String fullName, Date dob, String gender,
-				   String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+	public Profile(User user, String fullName, Date dob, String gender,
+                   String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
@@ -51,7 +51,7 @@ public class Profile {
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
-	private Users user;
+	private User user;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Profile full name")
@@ -110,11 +110,11 @@ public class Profile {
 		this.profileId = profileId;
 	}
 
-	public Users getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	public void setUser(Users user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 	

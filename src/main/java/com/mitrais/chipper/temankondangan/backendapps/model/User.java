@@ -35,10 +35,10 @@ public class User {
 				String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.email = email;
 		this.passwordHashed = passwordHashed;
-		this.createdBy = createdBy;
+		/*this.createdBy = createdBy;
 		this.createdDate = createdDate;
 		this.modifiedBy = modifiedBy;
-		this.modifiedDate = modifiedDate;
+		this.modifiedDate = modifiedDate;*/
 	}
 
 	@Id
@@ -52,12 +52,12 @@ public class User {
 	@ApiModelProperty(notes = "User email")
 	private String email;
 
-	@NotEmpty
+//	@NotEmpty
 	@ApiModelProperty(notes = "User hashed password")
 	@JsonIgnore
 	private String passwordHashed;
 
-	@NotEmpty
+	/*@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
@@ -77,6 +77,12 @@ public class User {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
-	private Date modifiedDate;
+	private Date modifiedDate;*/
+
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private AuthProvider provider;
+
+	private String providerId;
 
 }
