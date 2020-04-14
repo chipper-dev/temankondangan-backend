@@ -1,7 +1,11 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -24,46 +28,64 @@ public class ProfileServiceImpl implements ProfileService {
 	@Autowired
 	private UserRepository userRepository;
 
-	private Profile profile;
-
-	ProfileServiceImpl() {
-
-	}
-
+	private static String DEFAULT_IMAGE = "images/defaultprofile.jpg";
+	
 	@Override
-	public Profile getProfile(Long userId) {
-		return profileRepository.findByUserId(userId).get();
+	public Optional<Profile> findByUserId(Long userId) {
+		return profileRepository.findByUserId(userId);
 	}
 
 	@Override
 	@Transactional
 	public boolean update(ProfileUpdateWrapper wrapper) {
-
 		try {
 			Users user = userRepository.findById(wrapper.getUserId())
 					.orElseThrow(() -> new NoSuchElementException("Invalid account"));
-			
-			profile = profileRepository.save(new Profile(user, wrapper.getFullName(), wrapper.getDob(),
-					wrapper.getGender(), wrapper.getFullName(), new Date(), wrapper.getFullName(), new Date()));
+
+			byte[] image;
+
+			if (wrapper.getImage().isEmpty()) {
+				image = readBytesFromFile(DEFAULT_IMAGE);
+			} else {
+				image = wrapper.getImage().getBytes();
+			}
+
+			profileRepository.save(new Profile(user, wrapper.getFullName(), wrapper.getDob(),
+					wrapper.getGender(), image, wrapper.getFullName(), new Date(), wrapper.getFullName(), new Date()));
 			return true;
 		} catch (Exception e) {
 			return false;
 		}
 	}
-//	@Override
-//	public Profile uploadImage(MultipartFile file, Profile profile) {
-//		Profile savedProfile = new Profile();
-//		try {
-//			byte[] image = file.getBytes();
-//			profile.setPhotoProfile(image);
-//			savedProfile = profileRepository.save(profile);
-//
-//		} catch (Exception e) {
-//
-//		}
-//		return savedProfile;
-//	}
 
-//	public Profile findById()
+	private static byte[] readBytesFromFile(String filePath) {
 
+		FileInputStream fileInputStream = null;
+		byte[] bytesArray = null;
+
+		try {
+
+			File file = new File(filePath);
+			bytesArray = new byte[(int) file.length()];
+
+			// read file into bytes[]
+			fileInputStream = new FileInputStream(file);
+			fileInputStream.read(bytesArray);
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+
+		}
+
+		return bytesArray;
+
+	}
 }

@@ -54,6 +54,23 @@ public class Profile {
 		this.modifiedBy = modifiedBy;
 		this.modifiedDate = modifiedDate;
 	}
+	
+	public Profile(Users user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy, Date createdDate,
+			String modifiedBy, Date modifiedDate) {
+		this.user = user;
+		this.fullName = fullName;
+		this.dob = dob;
+		this.gender = gender;
+		this.photoProfile = photoProfile;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+	}
+
+	public Profile() {
+		super();
+	}
 
 	@Id
 	@NotNull
