@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -29,11 +28,6 @@ public class ProfileServiceImpl implements ProfileService {
 	private UserRepository userRepository;
 
 	private static String DEFAULT_IMAGE = "images/defaultprofile.jpg";
-	
-	@Override
-	public Optional<Profile> findByUserId(Long userId) {
-		return profileRepository.findByUserId(userId);
-	}
 
 	@Override
 	@Transactional
