@@ -1,13 +1,15 @@
 package com.mitrais.chipper.temankondangan.backendapps.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Component;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Users;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 
-@Transactional
-@Repository
-public interface UserRepository extends JpaRepository<Users, Long> {
+@Component
+public interface UserRepository extends JpaRepository<User, Long> {
+	Optional<User> findByEmail(String email);
 
+	Boolean existsByEmail(String email);
 }

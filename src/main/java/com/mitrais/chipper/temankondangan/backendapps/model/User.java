@@ -5,6 +5,8 @@ import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -39,12 +41,11 @@ import lombok.NoArgsConstructor;
 
 @JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about User. ")
-public class Users {
+public class User {
 
-	public Users(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
+	public User(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
 			Date modifiedDate) {
 		super();
-
 		this.email = email;
 		this.passwordHashed = passwordHashed;
 		this.createdBy = createdBy;
@@ -90,5 +91,11 @@ public class Users {
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
 	private Date modifiedDate;
+
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private AuthProvider provider;
+
+	private String providerId;
 
 }

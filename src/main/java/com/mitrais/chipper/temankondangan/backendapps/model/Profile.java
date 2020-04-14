@@ -43,9 +43,8 @@ import lombok.NoArgsConstructor;
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(Users user, String fullName, Date dob, String gender, String createdBy, Date createdDate,
+	public Profile(User user, String fullName, Date dob, String gender, String createdBy, Date createdDate,
 			String modifiedBy, Date modifiedDate) {
-
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
@@ -56,7 +55,7 @@ public class Profile {
 		this.modifiedDate = modifiedDate;
 	}
 
-	public Profile(Users user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
+	public Profile(User user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
 			Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
 		this.fullName = fullName;
@@ -78,7 +77,7 @@ public class Profile {
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
-	private Users user;
+	private User user;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Profile full name")

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.Users;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -33,7 +33,7 @@ public class ProfileServiceImpl implements ProfileService {
 	@Transactional
 	public boolean update(ProfileUpdateWrapper wrapper) {
 		try {
-			Users user = userRepository.findById(wrapper.getUserId())
+			User user = userRepository.findById(wrapper.getUserId())
 					.orElseThrow(() -> new NoSuchElementException("No such user"));
 
 			byte[] image;
