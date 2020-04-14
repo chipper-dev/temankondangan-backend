@@ -1,6 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Users;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.LoginWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -24,7 +24,7 @@ public class LoginServiceImplTest {
 
     @BeforeAll
     public void init() {
-        Users user = new Users();
+        User user = new User();
         user.setEmail("test@example.com");
         user.setPasswordHashed("$2a$10$uP17U46Ewhx5MLLBI7z4tuxhSH0/16jbGKOomfeFbupoCHtY629oe"); //password123
 

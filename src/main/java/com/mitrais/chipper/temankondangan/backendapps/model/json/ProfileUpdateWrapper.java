@@ -1,26 +1,27 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
+import java.util.Date;
+
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 public class ProfileUpdateWrapper {
-	
+
 	private MultipartFile image;
-    private Profile profile;
-    
-	public MultipartFile getImage() {
-		return image;
-	}
-	public void setImage(MultipartFile image) {
-		this.image = image;
-	}
-	public Profile getProfile() {
-		return profile;
-	}
-	public void setProfile(Profile profile) {
-		this.profile = profile;
-	}
-    
-    
+	private Long userId;
+	private String fullName;
+	private Date dob;
+	private String gender;
+	private String city;
+	private String aboutMe;
+	private String interest;
+
 }
