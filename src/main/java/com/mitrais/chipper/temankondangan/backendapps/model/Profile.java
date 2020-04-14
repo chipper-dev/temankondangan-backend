@@ -2,35 +2,48 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 @Entity
 @Table(name = "profile")
-//@EntityListeners(AuditingEntityListener.class)
-//@JsonIgnoreProperties(value = { "createdAt", "updatedAt" }, allowGetters = true)
+@EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties(value = { "createdBy", "createdAt", "modifiedBy", "updatedAt" }, allowGetters = true)
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
+	public Profile(User user, String fullName, Date dob, String gender,
+                   String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+		this.user = user;
+		this.fullName = fullName;
+		this.dob = dob;
+		this.gender = gender;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+	}
+
 	@Id
-	@NotEmpty
+	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_seq_gen")
     @SequenceGenerator(name = "profile_id_seq_gen", sequenceName = "profile_id_seq", allocationSize = 1)
     @ApiModelProperty(notes = "Profile DB id")
@@ -38,13 +51,13 @@ public class Profile {
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
-	private Users user;
+	private User user;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Profile full name")
 	private String fullName;
 
-	@NotEmpty
+	@NotNull
 	@JsonFormat(pattern = "dd/MM/yyyy", shape = JsonFormat.Shape.STRING)
 	@Temporal(javax.persistence.TemporalType.DATE)
 	@ApiModelProperty(notes = "Profile birth of date")
@@ -67,6 +80,27 @@ public class Profile {
 
 	@ApiModelProperty(notes = "Profile interest")
 	private String interest;
+	@NotEmpty
+	@ApiModelProperty(notes = "Who created the data")
+	private String createdBy;
+
+	@NotNull
+	@Column(nullable = false, updatable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	@CreatedDate
+	@ApiModelProperty(notes = "When is the data created")
+	private Date createdDate;
+
+	@NotEmpty
+	@ApiModelProperty(notes = "Who modified the data last time")
+	private String modifiedBy;
+
+	@NotNull
+	@Column(nullable = false)
+	@Temporal(TemporalType.TIMESTAMP)
+	@LastModifiedDate
+	@ApiModelProperty(notes = "When is the data modified last time")
+	private Date modifiedDate;
 
 	public Long getProfileId() {
 		return profileId;
@@ -76,11 +110,11 @@ public class Profile {
 		this.profileId = profileId;
 	}
 
-	public Users getUser() {
+	public User getUser() {
 		return user;
 	}
 
-	public void setUser(Users user) {
+	public void setUser(User user) {
 		this.user = user;
 	}
 	
@@ -140,4 +174,35 @@ public class Profile {
 		this.interest = interest;
 	}
 
+	public String getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(String createdBy) {
+		this.createdBy = createdBy;
+	}
+
+	public Date getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(Date createdDate) {
+		this.createdDate = createdDate;
+	}
+
+	public String getModifiedBy() {
+		return modifiedBy;
+	}
+
+	public void setModifiedBy(String modifiedBy) {
+		this.modifiedBy = modifiedBy;
+	}
+
+	public Date getModifiedDate() {
+		return modifiedDate;
+	}
+
+	public void setModifiedDate(Date modifiedDate) {
+		this.modifiedDate = modifiedDate;
+	}
 }
