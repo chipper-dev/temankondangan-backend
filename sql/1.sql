@@ -5,7 +5,9 @@ CREATE TABLE public.users (
 	created_by varchar NOT NULL,
 	created_date timestamp NOT NULL,
 	modified_by varchar NOT NULL,
-	modified_date timestamp NOT NULL
+	modified_date timestamp NOT NULL,
+    provider varchar NOT NULL,
+    provider_id varchar
 );
 
 CREATE table public.profile (
