@@ -2,22 +2,34 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import java.util.Date;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
@@ -26,38 +38,39 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(value = { "createdBy", "createdAt", "modifiedBy", "updatedAt" }, allowGetters = true)
+
+@JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about User. ")
 public class User {
 
-	public User(String email,
-				String passwordHashed,
-				String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+	public User(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
+			Date modifiedDate) {
+		super();
 		this.email = email;
 		this.passwordHashed = passwordHashed;
-		/*this.createdBy = createdBy;
+		this.createdBy = createdBy;
 		this.createdDate = createdDate;
 		this.modifiedBy = modifiedBy;
-		this.modifiedDate = modifiedDate;*/
+		this.modifiedDate = modifiedDate;
 	}
 
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
-    @SequenceGenerator(name = "user_id_seq_gen", sequenceName = "user_id_seq", allocationSize = 1)
-    @ApiModelProperty(notes = "User DB id")
+	@SequenceGenerator(name = "user_id_seq_gen", sequenceName = "user_id_seq", allocationSize = 1)
+	@ApiModelProperty(notes = "User DB id")
 	private Long userId;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "User email")
 	private String email;
 
-//	@NotEmpty
+	@NotEmpty
 	@ApiModelProperty(notes = "User hashed password")
 	@JsonIgnore
 	private String passwordHashed;
 
-	/*@NotEmpty
+	@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
@@ -77,7 +90,7 @@ public class User {
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
-	private Date modifiedDate;*/
+	private Date modifiedDate;
 
 	@NotNull
 	@Enumerated(EnumType.STRING)
