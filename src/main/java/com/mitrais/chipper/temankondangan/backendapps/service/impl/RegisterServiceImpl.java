@@ -1,7 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.Users;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -27,9 +27,9 @@ public class RegisterServiceImpl implements RegisterService {
     ProfileRepository profileRepository;
 
     @Override
-    public Users save(RegisterUserWrapper register) {
+    public User save(RegisterUserWrapper register) {
         if(register.getPassword().equals(register.getConfirmPassword())) {
-            Users user = new Users(
+            User user = new User(
                     register.getEmail(),
                     passwordEncoder.encode(register.getPassword()),
                     register.getEmail(),
