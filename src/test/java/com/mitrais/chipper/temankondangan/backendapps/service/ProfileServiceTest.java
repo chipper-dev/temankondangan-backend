@@ -1,8 +1,10 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import java.util.Date;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Assertions;
+import java.util.Date;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -10,18 +12,22 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.util.Assert;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.Users;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.RegisterServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ProfileServiceTest {
+
+	@Autowired
+	RegisterServiceImpl registerService;
 
 	@Autowired
 	ProfileServiceImpl profileService;
@@ -32,28 +38,23 @@ public class ProfileServiceTest {
 	@MockBean
 	ProfileRepository profileRepository;
 
+	private static MultipartFile multipartFile;
+
 	@BeforeAll
 	public void init() {
-		Mockito.when(userRepository.save(Mockito.any(Users.class))).thenAnswer(i -> {
-			Users user = i.getArgument(0, Users.class);
-			user.setUserId(1L);
-			return user;
-		});
-		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenAnswer(i -> {
-			Profile profile = i.getArgument(0, Profile.class);
-			profile.setProfileId(1L);
-			return profile;
-		});
-		;
+		Users user = new Users(1L, "test@email.com", "123", "test user", new Date(), "test user", new Date());
+		Optional<Users> userOptional = Optional.of(user);
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+
+		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
 	}
 
 	@Test
-	public void UpdateProfileTest() {
-		
+	public void UpdateProfileTestWithImage() {
+		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "test name", new Date(), "M",
+				"Test city", "Test about me", "Test interest");
+		boolean result = profileService.update(profileWrapper);
+		assertTrue(result);
 	}
 
-//	@Test
-//	public void testRegisteringNewUserWithDifferentPassword() {
-//		
-//	}
 }

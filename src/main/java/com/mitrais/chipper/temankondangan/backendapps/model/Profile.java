@@ -45,6 +45,7 @@ public class Profile {
 
 	public Profile(Users user, String fullName, Date dob, String gender, String createdBy, Date createdDate,
 			String modifiedBy, Date modifiedDate) {
+
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
@@ -54,9 +55,9 @@ public class Profile {
 		this.modifiedBy = modifiedBy;
 		this.modifiedDate = modifiedDate;
 	}
-	
-	public Profile(Users user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy, Date createdDate,
-			String modifiedBy, Date modifiedDate) {
+
+	public Profile(Users user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
+			Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
@@ -106,7 +107,7 @@ public class Profile {
 
 	@ApiModelProperty(notes = "Profile interest")
 	private String interest;
-	
+
 	@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
@@ -127,5 +128,4 @@ public class Profile {
 	@ApiModelProperty(notes = "When is the data modified last time")
 	private Date modifiedDate;
 
-	
 }

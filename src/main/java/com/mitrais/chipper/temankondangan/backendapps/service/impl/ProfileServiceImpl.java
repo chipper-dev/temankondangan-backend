@@ -34,7 +34,7 @@ public class ProfileServiceImpl implements ProfileService {
 	public boolean update(ProfileUpdateWrapper wrapper) {
 		try {
 			Users user = userRepository.findById(wrapper.getUserId())
-					.orElseThrow(() -> new NoSuchElementException("Invalid account"));
+					.orElseThrow(() -> new NoSuchElementException("No such user"));
 
 			byte[] image;
 

@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "users")
 @EntityListeners(AuditingEntityListener.class)
+
 @JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about User. ")
 public class Users {
@@ -43,6 +44,7 @@ public class Users {
 	public Users(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
 			Date modifiedDate) {
 		super();
+
 		this.email = email;
 		this.passwordHashed = passwordHashed;
 		this.createdBy = createdBy;
@@ -50,7 +52,7 @@ public class Users {
 		this.modifiedBy = modifiedBy;
 		this.modifiedDate = modifiedDate;
 	}
-	
+
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
@@ -71,7 +73,7 @@ public class Users {
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -82,11 +84,11 @@ public class Users {
 	@ApiModelProperty(notes = "Who modified the data last time")
 	private String modifiedBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
 	private Date modifiedDate;
-	
+
 }
