@@ -28,11 +28,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(value = { "createdBy", "createdAt", "modifiedBy", "updatedAt" }, allowGetters = true)
 @ApiModel(description = "All details about User. ")
-public class Users {
+public class User {
 
-	public Users(String email,
-				 String passwordHashed,
-				 String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+	public User(String email,
+				String passwordHashed,
+				String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.email = email;
 		this.passwordHashed = passwordHashed;
 		this.createdBy = createdBy;
