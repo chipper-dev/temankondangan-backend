@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.Date;
 public class RegisterUserWrapper {
 
     private String fullname;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date dob;
     private String gender;
     private String email;
