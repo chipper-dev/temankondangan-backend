@@ -10,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,7 +42,7 @@ public class UserController extends CommonResource {
 	}
 
 	@ApiOperation(value = "Change password API", response = ResponseEntity.class)
-	@PostMapping("/change-password")
+	@PutMapping("/change-password")
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper, Locale locale,
 			HttpServletRequest request) throws ParseException {
 
