@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.Optional;
 
@@ -28,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     ProfileRepository profileRepository;
 
     @Override
+    @Transactional
     public User save(RegisterUserWrapper register) {
         if (userRepository.existsByEmail(register.getEmail())) {
             throw new ResponseStatusException(
@@ -35,21 +37,26 @@ public class AuthServiceImpl implements AuthService {
         }
 
         if(register.getPassword().equals(register.getConfirmPassword())) {
-            User user = new User(
-                    register.getEmail(),
-                    passwordEncoder.encode(register.getPassword()),
-                    register.getEmail(),
-                    new Date(),
-                    register.getEmail(),
-                    new Date()
-            );
+            User user = new User();
+            user.setEmail(register.getEmail());
+            user.setPasswordHashed(passwordEncoder.encode(register.getPassword()));
+            user.setCreatedBy(register.getEmail());
+            user.setCreatedDate(new Date());
+            user.setModifiedBy(register.getEmail());
+            user.setModifiedDate(new Date());
             user = userRepository.save(user);
-            profileRepository.save(new Profile(
-                    user, register.getFullname(), register.getDob(), register.getGender(),
-                    register.getEmail(),
-                    new Date(),
-                    register.getEmail(),
-                    new Date()));
+
+            Profile profile = new Profile();
+            profile.setUser(user);
+            profile.setFullName(register.getFullname());
+            profile.setDob(register.getDob());
+            profile.setGender(register.getGender());
+            profile.setCreatedBy(register.getEmail());
+            profile.setCreatedDate(new Date());
+            profile.setModifiedBy(register.getEmail());
+            profile.setModifiedDate(new Date());
+            profileRepository.save(profile);
+
             return user;
         } else {
             throw new ResponseStatusException(
