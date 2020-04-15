@@ -1,8 +1,9 @@
-package com.mitrais.chipper.temankondangan.backendapps.service.impl;
+package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import java.util.Date;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class AuthServiceImplTest {
+public class AuthServiceTest {
 
 	@Autowired
 	AuthServiceImpl authService;
