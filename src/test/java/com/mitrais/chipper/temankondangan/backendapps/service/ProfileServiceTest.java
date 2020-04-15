@@ -20,14 +20,14 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWr
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServiceImpl;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.RegisterServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ProfileServiceTest {
 
 	@Autowired
-	RegisterServiceImpl registerService;
+    AuthServiceImpl registerService;
 
 	@Autowired
 	ProfileServiceImpl profileService;
