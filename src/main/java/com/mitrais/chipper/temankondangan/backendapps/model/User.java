@@ -4,6 +4,9 @@ import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -12,27 +15,50 @@ import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@Builder
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
-//@EntityListeners(AuditingEntityListener.class)
-//@JsonIgnoreProperties(value = { "createdAt", "updatedAt" }, allowGetters = true)
+@EntityListeners(AuditingEntityListener.class)
+
+@JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about User. ")
-public class Users {
+public class User {
+
+	public User(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
+			Date modifiedDate) {
+		super();
+		this.email = email;
+		this.passwordHashed = passwordHashed;
+		this.createdBy = createdBy;
+		this.createdDate = createdDate;
+		this.modifiedBy = modifiedBy;
+		this.modifiedDate = modifiedDate;
+	}
 
 	@Id
-	@NotEmpty
+	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
-    @SequenceGenerator(name = "user_id_seq_gen", sequenceName = "user_id_seq", allocationSize = 1)
-    @ApiModelProperty(notes = "User DB id")
+	@SequenceGenerator(name = "user_id_seq_gen", sequenceName = "user_id_seq", allocationSize = 1)
+	@ApiModelProperty(notes = "User DB id")
 	private Long userId;
 
 	@NotEmpty
@@ -41,13 +67,14 @@ public class Users {
 
 	@NotEmpty
 	@ApiModelProperty(notes = "User hashed password")
+	@JsonIgnore
 	private String passwordHashed;
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -58,67 +85,17 @@ public class Users {
 	@ApiModelProperty(notes = "Who modified the data last time")
 	private String modifiedBy;
 
-	@NotEmpty
+	@NotNull
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
 	private Date modifiedDate;
 
-	public Long getUserId() {
-		return userId;
-	}
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	private AuthProvider provider;
 
-	public void setUserId(Long userId) {
-		this.userId = userId;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getPasswordHashed() {
-		return passwordHashed;
-	}
-
-	public void setPasswordHashed(String passwordHashed) {
-		this.passwordHashed = passwordHashed;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
-
-	public Date getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(Date createdDate) {
-		this.createdDate = createdDate;
-	}
-
-	public String getModifiedBy() {
-		return modifiedBy;
-	}
-
-	public void setModifiedBy(String modifiedBy) {
-		this.modifiedBy = modifiedBy;
-	}
-
-	public Date getModifiedDate() {
-		return modifiedDate;
-	}
-
-	public void setModifiedDate(Date modifiedDate) {
-		this.modifiedDate = modifiedDate;
-	}
+	private String providerId;
 
 }

@@ -1,34 +1,37 @@
 CREATE TABLE public.users (
-	id serial NOT NULL,
+	user_id int8 PRIMARY KEY,
 	email varchar NOT NULL,
 	password_hashed varchar NOT NULL,
 	created_by varchar NOT NULL,
-	created_date date NOT NULL,
+	created_date timestamp NOT NULL,
 	modified_by varchar NOT NULL,
-	modified_date date NOT NULL,
-	CONSTRAINT users_pkey PRIMARY KEY (id)
+	modified_date timestamp NOT NULL,
+    provider varchar NOT NULL,
+    provider_id varchar
 );
 
-CREATE table public.profiles (
-	id serial NOT NULL,
-	user_pk int4 NOT NULL REFERENCES users(id),
-	fullname varchar NOT NULL,
+CREATE table public.profile (
+	profile_id int8 PRIMARY KEY,
+	user_id int8 NOT NULL REFERENCES users(user_id),
+	full_name varchar NOT NULL,
 	dob date NOT NULL,
 	gender varchar(1) NOT NULL,
-	photo_profile bytea NULL,
+	photo_profile oid NULL,
 	city varchar NULL,
 	about_me varchar(200) NULL,
 	interest varchar(200) NULL,
-	CONSTRAINT profiles_pkey PRIMARY KEY (id)
+	created_by varchar NOT NULL,
+    created_date timestamp NOT NULL,
+    modified_by varchar NOT NULL,
+    modified_date timestamp NOT NULL
 );
 
 CREATE TABLE public.config (
-	id serial NOT NULL,
+	config_id int8 PRIMARY KEY,
 	config_key varchar NOT NULL,
 	config_value varchar NOT NULL,
 	created_by varchar NOT NULL,
-	created_date date NOT NULL,
+	created_date timestamp NOT NULL,
 	modified_by varchar NOT NULL,
-	modified_date date NOT NULL,
-	CONSTRAINT config_pkey PRIMARY KEY (id)
+	modified_date timestamp NOT NULL
 );
