@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.LoginWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
@@ -35,14 +36,13 @@ public class AuthController extends CommonResource {
 
     @PostMapping("/login")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> login(@RequestParam("email") String email,
-                                              @RequestParam("password") String password,
+    public ResponseEntity<ResponseBody> login(@RequestBody LoginWrapper data,
                                               HttpServletRequest request) {
-        boolean result = authService.login(email, password);
+        boolean result = authService.login(data.getEmail(), data.getPassword());
 
         if (result) {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                    email, password
+                    data.getEmail(), data.getPassword()
             ));
             String jwt = tokenProvider.createToken(authentication);
             return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), jwt, null));
