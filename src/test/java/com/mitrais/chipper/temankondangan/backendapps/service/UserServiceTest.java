@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
@@ -52,6 +53,20 @@ public class UserServiceTest {
 	public void ChangePasswordDifferentOldPassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper(1L, "123Q", "12345", "12345");
 		boolean result = userService.changePassword(wrapper);
+		assertFalse(result);
+	}
+
+	@Test
+	public void CreatePasswordTest() {
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper(1L, "12345", "12345");
+		boolean result = userService.createPassword(wrapper);
+		assertTrue(result);
+	}
+
+	@Test
+	public void CreatePasswordDifferentOldPassword() {
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper(1L, "12345", "12345Q");
+		boolean result = userService.createPassword(wrapper);
 		assertFalse(result);
 	}
 }

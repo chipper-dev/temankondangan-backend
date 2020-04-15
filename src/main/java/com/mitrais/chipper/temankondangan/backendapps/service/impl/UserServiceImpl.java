@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 
@@ -41,6 +42,24 @@ public class UserServiceImpl implements UserService {
 
 		} catch (Exception e) {
 			System.out.println("Error change password");
+		}
+		return false;
+	}
+
+	@Override
+	public boolean createPassword(UserCreatePasswordWrapper wrapper) {
+		try {
+			User user = userRepository.findById(wrapper.getUserId())
+					.orElseThrow(() -> new NoSuchElementException("No user with user id " + wrapper.getUserId()));
+
+			if (wrapper.getNewPassword().equals(wrapper.getConfirmNewPassword())) {
+				user.setPasswordHashed(passwordEncoder.encode(wrapper.getNewPassword()));
+				userRepository.save(user);
+				return true;
+			}
+
+		} catch (Exception e) {
+			System.out.println("Error creating password");
 		}
 		return false;
 	}
