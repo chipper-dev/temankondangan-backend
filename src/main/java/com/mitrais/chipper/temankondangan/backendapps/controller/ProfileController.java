@@ -36,7 +36,7 @@ public class ProfileController extends CommonResource {
 	private SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
-	@PostMapping("/update-profile")
+	@PostMapping("/update")
 	public ResponseEntity<ResponseBody> update(@RequestParam("file") MultipartFile file,
 			@RequestParam("userId") Long userId, @RequestParam("fullName") String fullName,
 			@RequestParam("dob") String dob, @RequestParam("gender") String gender, @RequestParam("city") String city,
