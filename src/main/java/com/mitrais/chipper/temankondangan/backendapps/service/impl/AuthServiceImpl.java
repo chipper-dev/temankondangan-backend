@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
@@ -44,6 +45,7 @@ public class AuthServiceImpl implements AuthService {
             user.setCreatedDate(new Date());
             user.setModifiedBy(register.getEmail());
             user.setModifiedDate(new Date());
+            user.setProvider(AuthProvider.local);
             user = userRepository.save(user);
 
             Profile profile = new Profile();

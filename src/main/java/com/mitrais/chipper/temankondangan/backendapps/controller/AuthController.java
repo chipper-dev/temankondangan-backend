@@ -21,7 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 
 @Api(value="Register", description="Operations regarding registering in TemenKondangan System")
 @RestController
-@Validated
 @RequestMapping("/auth")
 public class AuthController extends CommonResource {
 
