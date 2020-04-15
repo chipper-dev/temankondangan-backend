@@ -43,17 +43,6 @@ import lombok.NoArgsConstructor;
 @ApiModel(description = "All details about User. ")
 public class User {
 
-	public User(String email, String passwordHashed, String createdBy, Date createdDate, String modifiedBy,
-			Date modifiedDate) {
-		super();
-		this.email = email;
-		this.passwordHashed = passwordHashed;
-		this.createdBy = createdBy;
-		this.createdDate = createdDate;
-		this.modifiedBy = modifiedBy;
-		this.modifiedDate = modifiedDate;
-	}
-
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq_gen")
