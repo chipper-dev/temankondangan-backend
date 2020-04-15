@@ -12,10 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 
 @Service
@@ -24,17 +22,14 @@ public class ProfileServiceImpl implements ProfileService {
 	@Autowired
 	private ProfileRepository profileRepository;
 
-	@Autowired
-	private UserRepository userRepository;
-
-	private static String DEFAULT_IMAGE = "images/defaultprofile.jpg";
+	private static String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
 	@Transactional
 	public boolean update(ProfileUpdateWrapper wrapper) {
 		try {
-			User user = userRepository.findById(wrapper.getUserId())
-					.orElseThrow(() -> new NoSuchElementException("No user with user id "+wrapper.getUserId()));
+			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
+					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
 
 			byte[] image;
 
@@ -44,8 +39,15 @@ public class ProfileServiceImpl implements ProfileService {
 				image = wrapper.getImage().getBytes();
 			}
 
-			profileRepository.save(new Profile(user, wrapper.getFullName(), wrapper.getDob(),
-					wrapper.getGender(), image, wrapper.getFullName(), new Date(), wrapper.getFullName(), new Date()));
+			profile.setPhotoProfile(image);
+			profile.setModifiedDate(new Date());
+			profile.setModifiedBy(wrapper.getFullName());
+			profile.setAboutMe(wrapper.getAboutMe());
+			profile.setCity(wrapper.getCity());
+			profile.setInterest(wrapper.getInterest());
+			profile.setDob(wrapper.getDob());
+			profile.setGender(wrapper.getGender());
+			profileRepository.save(profile);
 			return true;
 		} catch (Exception e) {
 			return false;
