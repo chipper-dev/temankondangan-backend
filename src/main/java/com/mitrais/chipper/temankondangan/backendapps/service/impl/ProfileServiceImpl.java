@@ -29,7 +29,7 @@ public class ProfileServiceImpl implements ProfileService {
 	public boolean update(ProfileUpdateWrapper wrapper) {
 		try {
 			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
-					.orElseThrow(() -> new NoSuchElementException("No such user"));
+					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
 
 			byte[] image;
 
@@ -45,6 +45,8 @@ public class ProfileServiceImpl implements ProfileService {
 			profile.setAboutMe(wrapper.getAboutMe());
 			profile.setCity(wrapper.getCity());
 			profile.setInterest(wrapper.getInterest());
+			profile.setDob(wrapper.getDob());
+			profile.setGender(wrapper.getGender());
 			profileRepository.save(profile);
 			return true;
 		} catch (Exception e) {

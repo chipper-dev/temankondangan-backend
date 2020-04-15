@@ -43,18 +43,6 @@ import lombok.NoArgsConstructor;
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(User user, String fullName, Date dob, String gender, String createdBy, Date createdDate,
-			String modifiedBy, Date modifiedDate) {
-		this.user = user;
-		this.fullName = fullName;
-		this.dob = dob;
-		this.gender = gender;
-		this.createdBy = createdBy;
-		this.createdDate = createdDate;
-		this.modifiedBy = modifiedBy;
-		this.modifiedDate = modifiedDate;
-	}
-
 	public Profile(User user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
 			Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
