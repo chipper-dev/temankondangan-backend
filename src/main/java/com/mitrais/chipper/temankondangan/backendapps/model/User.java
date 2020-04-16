@@ -54,7 +54,6 @@ public class User {
 	@ApiModelProperty(notes = "User email")
 	private String email;
 
-	@NotEmpty
 	@ApiModelProperty(notes = "User hashed password")
 	@JsonIgnore
 	private String passwordHashed;

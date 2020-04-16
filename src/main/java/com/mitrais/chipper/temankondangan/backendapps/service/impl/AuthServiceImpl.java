@@ -45,7 +45,7 @@ public class AuthServiceImpl implements AuthService {
             user.setCreatedDate(new Date());
             user.setModifiedBy(register.getEmail());
             user.setModifiedDate(new Date());
-            user.setProvider(AuthProvider.local);
+            user.setProvider(AuthProvider.email);
             user = userRepository.save(user);
 
             Profile profile = new Profile();

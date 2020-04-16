@@ -1,7 +1,7 @@
 CREATE TABLE public.users (
 	user_id int8 PRIMARY KEY,
 	email varchar NOT NULL,
-	password_hashed varchar NOT NULL,
+	password_hashed varchar,
 	created_by varchar NOT NULL,
 	created_date timestamp NOT NULL,
 	modified_by varchar NOT NULL,
