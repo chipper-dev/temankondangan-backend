@@ -2,22 +2,35 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import java.util.Date;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EntityListeners;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Data
 @AllArgsConstructor
@@ -26,16 +39,17 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Entity
 @Table(name = "profile")
 @EntityListeners(AuditingEntityListener.class)
-@JsonIgnoreProperties(value = { "createdBy", "createdAt", "modifiedBy", "updatedAt" }, allowGetters = true)
+@JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(User user, String fullName, Date dob, String gender,
-                   String createdBy, Date createdDate, String modifiedBy, Date modifiedDate) {
+	public Profile(User user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
+			Date createdDate, String modifiedBy, Date modifiedDate) {
 		this.user = user;
 		this.fullName = fullName;
 		this.dob = dob;
 		this.gender = gender;
+		this.photoProfile = photoProfile;
 		this.createdBy = createdBy;
 		this.createdDate = createdDate;
 		this.modifiedBy = modifiedBy;
@@ -45,8 +59,8 @@ public class Profile {
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_seq_gen")
-    @SequenceGenerator(name = "profile_id_seq_gen", sequenceName = "profile_id_seq", allocationSize = 1)
-    @ApiModelProperty(notes = "Profile DB id")
+	@SequenceGenerator(name = "profile_id_seq_gen", sequenceName = "profile_id_seq", allocationSize = 1)
+	@ApiModelProperty(notes = "Profile DB id")
 	private Long profileId;
 
 	@ManyToOne
@@ -80,11 +94,11 @@ public class Profile {
 
 	@ApiModelProperty(notes = "Profile interest")
 	private String interest;
+
 	@NotEmpty
 	@ApiModelProperty(notes = "Who created the data")
 	private String createdBy;
 
-	@NotNull
 	@Column(nullable = false, updatable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@CreatedDate
@@ -95,114 +109,10 @@ public class Profile {
 	@ApiModelProperty(notes = "Who modified the data last time")
 	private String modifiedBy;
 
-	@NotNull
 	@Column(nullable = false)
 	@Temporal(TemporalType.TIMESTAMP)
 	@LastModifiedDate
 	@ApiModelProperty(notes = "When is the data modified last time")
 	private Date modifiedDate;
 
-	public Long getProfileId() {
-		return profileId;
-	}
-
-	public void setProfileId(Long profileId) {
-		this.profileId = profileId;
-	}
-
-	public User getUser() {
-		return user;
-	}
-
-	public void setUser(User user) {
-		this.user = user;
-	}
-	
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
-
-	public Date getDob() {
-		return dob;
-	}
-
-	public void setDob(Date dob) {
-		this.dob = dob;
-	}
-
-	public String getGender() {
-		return gender;
-	}
-
-	public void setGender(String gender) {
-		this.gender = gender;
-	}
-
-	public byte[] getPhotoProfile() {
-		return photoProfile;
-	}
-
-	public void setPhotoProfile(byte[] photoProfile) {
-		this.photoProfile = photoProfile;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getAboutMe() {
-		return aboutMe;
-	}
-
-	public void setAboutMe(String aboutMe) {
-		this.aboutMe = aboutMe;
-	}
-
-	public String getInterest() {
-		return interest;
-	}
-
-	public void setInterest(String interest) {
-		this.interest = interest;
-	}
-
-	public String getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
-
-	public Date getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(Date createdDate) {
-		this.createdDate = createdDate;
-	}
-
-	public String getModifiedBy() {
-		return modifiedBy;
-	}
-
-	public void setModifiedBy(String modifiedBy) {
-		this.modifiedBy = modifiedBy;
-	}
-
-	public Date getModifiedDate() {
-		return modifiedDate;
-	}
-
-	public void setModifiedDate(Date modifiedDate) {
-		this.modifiedDate = modifiedDate;
-	}
 }
