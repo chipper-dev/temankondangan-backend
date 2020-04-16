@@ -45,7 +45,7 @@ public class AuthController extends CommonResource {
                     data.getEmail(), data.getPassword()
             ));
             String jwt = tokenProvider.createToken(authentication);
-            return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), jwt, null));
+            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), jwt, null));
 
         } else {
             return new ResponseEntity<>(
@@ -59,7 +59,20 @@ public class AuthController extends CommonResource {
     public ResponseEntity<ResponseBody> register(@RequestBody RegisterUserWrapper register, HttpServletRequest request) {
         try {
             User user = authService.save(register);
-            return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), user, null));
+            if (user.getUserId() != null) {
+                Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                        register.getEmail(), register.getPassword()
+                ));
+                String jwt = tokenProvider.createToken(authentication);
+                return new ResponseEntity<>(
+                        getResponseBody(HttpStatus.CREATED.value(), jwt, null),
+                        HttpStatus.CREATED);
+
+            } else {
+                return new ResponseEntity<>(
+                        getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
+                        HttpStatus.UNPROCESSABLE_ENTITY);
+            }
 
         } catch (ResponseStatusException e) {
             return new ResponseEntity<>(
