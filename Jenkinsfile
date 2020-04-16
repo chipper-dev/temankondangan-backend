@@ -37,10 +37,18 @@ node{
         }
     }
     stage('Run Application') {
-        withCredentials([usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser')]) {
-            db_username = env.dbAuthUser
-            db_password = env.dbAuthPassword
-            sh "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password --restart always -d $image"
+        withCredentials([
+            usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+            usernamePassword(credentialsId: 'oAuth', passwordVariable: 'oAuthPassword', usernameVariable: 'oAuthUsername'),
+            string(credentialsId: 'token-secret', variable: 'tokenSecret')
+            ]) {
+                clientId = env.oAuthUsername
+                clientSecret = env.oAuthPassword
+                db_username = env.dbAuthUser
+                db_password = env.dbAuthPassword
+                token_secret = env.tokenSecret
+
+                sh "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e GOOGLE_CLIENT_ID=$clientId -e GOOGLE_CLIENT_SECRET=$clientSecret -e TOKEN_SECRET=$token_secret --restart always -d $image"
         }
     }
 }
