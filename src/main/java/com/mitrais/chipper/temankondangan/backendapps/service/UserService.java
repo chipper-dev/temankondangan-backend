@@ -6,10 +6,10 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePassw
 
 public interface UserService {
 
-	public boolean changePassword(UserChangePasswordWrapper wrapper);
+	public boolean changePassword(UserChangePasswordWrapper wrapper, String token);
 
 	public User findById(Long userId);
 
-	public boolean createPassword(UserCreatePasswordWrapper wrapper);
+	public boolean createPassword(UserCreatePasswordWrapper wrapper, String token);
 
 }

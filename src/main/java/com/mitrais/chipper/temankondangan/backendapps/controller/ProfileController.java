@@ -44,12 +44,14 @@ public class ProfileController extends CommonResource {
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
 	@PostMapping("/update")
-	public ResponseEntity<ResponseBody> update(@RequestParam("file") MultipartFile file,
-			@RequestParam("token") String token, @RequestParam("fullName") String fullName,
-			@RequestParam("dob") String dob, @RequestParam("gender") Gender gender, @RequestParam("city") String city,
+	public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
+			@RequestParam("fullName") String fullName, @RequestParam("dob") String dob,
+			@RequestParam("gender") Gender gender, @RequestParam("city") String city,
 			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest,
 			HttpServletRequest request) throws ParseException {
-		
+
+		String token = getToken(request.getHeader("Authorization"));
+
 		boolean result = profileService.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token),
 				fullName, formatter.parse(dob), gender, city, aboutMe, interest));
 		if (result) {
@@ -61,8 +63,10 @@ public class ProfileController extends CommonResource {
 
 	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
 	@GetMapping("/find")
-	public ResponseEntity<ResponseBody> findByUserId(@RequestParam("token") String token, HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
 		try {
+			String token = getToken(request.getHeader("Authorization"));
+
 			Long userId = tokenProvider.getUserIdFromToken(token);
 			Profile profile = profileService.findByUserId(userId)
 					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
