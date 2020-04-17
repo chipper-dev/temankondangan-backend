@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserChangePasswordWrapper {
 
-	private Long userId;
+	private String token;
 	private String oldPassword;
 	private String newPassword;
 	private String confirmNewPassword;
