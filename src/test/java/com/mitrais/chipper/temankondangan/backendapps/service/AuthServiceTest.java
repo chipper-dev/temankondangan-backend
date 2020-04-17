@@ -19,6 +19,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWra
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 
+import javax.validation.constraints.AssertTrue;
+
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class AuthServiceTest {
@@ -77,9 +79,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Password and Confirm Password not match!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
@@ -91,9 +96,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Email is already exist!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
@@ -103,9 +111,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Password cannot empty!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
@@ -117,65 +128,97 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Password cannot empty!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
 	public void testRegisteringNewUserWithWrongDOBFormat() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
-		wrapper.setPassword("");
-		wrapper.setConfirmPassword("");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
 		wrapper.setDob("10/10/1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Date not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
-	public void testRegisteringNewUserWithNotValidDOB() {
+	public void testRegisteringNewUserWithNotValidDOBDate() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
-		wrapper.setPassword("");
-		wrapper.setConfirmPassword("");
-		wrapper.setDob("32/10/1994");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
+		wrapper.setDob("32-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Date not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
+
+//	@Test
+//	public void testRegisteringNewUserDOBAgeUnder18() {
+//		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+//		wrapper.setEmail("test@example.com");
+//		wrapper.setPassword("p@ssword123");
+//		wrapper.setConfirmPassword("p@ssword123");
+//		wrapper.setDob("10-10-2020");
+//		wrapper.setFullname("test2");
+//		wrapper.setGender(Gender.L);
+//		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+//			authService.save(wrapper);
+//		});
+//		String expectedMessage = "Error: Age should not under 18!";
+//		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+//				expectedMessage + " != " + e.getReason());
+//	}
 
 	@Test
 	public void testRegisteringNewUserWithNotValidEmailFormat() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test.example.com");
-		wrapper.setPassword("");
-		wrapper.setConfirmPassword("");
-		wrapper.setDob("32/10/1994");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
+		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Email not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test
 	public void testRegisteringNewUserWithNotValidPasswordFormat() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
-		wrapper.setEmail("test.example.com");
-		wrapper.setPassword("");
-		wrapper.setConfirmPassword("");
-		wrapper.setDob("32/10/1994");
+		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("password");
+		wrapper.setConfirmPassword("password");
+		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		Assertions.assertThrows(ResponseStatusException.class, () -> {
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
+		String expectedMessage = "Error: Password pattern not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
 	}
 
 	@Test

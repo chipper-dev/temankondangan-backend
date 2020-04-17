@@ -37,7 +37,7 @@ public class AuthServiceImpl implements AuthService {
         //check email exist
         if (userRepository.existsByEmail(register.getEmail())) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Error: Username is already exist!");
+                    HttpStatus.BAD_REQUEST, "Error: Email is already exist!");
         }
 
         //check email format valid
@@ -79,6 +79,9 @@ public class AuthServiceImpl implements AuthService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Date not valid!");
         }
+
+        //check age over 18
+        //TODO: create function for this
 
         //register
         User user = new User();
