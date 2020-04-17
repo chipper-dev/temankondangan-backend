@@ -49,29 +49,29 @@ public class UserServiceTest {
 
 	@Test
 	public void ChangePasswordTest() {
-		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("dummy token", "123", "12345", "12345");
-		boolean result = userService.changePassword(wrapper);
+		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("123", "12345", "12345");
+		boolean result = userService.changePassword(wrapper, "dummy token");
 		assertTrue(result);
 	}
 
 	@Test
 	public void ChangePasswordDifferentOldPassword() {
-		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("dummy token", "123Q", "12345", "12345");
-		boolean result = userService.changePassword(wrapper);
+		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("123Q", "12345", "12345");
+		boolean result = userService.changePassword(wrapper, "dummy token");
 		assertFalse(result);
 	}
 
 	@Test
 	public void CreatePasswordTest() {
-		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("dummy token", "12345", "12345");
-		boolean result = userService.createPassword(wrapper);
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345", "12345");
+		boolean result = userService.createPassword(wrapper, "dummy token");
 		assertTrue(result);
 	}
 
 	@Test
 	public void CreatePasswordDifferentOldPassword() {
-		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("dummy token", "12345", "12345Q");
-		boolean result = userService.createPassword(wrapper);
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345", "12345Q");
+		boolean result = userService.createPassword(wrapper, "dummy token");
 		assertFalse(result);
 	}
 }

@@ -28,6 +28,7 @@ public class ProfileServiceImpl implements ProfileService {
 	@Override
 	@Transactional
 	public boolean update(ProfileUpdateWrapper wrapper) {
+
 		try {
 			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
 					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
@@ -48,7 +49,9 @@ public class ProfileServiceImpl implements ProfileService {
 			profile.setInterest(wrapper.getInterest());
 			profile.setDob(wrapper.getDob());
 			profile.setGender(wrapper.getGender());
+
 			profileRepository.save(profile);
+
 			return true;
 		} catch (Exception e) {
 			System.out.println("Profile not updated.");
