@@ -32,9 +32,9 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean changePassword(UserChangePasswordWrapper wrapper) {
+	public boolean changePassword(UserChangePasswordWrapper wrapper, String token) {
 		try {
-			Long userId = tokenProvider.getUserIdFromToken(wrapper.getToken());
+			Long userId = tokenProvider.getUserIdFromToken(token);
 			User user = userRepository.findById(userId)
 					.orElseThrow(() -> new NoSuchElementException("No user with user id " + userId));
 
@@ -53,9 +53,9 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean createPassword(UserCreatePasswordWrapper wrapper) {
+	public boolean createPassword(UserCreatePasswordWrapper wrapper, String token) {
 		try {
-			Long userId = tokenProvider.getUserIdFromToken(wrapper.getToken());
+			Long userId = tokenProvider.getUserIdFromToken(token);
 			User user = userRepository.findById(userId)
 					.orElseThrow(() -> new NoSuchElementException("No user with user id " + userId));
 

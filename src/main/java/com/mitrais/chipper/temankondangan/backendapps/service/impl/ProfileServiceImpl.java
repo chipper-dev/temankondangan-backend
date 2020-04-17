@@ -28,17 +28,17 @@ public class ProfileServiceImpl implements ProfileService {
 	@Override
 	@Transactional
 	public boolean update(ProfileUpdateWrapper wrapper) {
-		try {
-			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
-					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
 
+		try {
 			byte[] image;
 
-			if (wrapper.getImage().isEmpty()) {
+			if (wrapper.getImage() == null) {
 				image = readBytesFromFile(DEFAULT_IMAGE);
 			} else {
 				image = wrapper.getImage().getBytes();
 			}
+			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
+					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
 
 			profile.setPhotoProfile(image);
 			profile.setModifiedDate(new Date());
@@ -48,7 +48,9 @@ public class ProfileServiceImpl implements ProfileService {
 			profile.setInterest(wrapper.getInterest());
 			profile.setDob(wrapper.getDob());
 			profile.setGender(wrapper.getGender());
+
 			profileRepository.save(profile);
+
 			return true;
 		} catch (Exception e) {
 			System.out.println("Profile not updated.");
