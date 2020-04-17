@@ -44,7 +44,7 @@ public class UserController extends CommonResource {
 
 	@ApiOperation(value = "Change password API", response = ResponseEntity.class)
 	@PutMapping("/change-password")
-	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper, Locale locale,
+	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
 			HttpServletRequest request) throws ParseException {
 
 		boolean result = userService.changePassword(wrapper);
@@ -55,11 +55,10 @@ public class UserController extends CommonResource {
 				getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
 				HttpStatus.UNPROCESSABLE_ENTITY);
 	}
-	
 
 	@ApiOperation(value = "Create password API", response = ResponseEntity.class)
 	@PutMapping("/create-password")
-	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper, Locale locale,
+	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
 			HttpServletRequest request) throws ParseException {
 
 		boolean result = userService.createPassword(wrapper);

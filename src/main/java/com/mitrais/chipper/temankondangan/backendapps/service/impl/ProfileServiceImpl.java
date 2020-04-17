@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Date;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 import javax.transaction.Transactional;
 
@@ -50,6 +51,7 @@ public class ProfileServiceImpl implements ProfileService {
 			profileRepository.save(profile);
 			return true;
 		} catch (Exception e) {
+			System.out.println("Profile not updated.");
 			return false;
 		}
 	}
@@ -83,5 +85,10 @@ public class ProfileServiceImpl implements ProfileService {
 
 		return bytesArray;
 
+	}
+
+	@Override
+	public Optional<Profile> findByUserId(Long userId) {
+		return profileRepository.findByUserId(userId);
 	}
 }
