@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.Optional;
@@ -39,11 +40,11 @@ public class AuthServiceImpl implements AuthService {
         //check email exist
         if (userRepository.existsByEmail(register.getEmail())) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Error: Username is already exist!");
+                    HttpStatus.BAD_REQUEST, "Error: Email is already exist!");
         }
 
         //check email format valid
-        String regexEmail = "^(.+)@(.+)$";
+        String regexEmail = "^(.+)@(.+)\\.(.+)$";
         Pattern patternEmail = Pattern.compile(regexEmail);
         if(! patternEmail.matcher(register.getEmail()).matches()) {
             throw new ResponseStatusException(
@@ -79,6 +80,12 @@ public class AuthServiceImpl implements AuthService {
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+        }
+
+        //check age over 18
+        if(Period.between(dob, LocalDate.now()).getYears() < 18) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Error: Age should not under 18!");
         }
 
         //register
