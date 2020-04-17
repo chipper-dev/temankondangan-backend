@@ -44,7 +44,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //check email format valid
-        String regexEmail = "^(.+)@(.+)$";
+        String regexEmail = "^(.+)@(.+)\\.(.+)$";
         Pattern patternEmail = Pattern.compile(regexEmail);
         if(! patternEmail.matcher(register.getEmail()).matches()) {
             throw new ResponseStatusException(

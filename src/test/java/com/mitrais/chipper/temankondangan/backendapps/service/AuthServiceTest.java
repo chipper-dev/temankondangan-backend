@@ -219,6 +219,39 @@ public class AuthServiceTest {
 	}
 
 	@Test
+	public void testRegisteringNewUserWithNoDomainEmailFormat() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@.com");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
+		wrapper.setDob("10-10-1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+		String expectedMessage = "Error: Email not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
+	}
+	@Test
+	public void testRegisteringNewUserWithNoTLDEmailFormat() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
+		wrapper.setDob("10-10-1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+		String expectedMessage = "Error: Email not valid!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
+	}
+
+	@Test
 	public void testRegisteringNewUserWithNotValidPasswordFormat() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
