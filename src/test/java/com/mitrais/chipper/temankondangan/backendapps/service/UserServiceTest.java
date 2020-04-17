@@ -19,6 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
 @SpringBootTest
@@ -31,8 +32,11 @@ public class UserServiceTest {
 	@MockBean
 	UserRepository userRepository;
 
+	@MockBean
+	TokenProvider tokenProvider;
+
 	@Autowired
-	private PasswordEncoder passwordEncoder;
+	PasswordEncoder passwordEncoder;
 
 	@BeforeEach
 	public void init() {
@@ -40,32 +44,33 @@ public class UserServiceTest {
 				new Date(), null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+		Mockito.when(tokenProvider.getUserIdFromToken(Mockito.anyString())).thenReturn(1L);
 	}
 
 	@Test
 	public void ChangePasswordTest() {
-		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper(1L, "123", "12345", "12345");
+		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("dummy token", "123", "12345", "12345");
 		boolean result = userService.changePassword(wrapper);
 		assertTrue(result);
 	}
 
 	@Test
 	public void ChangePasswordDifferentOldPassword() {
-		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper(1L, "123Q", "12345", "12345");
+		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("dummy token", "123Q", "12345", "12345");
 		boolean result = userService.changePassword(wrapper);
 		assertFalse(result);
 	}
 
 	@Test
 	public void CreatePasswordTest() {
-		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper(1L, "12345", "12345");
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("dummy token", "12345", "12345");
 		boolean result = userService.createPassword(wrapper);
 		assertTrue(result);
 	}
 
 	@Test
 	public void CreatePasswordDifferentOldPassword() {
-		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper(1L, "12345", "12345Q");
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("dummy token", "12345", "12345Q");
 		boolean result = userService.createPassword(wrapper);
 		assertFalse(result);
 	}
