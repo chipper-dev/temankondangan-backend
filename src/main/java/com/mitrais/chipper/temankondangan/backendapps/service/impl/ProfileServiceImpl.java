@@ -1,21 +1,19 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Date;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
-import javax.transaction.Transactional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -42,7 +40,7 @@ public class ProfileServiceImpl implements ProfileService {
 			}
 
 			profile.setPhotoProfile(image);
-			profile.setModifiedDate(new Date());
+			profile.setModifiedDate(LocalDateTime.now());
 			profile.setModifiedBy(wrapper.getFullName());
 			profile.setAboutMe(wrapper.getAboutMe());
 			profile.setCity(wrapper.getCity());
