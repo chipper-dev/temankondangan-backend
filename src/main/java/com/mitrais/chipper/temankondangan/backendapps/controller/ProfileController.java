@@ -20,6 +20,7 @@ import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
+import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -39,7 +40,7 @@ public class ProfileController extends CommonResource {
 	@PostMapping("/update")
 	public ResponseEntity<ResponseBody> update(@RequestParam("file") MultipartFile file,
 			@RequestParam("userId") Long userId, @RequestParam("fullName") String fullName,
-			@RequestParam("dob") String dob, @RequestParam("gender") String gender, @RequestParam("city") String city,
+			@RequestParam("dob") String dob, @RequestParam("gender") Gender gender, @RequestParam("city") String city,
 			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest, Locale locale,
 			HttpServletRequest request) throws ParseException {
 

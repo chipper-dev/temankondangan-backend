@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -51,7 +52,7 @@ public class ProfileServiceTest {
 
 	@Test
 	public void UpdateProfileTestWithImage() {
-		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "test name", new Date(), "M",
+		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "test name", new Date(), Gender.L,
 				"Test city", "Test about me", "Test interest");
 		boolean result = profileService.update(profileWrapper);
 		assertTrue(result);

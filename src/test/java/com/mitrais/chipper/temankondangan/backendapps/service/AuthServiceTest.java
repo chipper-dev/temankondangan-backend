@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import java.util.Date;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
 import org.junit.jupiter.api.*;
 import org.mockito.Mockito;
@@ -62,7 +63,7 @@ public class AuthServiceTest {
 		wrapper.setConfirmPassword("password123");
 		wrapper.setDob(new Date());
 		wrapper.setFullname("test");
-		wrapper.setGender("L");
+		wrapper.setGender(Gender.L);
 		User user = authService.save(wrapper);
 		Assert.notNull(user.getUserId(), "id is null");
 	}
@@ -75,7 +76,7 @@ public class AuthServiceTest {
 		wrapper.setConfirmPassword("password1234");
 		wrapper.setDob(new Date());
 		wrapper.setFullname("test2");
-		wrapper.setGender("L");
+		wrapper.setGender(Gender.L);
 		Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
@@ -89,7 +90,7 @@ public class AuthServiceTest {
 		wrapper.setConfirmPassword("password123");
 		wrapper.setDob(new Date());
 		wrapper.setFullname("test2");
-		wrapper.setGender("L");
+		wrapper.setGender(Gender.L);
 		Assertions.assertThrows(ResponseStatusException.class, () -> {
 			authService.save(wrapper);
 		});
