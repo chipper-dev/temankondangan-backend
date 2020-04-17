@@ -2,19 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
+import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -43,19 +31,6 @@ import lombok.NoArgsConstructor;
 @ApiModel(description = "All details about Profile. ")
 public class Profile {
 
-	public Profile(User user, String fullName, Date dob, String gender, byte[] photoProfile, String createdBy,
-			Date createdDate, String modifiedBy, Date modifiedDate) {
-		this.user = user;
-		this.fullName = fullName;
-		this.dob = dob;
-		this.gender = gender;
-		this.photoProfile = photoProfile;
-		this.createdBy = createdBy;
-		this.createdDate = createdDate;
-		this.modifiedBy = modifiedBy;
-		this.modifiedDate = modifiedDate;
-	}
-
 	@Id
 	@NotNull
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "profile_id_seq_gen")
@@ -77,10 +52,11 @@ public class Profile {
 	@ApiModelProperty(notes = "Profile birth of date")
 	private Date dob;
 
-	@NotEmpty
+	@NotNull
 	@Column(length = 1)
 	@ApiModelProperty(notes = "Profile gender")
-	private String gender;
+	@Enumerated(EnumType.STRING)
+	private Gender gender;
 
 	@Lob
 	@ApiModelProperty(notes = "Profile photo profile data byte")
