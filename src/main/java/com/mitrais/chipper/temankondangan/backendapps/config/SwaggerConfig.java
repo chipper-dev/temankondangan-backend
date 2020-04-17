@@ -23,8 +23,11 @@ public class SwaggerConfig {
     }
 
     private ApiInfo apiEndPointsInfo() {
+        String description = String.format("Description of TemenKondangan REST API " +
+                "%nFor the documentation about **Authentication with Gmail** please find [here](https://github.com/chipper-dev/temankondangan-backend/wiki/Gmail-Authentication-Flow).");
+
         return new ApiInfoBuilder().title("TemenKondangan REST API")
-                .description("Description of TemenKondangan REST API")
+                .description(description)
                 .license("Apache 2.0")
                 .licenseUrl("http://www.apache.org/licenses/LICENSE-2.0.html")
                 .version("1.0.0")

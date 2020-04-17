@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
-public enum AuthProvider {
-    email,
-    google,
+public enum Gender {
+	L, P
 }

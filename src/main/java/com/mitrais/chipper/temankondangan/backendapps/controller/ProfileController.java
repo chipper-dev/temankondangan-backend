@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -45,10 +46,10 @@ public class ProfileController extends CommonResource {
 	@PostMapping("/update")
 	public ResponseEntity<ResponseBody> update(@RequestParam("file") MultipartFile file,
 			@RequestParam("token") String token, @RequestParam("fullName") String fullName,
-			@RequestParam("dob") String dob, @RequestParam("gender") String gender, @RequestParam("city") String city,
+			@RequestParam("dob") String dob, @RequestParam("gender") Gender gender, @RequestParam("city") String city,
 			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest,
 			HttpServletRequest request) throws ParseException {
-
+		
 		boolean result = profileService.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token),
 				fullName, formatter.parse(dob), gender, city, aboutMe, interest));
 		if (result) {
