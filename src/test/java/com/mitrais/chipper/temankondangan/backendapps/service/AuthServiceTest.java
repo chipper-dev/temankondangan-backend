@@ -59,8 +59,8 @@ public class AuthServiceTest {
 	public void testRegisteringNewUser() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
-		wrapper.setPassword("password123");
-		wrapper.setConfirmPassword("password123");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test");
 		wrapper.setGender(Gender.L);
@@ -72,8 +72,8 @@ public class AuthServiceTest {
 	public void testRegisteringNewUserWithDifferentPassword() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
-		wrapper.setPassword("password123");
-		wrapper.setConfirmPassword("password1234");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword1234");
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
@@ -86,8 +86,8 @@ public class AuthServiceTest {
 	public void testRegisteringNewUserWithAlreadyExistEmail() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("exist@example.com");
-		wrapper.setPassword("password123");
-		wrapper.setConfirmPassword("password123");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
@@ -140,6 +140,34 @@ public class AuthServiceTest {
 	public void testRegisteringNewUserWithNotValidDOB() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("");
+		wrapper.setConfirmPassword("");
+		wrapper.setDob("32/10/1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithNotValidEmailFormat() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test.example.com");
+		wrapper.setPassword("");
+		wrapper.setConfirmPassword("");
+		wrapper.setDob("32/10/1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithNotValidPasswordFormat() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test.example.com");
 		wrapper.setPassword("");
 		wrapper.setConfirmPassword("");
 		wrapper.setDob("32/10/1994");
