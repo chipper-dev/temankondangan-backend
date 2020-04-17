@@ -1,11 +1,16 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import java.util.Date;
-import java.util.Optional;
-
 import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,11 +18,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import java.util.Optional;
 
 import javax.validation.constraints.AssertTrue;
 
