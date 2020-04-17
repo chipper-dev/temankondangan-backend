@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.Optional;
@@ -82,7 +83,10 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //check age over 18
-        //TODO: create function for this
+        if(Period.between(dob, LocalDate.now()).getYears() < 18) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Error: Age should not under 18!");
+        }
 
         //register
         User user = new User();

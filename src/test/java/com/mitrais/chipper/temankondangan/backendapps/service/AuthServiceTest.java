@@ -16,8 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import javax.validation.constraints.AssertTrue;
@@ -60,11 +62,16 @@ public class AuthServiceTest {
 
 	@Test
 	public void testRegisteringNewUser() {
+		int day = LocalDate.now().getDayOfMonth();
+		int month = LocalDate.now().getMonthValue();
+		int year = LocalDate.now().getYear() - 18;
+		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
+
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
 		wrapper.setEmail("test@example.com");
 		wrapper.setPassword("p@ssword123");
 		wrapper.setConfirmPassword("p@ssword123");
-		wrapper.setDob("10-10-1994");
+		wrapper.setDob(dob);
 		wrapper.setFullname("test");
 		wrapper.setGender(Gender.L);
 		User user = authService.save(wrapper);
@@ -171,22 +178,28 @@ public class AuthServiceTest {
 				expectedMessage + " != " + e.getReason());
 	}
 
-//	@Test
-//	public void testRegisteringNewUserDOBAgeUnder18() {
-//		RegisterUserWrapper wrapper = new RegisterUserWrapper();
-//		wrapper.setEmail("test@example.com");
-//		wrapper.setPassword("p@ssword123");
-//		wrapper.setConfirmPassword("p@ssword123");
-//		wrapper.setDob("10-10-2020");
-//		wrapper.setFullname("test2");
-//		wrapper.setGender(Gender.L);
-//		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
-//			authService.save(wrapper);
-//		});
-//		String expectedMessage = "Error: Age should not under 18!";
-//		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-//				expectedMessage + " != " + e.getReason());
-//	}
+	@Test
+	public void testRegisteringNewUserDOBAgeUnder18() {
+		//set dob dynamic 1 day before 18
+		int day = LocalDate.now().getDayOfMonth() +1;
+		int month = LocalDate.now().getMonthValue();
+		int year = LocalDate.now().getYear() - 18;
+		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
+
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("p@ssword123");
+		wrapper.setConfirmPassword("p@ssword123");
+		wrapper.setDob(dob);
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+		String expectedMessage = "Error: Age should not under 18!";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
+				expectedMessage + " != " + e.getReason());
+	}
 
 	@Test
 	public void testRegisteringNewUserWithNotValidEmailFormat() {
