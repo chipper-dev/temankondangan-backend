@@ -46,7 +46,7 @@ public class ProfileController extends CommonResource {
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
 	@PostMapping("/update")
-	public ResponseEntity<ResponseBody> update(@RequestParam("file") MultipartFile file,
+	public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
 			@RequestParam("fullName") String fullName, @RequestParam("dob") String dob,
 			@RequestParam("gender") Gender gender, @RequestParam("city") String city,
 			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest,
