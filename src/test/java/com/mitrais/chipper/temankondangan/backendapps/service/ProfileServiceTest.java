@@ -1,11 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.Date;
-import java.util.Optional;
-
 import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServiceImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -16,12 +17,11 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServiceImpl;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -43,7 +43,7 @@ public class ProfileServiceTest {
 
 	@BeforeAll
 	public void init() {
-		User user = new User(1L, "test@email.com", "123", "test user", new Date(), "test user", new Date(), null, null);
+		User user = new User(1L, "test@email.com", "123", "test user", LocalDateTime.now(), "test user", LocalDateTime.now(), null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
@@ -52,7 +52,7 @@ public class ProfileServiceTest {
 
 	@Test
 	public void UpdateProfileTestWithImage() {
-		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "test name", new Date(), Gender.L,
+		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "test name", LocalDate.now(), Gender.L,
 				"Test city", "Test about me", "Test interest");
 		boolean result = profileService.update(profileWrapper);
 		assertTrue(result);
