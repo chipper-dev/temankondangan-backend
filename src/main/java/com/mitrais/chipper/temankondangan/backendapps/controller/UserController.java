@@ -1,7 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import java.text.ParseException;
-import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -46,8 +45,9 @@ public class UserController extends CommonResource {
 	@PutMapping("/change-password")
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
 			HttpServletRequest request) throws ParseException {
+		String token = getToken(request.getHeader("Authorization"));
 
-		boolean result = userService.changePassword(wrapper);
+		boolean result = userService.changePassword(wrapper, token);
 		if (result) {
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 		}
@@ -60,8 +60,9 @@ public class UserController extends CommonResource {
 	@PutMapping("/create-password")
 	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
 			HttpServletRequest request) throws ParseException {
+		String token = getToken(request.getHeader("Authorization"));
 
-		boolean result = userService.createPassword(wrapper);
+		boolean result = userService.createPassword(wrapper, token);
 		if (result) {
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 		}
