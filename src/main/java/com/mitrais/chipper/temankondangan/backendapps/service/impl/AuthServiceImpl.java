@@ -72,7 +72,9 @@ public class AuthServiceImpl implements AuthService {
         Optional<User> data = userRepository.findByEmail(email);
         if(data.isPresent()) {
             User user = data.get();
-            result = passwordEncoder.matches(password, user.getPasswordHashed());
+            if(password != null) {
+                result = passwordEncoder.matches(password, user.getPasswordHashed());
+            }
         }
         return result;
     }

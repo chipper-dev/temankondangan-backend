@@ -112,4 +112,11 @@ public class AuthServiceTest {
 		boolean result = authService.login("test01@example.com", "password1234");
 		Assertions.assertFalse(result);
 	}
+
+	@Test
+	public void testLoginUsingPasswordNotSet() {
+		boolean result = authService.login("test@example.com",null);
+		Assertions.assertFalse(result);
+	}
+
 }
