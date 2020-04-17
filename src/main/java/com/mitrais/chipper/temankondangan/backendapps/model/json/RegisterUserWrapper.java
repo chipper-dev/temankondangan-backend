@@ -17,7 +17,7 @@ public class RegisterUserWrapper {
 
     private String fullname;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
-    private Date dob;
+    private String dob;
     private Gender gender;
     private String email;
     private String password;

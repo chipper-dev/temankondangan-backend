@@ -34,7 +34,7 @@ public class AuthServiceTest {
 
 	@BeforeEach
 	public void init() {
-		Mockito.when(userRepository.existsByEmail("test1@example.com")).thenReturn(true);
+		Mockito.when(userRepository.existsByEmail("exist@example.com")).thenReturn(true);
 
 		Mockito.when(userRepository.save(Mockito.any(User.class))).thenAnswer(i -> {
 			User user = i.getArgument(0, User.class);
@@ -61,7 +61,7 @@ public class AuthServiceTest {
 		wrapper.setEmail("test@example.com");
 		wrapper.setPassword("password123");
 		wrapper.setConfirmPassword("password123");
-		wrapper.setDob(new Date());
+		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test");
 		wrapper.setGender(Gender.L);
 		User user = authService.save(wrapper);
@@ -71,10 +71,10 @@ public class AuthServiceTest {
 	@Test
 	public void testRegisteringNewUserWithDifferentPassword() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
-		wrapper.setEmail("test2@example.com");
+		wrapper.setEmail("test@example.com");
 		wrapper.setPassword("password123");
 		wrapper.setConfirmPassword("password1234");
-		wrapper.setDob(new Date());
+		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
 		Assertions.assertThrows(ResponseStatusException.class, () -> {
@@ -85,10 +85,64 @@ public class AuthServiceTest {
 	@Test
 	public void testRegisteringNewUserWithAlreadyExistEmail() {
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
-		wrapper.setEmail("test1@example.com");
+		wrapper.setEmail("exist@example.com");
 		wrapper.setPassword("password123");
 		wrapper.setConfirmPassword("password123");
-		wrapper.setDob(new Date());
+		wrapper.setDob("10-10-1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithNoPassword() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example.com");
+		wrapper.setDob("10-10-1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithPasswordEmptyString() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("");
+		wrapper.setConfirmPassword("");
+		wrapper.setDob("10-10-1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithWrongDOBFormat() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("");
+		wrapper.setConfirmPassword("");
+		wrapper.setDob("10/10/1994");
+		wrapper.setFullname("test2");
+		wrapper.setGender(Gender.L);
+		Assertions.assertThrows(ResponseStatusException.class, () -> {
+			authService.save(wrapper);
+		});
+	}
+
+	@Test
+	public void testRegisteringNewUserWithNotValidDOB() {
+		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+		wrapper.setEmail("test@example.com");
+		wrapper.setPassword("");
+		wrapper.setConfirmPassword("");
+		wrapper.setDob("32/10/1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
 		Assertions.assertThrows(ResponseStatusException.class, () -> {
@@ -110,7 +164,7 @@ public class AuthServiceTest {
 
 	@Test
 	public void testLoginUsingEmailNotFound() {
-		boolean result = authService.login("test01@example.com", "password1234");
+		boolean result = authService.login("not.exist@example.com", "password1234");
 		Assertions.assertFalse(result);
 	}
 

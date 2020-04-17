@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
 
@@ -37,6 +38,21 @@ public class AuthServiceImpl implements AuthService {
                     HttpStatus.BAD_REQUEST, "Error: Username is already exist!");
         }
 
+        if(register.getPassword() == null || register.getPassword().equals("")) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Error: Password cannot empty!");
+        }
+
+        Date dob;
+        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+        sdf.setLenient(false);
+        try {
+            dob = sdf.parse(register.getDob());
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+        }
+
         if(register.getPassword().equals(register.getConfirmPassword())) {
             User user = new User();
             user.setEmail(register.getEmail());
@@ -51,7 +67,7 @@ public class AuthServiceImpl implements AuthService {
             Profile profile = new Profile();
             profile.setUser(user);
             profile.setFullName(register.getFullname());
-            profile.setDob(register.getDob());
+            profile.setDob(dob);
             profile.setGender(register.getGender());
             profile.setCreatedBy(register.getEmail());
             profile.setCreatedDate(new Date());
@@ -62,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
             return user;
         } else {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Password and Confirm Password not match");
+                    HttpStatus.BAD_REQUEST, "Error: Password and Confirm Password not match!");
         }
     }
 
