@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
@@ -47,13 +48,14 @@ public class UserController extends CommonResource {
 			HttpServletRequest request) throws ParseException {
 		String token = getToken(request.getHeader("Authorization"));
 
-		boolean result = userService.changePassword(wrapper, token);
-		if (result) {
+		try {
+			boolean result = userService.changePassword(wrapper, token);
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+
+		} catch (ResponseStatusException e) {
+			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
+					e.getStatus());
 		}
-		return new ResponseEntity<>(
-				getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
-				HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 
 	@ApiOperation(value = "Create password API", response = ResponseEntity.class)
@@ -62,12 +64,13 @@ public class UserController extends CommonResource {
 			HttpServletRequest request) throws ParseException {
 		String token = getToken(request.getHeader("Authorization"));
 
-		boolean result = userService.createPassword(wrapper, token);
-		if (result) {
+		try {
+			boolean result = userService.createPassword(wrapper, token);
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+
+		} catch (ResponseStatusException e) {
+			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
+					e.getStatus());
 		}
-		return new ResponseEntity<>(
-				getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
-				HttpStatus.UNPROCESSABLE_ENTITY);
 	}
 }
