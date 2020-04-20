@@ -14,8 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -37,11 +40,11 @@ public class AuthServiceImpl implements AuthService {
         //check email exist
         if (userRepository.existsByEmail(register.getEmail())) {
             throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST, "Error: Username is already exist!");
+                    HttpStatus.BAD_REQUEST, "Error: Email is already exist!");
         }
 
         //check email format valid
-        String regexEmail = "^(.+)@(.+)$";
+        String regexEmail = "^(.+)@(.+)\\.(.+)$";
         Pattern patternEmail = Pattern.compile(regexEmail);
         if(! patternEmail.matcher(register.getEmail()).matches()) {
             throw new ResponseStatusException(
@@ -70,14 +73,19 @@ public class AuthServiceImpl implements AuthService {
 
 
         //check dob valid
-        Date dob;
-        SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
-        sdf.setLenient(false);
+        LocalDate dob;
+        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
         try {
-            dob = sdf.parse(register.getDob());
+            dob = LocalDate.parse(register.getDob(), df);
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+        }
+
+        //check age over 18
+        if(Period.between(dob, LocalDate.now()).getYears() < 18) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "Error: Age should not under 18!");
         }
 
         //register
@@ -85,9 +93,9 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(register.getEmail());
         user.setPasswordHashed(passwordEncoder.encode(register.getPassword()));
         user.setCreatedBy(register.getEmail());
-        user.setCreatedDate(new Date());
+        user.setCreatedDate(LocalDateTime.now());
         user.setModifiedBy(register.getEmail());
-        user.setModifiedDate(new Date());
+        user.setModifiedDate(LocalDateTime.now());
         user.setProvider(AuthProvider.email);
         user = userRepository.save(user);
 
@@ -97,9 +105,9 @@ public class AuthServiceImpl implements AuthService {
         profile.setDob(dob);
         profile.setGender(register.getGender());
         profile.setCreatedBy(register.getEmail());
-        profile.setCreatedDate(new Date());
+        profile.setCreatedDate(LocalDateTime.now());
         profile.setModifiedBy(register.getEmail());
-        profile.setModifiedDate(new Date());
+        profile.setModifiedDate(LocalDateTime.now());
         profileRepository.save(profile);
 
         return user;

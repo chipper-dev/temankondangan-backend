@@ -2,6 +2,8 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,7 +42,7 @@ public class ProfileController extends CommonResource {
 	@Autowired
 	private TokenProvider tokenProvider;
 
-	private SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
 	@PostMapping("/update")
@@ -53,7 +55,7 @@ public class ProfileController extends CommonResource {
 		String token = getToken(request.getHeader("Authorization"));
 
 		boolean result = profileService.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token),
-				fullName, formatter.parse(dob), gender, city, aboutMe, interest));
+				fullName, LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
 		if (result) {
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 		}
