@@ -109,7 +109,7 @@ public class UserServiceTest {
 	// Testing for Create Password API
 	@Test
 	public void CreatePasswordTest() {
-		User user = new User(1L, "test@gmail.com", "", "test user", LocalDateTime.now(), "test user",
+		User user = new User(1L, "test@gmail.com", null, "test user", LocalDateTime.now(), "test user",
 				LocalDateTime.now(), AuthProvider.google, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
@@ -133,7 +133,7 @@ public class UserServiceTest {
 
 	@Test
 	public void ShouldThrowResponseStatusException_WhenProviderIsNotGoogle() {
-		User user = new User(1L, "test@gmail.com", "", "test user", LocalDateTime.now(), "test user",
+		User user = new User(1L, "test@gmail.com", null, "test user", LocalDateTime.now(), "test user",
 				LocalDateTime.now(), AuthProvider.email, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);

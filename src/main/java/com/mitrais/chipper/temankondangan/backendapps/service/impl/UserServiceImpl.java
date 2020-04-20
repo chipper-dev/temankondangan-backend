@@ -72,7 +72,7 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
-		if (!user.getPasswordHashed().isEmpty()) {
+		if (!(user.getPasswordHashed() == null)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password has been created");
 		}
 
