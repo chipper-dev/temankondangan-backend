@@ -41,8 +41,8 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
-		// check if all password field empty
-		if (wrapper.getNewPassword() == "" || wrapper.getConfirmNewPassword() == "" || wrapper.getOldPassword() == "") {
+		// check if old password field empty
+		if (wrapper.getOldPassword() == "" || wrapper.getOldPassword() == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
 		}
 
@@ -72,10 +72,12 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
+		// check if there is password
 		if (!(user.getPasswordHashed() == null)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password has been created");
 		}
 
+		// check if provider is google
 		if (!user.getProvider().equals(AuthProvider.google)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"Error: Cannot create password without google provider");
@@ -90,6 +92,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private void passwordValidation(String password, String confirmPassword) {
+
+		// check if empty
+		if (password == "" || confirmPassword == "" || password == null || confirmPassword == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
+		}
+
 		// new password and confirmed password need to be matched
 		if (!password.equals(confirmPassword)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Confirmed password do not match!");
