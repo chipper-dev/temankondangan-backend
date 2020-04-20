@@ -1,7 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
+import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
@@ -50,17 +51,21 @@ public class ProfileController extends CommonResource {
 			@RequestParam("fullName") String fullName, @RequestParam("dob") String dob,
 			@RequestParam("gender") Gender gender, @RequestParam("city") String city,
 			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest,
-			HttpServletRequest request) throws ParseException {
+			HttpServletRequest request) throws ParseException, IOException {
 
 		String token = getToken(request.getHeader("Authorization"));
+		try {
 
-		boolean result = profileService.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token),
-				fullName, LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
-		if (result) {
+			Profile result = profileService
+					.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token), fullName,
+							LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
+
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+
+		} catch (ResponseStatusException e) {
+			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
+					e.getStatus());
 		}
-		return new ResponseEntity<>(getResponseBody(HttpStatus.NOT_MODIFIED, null, null, request.getRequestURI()),
-				HttpStatus.NOT_MODIFIED);
 	}
 
 	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)

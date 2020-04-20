@@ -1,19 +1,22 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 import java.util.Optional;
+
+import javax.transaction.Transactional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
+
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -25,35 +28,29 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	@Transactional
-	public boolean update(ProfileUpdateWrapper wrapper) {
+	public Profile update(ProfileUpdateWrapper wrapper) throws IOException {
 
-		try {
-			byte[] image;
+		byte[] image;
 
-			if (wrapper.getImage() == null) {
-				image = readBytesFromFile(DEFAULT_IMAGE);
-			} else {
-				image = wrapper.getImage().getBytes();
-			}
-			Profile profile = profileRepository.findByUserId(wrapper.getUserId())
-					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
-
-			profile.setPhotoProfile(image);
-			profile.setModifiedDate(LocalDateTime.now());
-			profile.setModifiedBy(wrapper.getFullName());
-			profile.setAboutMe(wrapper.getAboutMe());
-			profile.setCity(wrapper.getCity());
-			profile.setInterest(wrapper.getInterest());
-			profile.setDob(wrapper.getDob());
-			profile.setGender(wrapper.getGender());
-
-			profileRepository.save(profile);
-
-			return true;
-		} catch (Exception e) {
-			System.out.println("Profile not updated.");
-			return false;
+		if (wrapper.getImage() == null) {
+			image = readBytesFromFile(DEFAULT_IMAGE);
+		} else {
+			image = wrapper.getImage().getBytes();
 		}
+		Profile profile = profileRepository.findByUserId(wrapper.getUserId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+
+		profile.setPhotoProfile(image);
+		profile.setModifiedDate(LocalDateTime.now());
+		profile.setModifiedBy(wrapper.getFullName());
+		profile.setAboutMe(wrapper.getAboutMe());
+		profile.setCity(wrapper.getCity());
+		profile.setInterest(wrapper.getInterest());
+		profile.setDob(wrapper.getDob());
+		profile.setGender(wrapper.getGender());
+
+		return profileRepository.save(profile);
+
 	}
 
 	private static byte[] readBytesFromFile(String filePath) {
@@ -71,7 +68,7 @@ public class ProfileServiceImpl implements ProfileService {
 			fileInputStream.read(bytesArray);
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error image file!");
 		} finally {
 			if (fileInputStream != null) {
 				try {
