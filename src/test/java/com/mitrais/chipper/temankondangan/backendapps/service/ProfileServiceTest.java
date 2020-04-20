@@ -46,19 +46,23 @@ public class ProfileServiceTest {
 
 	@BeforeAll
 	public void init() {
-		User user = new User(1L, "test@email.com", "12345_", "test user", LocalDateTime.now(), "test user",
-				LocalDateTime.now(), null, null);
+		User user = new User(1L, "test@email.com", "12345_", null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
 		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
 
+//		Profile beforeProfile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null,
+//				"Klaten city", "All about me", "Not interested", "Test", LocalDateTime.now(), "Test",
+//				LocalDateTime.now());
+//		Profile afterProfile = new Profile((long) 1, user, "full name changed", LocalDate.now(), Gender.L, null,
+//				"Klaten city", "All about me", "Not interested", "Test", LocalDateTime.now());
+
 		Profile beforeProfile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null,
-				"Klaten city", "All about me", "Not interested", "Test", LocalDateTime.now(), "Test",
-				LocalDateTime.now());
+				"Klaten city", "All about me", "Not interested");
 		Profile afterProfile = new Profile((long) 1, user, "full name changed", LocalDate.now(), Gender.L, null,
-				"Klaten city", "All about me", "Not interested", "Test", LocalDateTime.now(), "Test",
-				LocalDateTime.now());
+				"Klaten city", "All about me", "Not interested");
+
 		Optional<Profile> beforeProfileOptional = Optional.of(beforeProfile);
 
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(beforeProfileOptional);
