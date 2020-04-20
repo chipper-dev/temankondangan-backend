@@ -1,7 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import java.text.ParseException;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +43,7 @@ public class UserController extends CommonResource {
 	@ApiOperation(value = "Change password API", response = ResponseEntity.class)
 	@PutMapping("/change-password")
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
-			HttpServletRequest request) throws ParseException {
+			HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 
 		try {
@@ -61,7 +59,7 @@ public class UserController extends CommonResource {
 	@ApiOperation(value = "Create password API", response = ResponseEntity.class)
 	@PutMapping("/create-password")
 	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
-			HttpServletRequest request) throws ParseException {
+			HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 
 		try {

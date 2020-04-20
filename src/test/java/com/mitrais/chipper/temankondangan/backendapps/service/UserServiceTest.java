@@ -16,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
@@ -108,9 +109,37 @@ public class UserServiceTest {
 	// Testing for Create Password API
 	@Test
 	public void CreatePasswordTest() {
+		User user = new User(1L, "test@gmail.com", null, "test user", LocalDateTime.now(), "test user",
+				LocalDateTime.now(), AuthProvider.google, null);
+		Optional<User> userOptional = Optional.of(user);
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
 		boolean result = userService.createPassword(wrapper, "dummy token");
 		assertTrue(result);
 	}
 
+	@Test
+	public void ShouldThrowResponseStatusException_WhenPasswordIsNotNull() {
+		User user = new User(1L, "test@gmail.com", passwordEncoder.encode("12345_"), "test user", LocalDateTime.now(),
+				"test user", LocalDateTime.now(), AuthProvider.google, null);
+		Optional<User> userOptional = Optional.of(user);
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
+		assertThatThrownBy(() -> userService.createPassword(wrapper, "dummy token"))
+				.isInstanceOf(ResponseStatusException.class);
+	}
+
+	@Test
+	public void ShouldThrowResponseStatusException_WhenProviderIsNotGoogle() {
+		User user = new User(1L, "test@gmail.com", null, "test user", LocalDateTime.now(), "test user",
+				LocalDateTime.now(), AuthProvider.email, null);
+		Optional<User> userOptional = Optional.of(user);
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
+		assertThatThrownBy(() -> userService.createPassword(wrapper, "dummy token"))
+				.isInstanceOf(ResponseStatusException.class);
+	}
 }
