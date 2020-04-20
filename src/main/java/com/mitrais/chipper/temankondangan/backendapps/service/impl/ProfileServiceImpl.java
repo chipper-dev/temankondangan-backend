@@ -48,6 +48,7 @@ public class ProfileServiceImpl implements ProfileService {
 		profile.setInterest(wrapper.getInterest());
 		profile.setDob(wrapper.getDob());
 		profile.setGender(wrapper.getGender());
+		profile.setFullName(wrapper.getFullName());
 
 		return profileRepository.save(profile);
 

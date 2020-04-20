@@ -48,10 +48,13 @@ public class ProfileController extends CommonResource {
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
 	@PostMapping("/update")
 	public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
-			@RequestParam("fullName") String fullName, @RequestParam("dob") String dob,
-			@RequestParam("gender") Gender gender, @RequestParam("city") String city,
-			@RequestParam("aboutMe") String aboutMe, @RequestParam("interest") String interest,
-			HttpServletRequest request) throws ParseException, IOException {
+			@RequestParam(value = "fullName", required = true) String fullName,
+			@RequestParam(value = "dob", required = true) String dob,
+			@RequestParam(value = "gender", required = true) Gender gender,
+			@RequestParam(value = "city", required = false) String city,
+			@RequestParam(value = "aboutMe", required = false) String aboutMe,
+			@RequestParam(value = "interest", required = false) String interest, HttpServletRequest request)
+			throws ParseException, IOException {
 
 		String token = getToken(request.getHeader("Authorization"));
 		try {
