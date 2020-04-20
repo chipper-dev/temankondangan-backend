@@ -4,8 +4,8 @@ CREATE TABLE public.users (
 	password_hashed varchar,
 	created_by varchar NOT NULL,
 	created_date timestamp NOT NULL,
-	modified_by varchar NOT NULL,
-	modified_date timestamp NOT NULL,
+	last_modified_by varchar NOT NULL,
+	last_modified_date timestamp NOT NULL,
     provider varchar NOT NULL,
     provider_id varchar
 );
@@ -22,8 +22,8 @@ CREATE table public.profile (
 	interest varchar(200) NULL,
 	created_by varchar NOT NULL,
     created_date timestamp NOT NULL,
-    modified_by varchar NOT NULL,
-    modified_date timestamp NOT NULL
+    last_modified_by varchar NOT NULL,
+    last_modified_date timestamp NOT NULL
 );
 
 CREATE TABLE public.config (
@@ -32,6 +32,6 @@ CREATE TABLE public.config (
 	config_value varchar NOT NULL,
 	created_by varchar NOT NULL,
 	created_date timestamp NOT NULL,
-	modified_by varchar NOT NULL,
-	modified_date timestamp NOT NULL
+	last_modified_by varchar NOT NULL,
+	last_modified_date timestamp NOT NULL
 );
