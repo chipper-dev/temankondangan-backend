@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
@@ -71,6 +72,15 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
+		if (!(user.getPasswordHashed() == null)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password has been created");
+		}
+
+		if (!user.getProvider().equals(AuthProvider.google)) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"Error: Cannot create password without google provider");
+		}
+
 		this.passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmNewPassword());
 
 		user.setPasswordHashed(passwordEncoder.encode(wrapper.getNewPassword()));
@@ -89,7 +99,8 @@ public class UserServiceImpl implements UserService {
 		Pattern digitCasePatten = Pattern.compile("[0-9 ]");
 
 		if (password.length() < 6 || password.length() > 20) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password length must be 6-20 characters!");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"Error: Password length must be 6-20 characters!");
 		}
 
 		if (!specialCharPatten.matcher(password).find()) {
