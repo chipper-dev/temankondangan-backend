@@ -41,8 +41,8 @@ public class ProfileServiceImpl implements ProfileService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		profile.setPhotoProfile(image);
-		profile.setModifiedDate(LocalDateTime.now());
-		profile.setModifiedBy(wrapper.getFullName());
+//		profile.setModifiedDate(LocalDateTime.now());
+//		profile.setModifiedBy(wrapper.getFullName());
 		profile.setAboutMe(wrapper.getAboutMe());
 		profile.setCity(wrapper.getCity());
 		profile.setInterest(wrapper.getInterest());
