@@ -92,10 +92,10 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         user.setEmail(register.getEmail());
         user.setPasswordHashed(passwordEncoder.encode(register.getPassword()));
-        user.setCreatedBy(register.getEmail());
-        user.setCreatedDate(LocalDateTime.now());
-        user.setModifiedBy(register.getEmail());
-        user.setModifiedDate(LocalDateTime.now());
+//        user.setCreatedBy(register.getEmail());
+//        user.setCreatedDate(LocalDateTime.now());
+//        user.setModifiedBy(register.getEmail());
+//        user.setModifiedDate(LocalDateTime.now());
         user.setProvider(AuthProvider.email);
         user = userRepository.save(user);
 
@@ -104,10 +104,10 @@ public class AuthServiceImpl implements AuthService {
         profile.setFullName(register.getFullname());
         profile.setDob(dob);
         profile.setGender(register.getGender());
-        profile.setCreatedBy(register.getEmail());
-        profile.setCreatedDate(LocalDateTime.now());
-        profile.setModifiedBy(register.getEmail());
-        profile.setModifiedDate(LocalDateTime.now());
+//        profile.setCreatedBy(register.getEmail());
+//        profile.setCreatedDate(LocalDateTime.now());
+//        profile.setModifiedBy(register.getEmail());
+//        profile.setModifiedDate(LocalDateTime.now());
         profileRepository.save(profile);
 
         return user;

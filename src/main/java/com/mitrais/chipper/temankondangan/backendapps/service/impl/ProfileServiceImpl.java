@@ -39,8 +39,8 @@ public class ProfileServiceImpl implements ProfileService {
 					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + wrapper.getUserId()));
 
 			profile.setPhotoProfile(image);
-			profile.setModifiedDate(LocalDateTime.now());
-			profile.setModifiedBy(wrapper.getFullName());
+//			profile.setModifiedDate(LocalDateTime.now());
+//			profile.setModifiedBy(wrapper.getFullName());
 			profile.setAboutMe(wrapper.getAboutMe());
 			profile.setCity(wrapper.getCity());
 			profile.setInterest(wrapper.getInterest());
