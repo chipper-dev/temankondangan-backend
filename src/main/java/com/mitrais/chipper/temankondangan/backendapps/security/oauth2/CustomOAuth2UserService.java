@@ -16,7 +16,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -65,20 +65,20 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setProvider(AuthProvider.valueOf(oAuth2UserRequest.getClientRegistration().getRegistrationId()));
         user.setProviderId(oAuth2UserInfo.getId());
         user.setEmail(oAuth2UserInfo.getEmail());
-        user.setCreatedBy("oauth");
-        user.setCreatedDate(new Date());
-        user.setModifiedBy("oauth");
-        user.setModifiedDate(new Date());
+//        user.setCreatedBy("oauth");
+//        user.setCreatedDate(LocalDateTime.now());
+//        user.setModifiedBy("oauth");
+//        user.setModifiedDate(LocalDateTime.now());
         return userRepository.save(user);
     }
 
     private User updateExistingUser(User existingUser, OAuth2UserInfo oAuth2UserInfo) {
         System.out.println(existingUser);
 
-        existingUser.setCreatedBy("oauth");
-        existingUser.setCreatedDate(new Date());
-        existingUser.setModifiedBy("oauth");
-        existingUser.setModifiedDate(new Date());
+//        existingUser.setCreatedBy("oauth");
+//        existingUser.setCreatedDate(LocalDateTime.now());
+//        existingUser.setModifiedBy("oauth");
+//        existingUser.setModifiedDate(LocalDateTime.now());
         return userRepository.save(existingUser);
     }
 }

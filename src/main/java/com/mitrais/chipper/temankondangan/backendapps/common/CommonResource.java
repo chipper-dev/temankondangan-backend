@@ -1,14 +1,13 @@
 package com.mitrais.chipper.temankondangan.backendapps.common;
 
-import java.util.Date;
-import java.util.List;
-
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ContentList;
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ContentList;
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Class that defined common function that exist in every resource.
@@ -32,7 +31,7 @@ public class CommonResource {
 	 */
 	protected ResponseBody getResponseBody(int status, Object content, String path) {
 		ResponseBody responseBody = new ResponseBody();
-		responseBody.setTimestamp(new Date());
+		responseBody.setTimestamp(LocalDateTime.now());
 		responseBody.setStatus(status);
 		responseBody.setContent(content);
 		responseBody.setPath(path);
@@ -51,7 +50,7 @@ public class CommonResource {
 	 */
 	protected ResponseBody getResponseBody(HttpStatus status, String exception, Object message, String path) {
 		ResponseBody responseBody = new ResponseBody();
-		responseBody.setTimestamp(new Date());
+		responseBody.setTimestamp(LocalDateTime.now());
 		responseBody.setStatus(status.value());
 		responseBody.setException(exception);
 		responseBody.setError(status.getReasonPhrase());
