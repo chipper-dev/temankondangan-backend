@@ -46,7 +46,7 @@ public class ProfileServiceTest {
 
 	@BeforeAll
 	public void init() {
-		User user = new User(1L, "test@email.com", "12345_", null, null);
+		User user = new User(1L, "test@email.com", "12345_", null, null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 

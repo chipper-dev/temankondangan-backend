@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
+import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -122,6 +123,19 @@ public class AuthServiceImpl implements AuthService {
             if(password != null) {
                 result = passwordEncoder.matches(password, user.getPasswordHashed());
             }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean logout(Long userId) {
+        boolean result = false;
+        Optional<User> data = userRepository.findById(userId);
+        if(data.isPresent()) {
+            User user = data.get();
+            user.setLogout(new Date());
+            userRepository.save(user);
+            result = true;
         }
         return result;
     }

@@ -42,7 +42,7 @@ public class UserServiceTest {
 
 	@BeforeEach
 	public void init() {
-		User user = new User(1L, "test@email.com", passwordEncoder.encode("12345_"), null, null);
+		User user = new User(1L, "test@email.com", passwordEncoder.encode("12345_"), null, null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 		Mockito.when(tokenProvider.getUserIdFromToken(Mockito.anyString())).thenReturn(1L);
@@ -108,7 +108,7 @@ public class UserServiceTest {
 	// Testing for Create Password API
 	@Test
 	public void CreatePasswordTest() {
-		User user = new User(1L, "test@gmail.com", null, AuthProvider.google, null);
+		User user = new User(1L, "test@gmail.com", null, AuthProvider.google, null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
@@ -119,7 +119,7 @@ public class UserServiceTest {
 
 	@Test
 	public void ShouldThrowResponseStatusException_WhenPasswordIsNotNull() {
-		User user = new User(1L, "test@gmail.com", passwordEncoder.encode("12345_"), AuthProvider.google, "null");
+		User user = new User(1L, "test@gmail.com", passwordEncoder.encode("12345_"), AuthProvider.google, "null", null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
@@ -130,7 +130,7 @@ public class UserServiceTest {
 
 	@Test
 	public void ShouldThrowResponseStatusException_WhenProviderIsNotGoogle() {
-		User user = new User(1L, "test@gmail.com", null, AuthProvider.email, null);
+		User user = new User(1L, "test@gmail.com", null, AuthProvider.email, null, null);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 

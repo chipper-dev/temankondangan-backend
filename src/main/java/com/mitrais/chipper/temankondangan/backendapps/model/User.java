@@ -14,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Builder
@@ -46,5 +48,8 @@ public class User extends Auditable<String> {
 	private AuthProvider provider;
 
 	private String providerId;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date logout;
 
 }
