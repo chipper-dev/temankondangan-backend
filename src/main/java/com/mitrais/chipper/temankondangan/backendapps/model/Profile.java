@@ -3,6 +3,8 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

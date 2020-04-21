@@ -1,11 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 
 import java.time.LocalDate;
 
