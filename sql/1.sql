@@ -54,14 +54,12 @@ RENAME COLUMN modified_by TO last_modified_by;
 ALTER TABLE public.config
 RENAME COLUMN modified_date TO last_modified_date;
 
-<<<<<<< HEAD
 ALTER TABLE users
 ADD COLUMN data_state VARCHAR NOT NULL DEFAULT 'ACTIVE';
 
 ALTER TABLE users 
 ALTER COLUMN data_state 
 DROP DEFAULT;
-=======
+
 ALTER TABLE public.users
 ADD COLUMN logout timestamp NULL;
->>>>>>> b0587d358da7dbad244272b0d6351e13eeb63db7
