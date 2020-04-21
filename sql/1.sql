@@ -53,3 +53,6 @@ RENAME COLUMN modified_by TO last_modified_by;
 
 ALTER TABLE public.config
 RENAME COLUMN modified_date TO last_modified_date;
+
+ALTER TABLE public.users
+ADD COLUMN logout timestamp NULL;
