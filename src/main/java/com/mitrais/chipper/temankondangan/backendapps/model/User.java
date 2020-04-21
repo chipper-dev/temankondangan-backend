@@ -1,5 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
+import java.util.Date;
+
 import javax.persistence.Entity;
 import javax.persistence.EntityListeners;
 import javax.persistence.EnumType;
@@ -10,6 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.PreRemove;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
@@ -64,6 +68,9 @@ public class User extends Auditable<String> {
 	private AuthProvider provider;
 
 	private String providerId;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date logout;
 
 	@NotNull
 	@Enumerated(EnumType.STRING)

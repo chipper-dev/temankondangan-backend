@@ -81,4 +81,18 @@ public class AuthController extends CommonResource {
         }
 
     }
+
+    @GetMapping("/logout")
+    @Validated
+    public ResponseEntity<ResponseBody> logout(HttpServletRequest request) {
+        String token = getToken(request.getHeader("Authorization"));
+        boolean result = authService.logout(tokenProvider.getUserIdFromToken(token));
+        if(result) {
+            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
+        } else {
+            return new ResponseEntity<>(
+                    getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
+                    HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
 }

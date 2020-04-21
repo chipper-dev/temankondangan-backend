@@ -46,8 +46,10 @@ public class UserServiceTest {
 
 	@BeforeEach
 	public void init() {
-		user = new User(1L, "test@email.com", passwordEncoder.encode("12345_"), AuthProvider.email, null,
+
+		user = new User(1L, "test@email.com", passwordEncoder.encode("12345_"), AuthProvider.email, null, null,
 				DataState.ACTIVE);
+
 		Optional<User> userOptional = Optional.of(user);
 
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
