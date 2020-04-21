@@ -1,7 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.security.oauth2.user;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.OAuth2AuthenticationProcessingException;
-import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 
 import java.util.Map;
 

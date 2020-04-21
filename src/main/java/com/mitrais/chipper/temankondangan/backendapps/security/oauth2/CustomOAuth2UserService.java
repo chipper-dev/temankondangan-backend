@@ -1,8 +1,8 @@
 package com.mitrais.chipper.temankondangan.backendapps.security.oauth2;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.OAuth2AuthenticationProcessingException;
-import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.UserPrincipal;
 import com.mitrais.chipper.temankondangan.backendapps.security.oauth2.user.OAuth2UserInfo;
