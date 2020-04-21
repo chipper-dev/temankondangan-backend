@@ -58,6 +58,9 @@ public class AuthServiceTest {
 
 		Mockito.when(userRepository.findByEmail(user.getEmail()))
 				.thenReturn(Optional.of(user));
+
+		Mockito.when(userRepository.findById(Mockito.anyLong()))
+				.thenReturn(Optional.of(user));
 	}
 
 	@Test
@@ -290,6 +293,12 @@ public class AuthServiceTest {
 	public void testLoginUsingPasswordNotSet() {
 		boolean result = authService.login("test@example.com",null);
 		Assertions.assertFalse(result);
+	}
+
+	@Test
+	public void testLogout() {
+		boolean result = authService.logout(1L);
+		Assertions.assertTrue(result);
 	}
 
 }

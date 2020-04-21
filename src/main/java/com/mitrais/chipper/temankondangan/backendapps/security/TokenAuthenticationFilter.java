@@ -1,5 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.security;
 
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +17,15 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Date;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private TokenProvider tokenProvider;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
@@ -29,9 +36,9 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
-
-            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-                Long userId = tokenProvider.getUserIdFromToken(jwt);
+            Long userId = tokenProvider.getUserIdFromToken(jwt);
+            Date logoutTime = userRepository.findById(userId).get().getLogout();
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt, logoutTime)) {
 
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
