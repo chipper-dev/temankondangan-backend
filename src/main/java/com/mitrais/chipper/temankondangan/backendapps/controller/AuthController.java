@@ -83,6 +83,7 @@ public class AuthController extends CommonResource {
     }
 
     @GetMapping("/logout")
+    @Validated
     public ResponseEntity<ResponseBody> logout(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         boolean result = authService.logout(tokenProvider.getUserIdFromToken(token));
