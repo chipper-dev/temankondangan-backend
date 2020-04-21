@@ -22,8 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
-import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
@@ -63,7 +63,7 @@ public class ProfileController extends CommonResource {
 					.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token), fullName,
 							LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
 
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+			return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
 
 		} catch (ResponseStatusException e) {
 			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),

@@ -53,3 +53,10 @@ RENAME COLUMN modified_by TO last_modified_by;
 
 ALTER TABLE public.config
 RENAME COLUMN modified_date TO last_modified_date;
+
+ALTER TABLE users
+ADD COLUMN data_state VARCHAR NOT NULL DEFAULT 'ACTIVE';
+
+ALTER TABLE users 
+ALTER COLUMN data_state 
+DROP DEFAULT;
