@@ -35,3 +35,21 @@ CREATE TABLE public.config (
 	modified_by varchar NOT NULL,
 	modified_date timestamp NOT NULL
 );
+
+ALTER TABLE public.users
+RENAME COLUMN modified_by TO last_modified_by;
+
+ALTER TABLE public.users
+RENAME COLUMN modified_date TO last_modified_date;
+
+ALTER TABLE public.profile
+RENAME COLUMN modified_by TO last_modified_by;
+
+ALTER TABLE public.profile
+RENAME COLUMN modified_date TO last_modified_date;
+
+ALTER TABLE public.config
+RENAME COLUMN modified_by TO last_modified_by;
+
+ALTER TABLE public.config
+RENAME COLUMN modified_date TO last_modified_date;
