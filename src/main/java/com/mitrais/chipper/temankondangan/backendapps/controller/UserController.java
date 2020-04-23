@@ -19,7 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.UserPrincipal;
-import com.mitrais.chipper.temankondangan.backendapps.security.oauth2.CurrentUser;
+import com.mitrais.chipper.temankondangan.backendapps.security.CurrentUser;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 
 import io.swagger.annotations.Api;
