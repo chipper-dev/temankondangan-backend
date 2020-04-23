@@ -1,8 +1,8 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -57,6 +57,9 @@ public class AuthServiceTest {
 		user.setPasswordHashed("$2a$10$uP17U46Ewhx5MLLBI7z4tuxhSH0/16jbGKOomfeFbupoCHtY629oe"); //password123
 
 		Mockito.when(userRepository.findByEmail(user.getEmail()))
+				.thenReturn(Optional.of(user));
+
+		Mockito.when(userRepository.findById(Mockito.anyLong()))
 				.thenReturn(Optional.of(user));
 	}
 
@@ -290,6 +293,12 @@ public class AuthServiceTest {
 	public void testLoginUsingPasswordNotSet() {
 		boolean result = authService.login("test@example.com",null);
 		Assertions.assertFalse(result);
+	}
+
+	@Test
+	public void testLogout() {
+		boolean result = authService.logout(1L);
+		Assertions.assertTrue(result);
 	}
 
 }

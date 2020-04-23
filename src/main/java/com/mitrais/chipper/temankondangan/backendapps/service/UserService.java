@@ -12,4 +12,6 @@ public interface UserService {
 
 	public boolean createPassword(UserCreatePasswordWrapper wrapper, String token);
 
+	public void remove(String token);
+
 }

@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -63,6 +63,7 @@ public class UserServiceImpl implements UserService {
 		userRepository.save(user);
 
 		return true;
+
 	}
 
 	@Override
@@ -89,6 +90,7 @@ public class UserServiceImpl implements UserService {
 		userRepository.save(user);
 
 		return true;
+
 	}
 
 	private void passwordValidation(String password, String confirmPassword) {
@@ -120,6 +122,16 @@ public class UserServiceImpl implements UserService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
 					"Error: Password must have at least one digit character!");
 		}
+
+	}
+
+	@Override
+	public void remove(String token) {
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+
+		userRepository.delete(user);
 
 	}
 

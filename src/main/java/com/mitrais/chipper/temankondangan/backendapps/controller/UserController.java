@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -71,4 +72,20 @@ public class UserController extends CommonResource {
 					e.getStatus());
 		}
 	}
+
+	@ApiOperation(value = "Remove user API", response = ResponseEntity.class)
+	@DeleteMapping("/remove")
+	public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
+		String token = getToken(request.getHeader("Authorization"));
+
+		try {
+			userService.remove(token);
+			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
+
+		} catch (ResponseStatusException e) {
+			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
+					e.getStatus());
+		}
+	}
+
 }

@@ -1,8 +1,9 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
+import java.util.Date;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -97,6 +99,7 @@ public class AuthServiceImpl implements AuthService {
 //        user.setModifiedBy(register.getEmail());
 //        user.setModifiedDate(LocalDateTime.now());
         user.setProvider(AuthProvider.email);
+        user.setDataState(DataState.ACTIVE);
         user = userRepository.save(user);
 
         Profile profile = new Profile();
@@ -122,6 +125,19 @@ public class AuthServiceImpl implements AuthService {
             if(password != null) {
                 result = passwordEncoder.matches(password, user.getPasswordHashed());
             }
+        }
+        return result;
+    }
+
+    @Override
+    public boolean logout(Long userId) {
+        boolean result = false;
+        Optional<User> data = userRepository.findById(userId);
+        if(data.isPresent()) {
+            User user = data.get();
+            user.setLogout(new Date());
+            userRepository.save(user);
+            result = true;
         }
         return result;
     }

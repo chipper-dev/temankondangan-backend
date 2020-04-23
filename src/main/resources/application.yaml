@@ -35,7 +35,8 @@ spring:
 app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
-    tokenExpirationMsec: 864000000
+#    tokenExpirationMsec: 864000000 #10 days
+    tokenExpirationMsec: 300000 #5 mins
   oauth2:
     # After successfully authenticating with the OAuth2 Provider,
     # we'll be generating an auth token for the user and sending the token to the
