@@ -20,30 +20,9 @@ spring:
         jdbc:
           lob:
             non_contextual_creation: true
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            clientId: ${GOOGLE_CLIENT_ID}
-            clientSecret: ${GOOGLE_CLIENT_SECRET}
-            redirectUri: "{baseUrl}/oauth2/callback/{registrationId}"
-            scope:
-              - email
-              - profile
 
 app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
 #    tokenExpirationMsec: 864000000 #10 days
     tokenExpirationMsec: 300000 #5 mins
-  oauth2:
-    # After successfully authenticating with the OAuth2 Provider,
-    # we'll be generating an auth token for the user and sending the token to the
-    # redirectUri mentioned by the frontend client in the /oauth2/authorize request.
-    # We're not using cookies because they won't work well in mobile clients.
-    authorizedRedirectUris:
-      - http://localhost:3000/oauth2/redirect
-      - myandroidapp://oauth2/redirect
-      - myiosapp://oauth2/redirect
-      - https://oauth-react-demo.netlify.app/oauth2/redirect
