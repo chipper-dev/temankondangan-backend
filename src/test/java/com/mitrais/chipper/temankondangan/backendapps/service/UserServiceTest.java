@@ -23,7 +23,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
 @SpringBootTest
@@ -35,9 +34,6 @@ public class UserServiceTest {
 
 	@MockBean
 	UserRepository userRepository;
-
-	@MockBean
-	TokenProvider tokenProvider;
 
 	@Autowired
 	PasswordEncoder passwordEncoder;
@@ -53,7 +49,6 @@ public class UserServiceTest {
 		Optional<User> userOptional = Optional.of(user);
 
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
-		Mockito.when(tokenProvider.getUserIdFromToken(Mockito.anyString())).thenReturn(1L);
 
 	}
 
@@ -61,57 +56,50 @@ public class UserServiceTest {
 	@Test
 	public void changePasswordTest() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456_", "123456_");
-		boolean result = userService.changePassword(wrapper, "dummy token");
+		boolean result = userService.changePassword(1L, wrapper);
 		assertTrue(result);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenPasswordEmpty() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "", "");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenOldPasswordNotMatch() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_@", "123456_", "123456_");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenOldPasswordSameAsNewPassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12345_", "12345_");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotMatchWithConfirmedPassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456_", "123457_");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenNewPasswordLengthNotRight() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12_", "12_");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotHaveSpecialChar() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456", "123456");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotHaveDigit() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "ABCDEF_", "ABCDEF_");
-		assertThatThrownBy(() -> userService.changePassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	// Testing for Create Password API
@@ -123,7 +111,7 @@ public class UserServiceTest {
 		user.setProvider(AuthProvider.google);
 
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
-		boolean result = userService.createPassword(wrapper, "dummy token");
+		boolean result = userService.createPassword(1L, wrapper);
 		assertTrue(result);
 	}
 
@@ -133,8 +121,7 @@ public class UserServiceTest {
 		user.setProvider(AuthProvider.google);
 
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
-		assertThatThrownBy(() -> userService.createPassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.createPassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
@@ -142,8 +129,7 @@ public class UserServiceTest {
 		// test with other provider that is not google
 
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
-		assertThatThrownBy(() -> userService.createPassword(wrapper, "dummy token"))
-				.isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> userService.createPassword(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	// Testing for Remove User
@@ -156,7 +142,7 @@ public class UserServiceTest {
 			return null;
 		}).when(userRepository).delete(Mockito.any(User.class));
 
-		userService.remove("dummy token");
+		userService.remove(1L);
 		assertEquals(DataState.DELETED, user.getDataState());
 	}
 }
