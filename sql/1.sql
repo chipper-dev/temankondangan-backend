@@ -63,3 +63,6 @@ DROP DEFAULT;
 
 ALTER TABLE public.users
 ADD COLUMN logout timestamp NULL;
+
+ALTER TABLE public.users
+RENAME COLUMN provider_id TO uid;
