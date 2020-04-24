@@ -1,7 +1,7 @@
 node{
     def app
     def build = "${env.BUILD_NUMBER}"
-    def image = 'chippermitrais/temankondangan-backend:1.'+ build
+    def image = 'chippermitrais/temankondangan-backend:2.'+ build
     def containerName = 'chipper-backend'
     def mvnHome = tool name: 'maven-default', type: 'maven'
     def mvnCMD = "${mvnHome}/bin/mvn"
