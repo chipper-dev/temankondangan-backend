@@ -19,6 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBo
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.security.UserPrincipal;
 import com.mitrais.chipper.temankondangan.backendapps.security.oauth2.CurrentUser;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
@@ -34,6 +35,9 @@ public class UserController extends CommonResource {
 	@Autowired
 	private UserService userService;
 
+	@Autowired
+	private TokenProvider tokenProvider;
+
 	@GetMapping("/me")
 	@PreAuthorize("hasRole('USER')")
 	public User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
@@ -45,10 +49,12 @@ public class UserController extends CommonResource {
 	@PutMapping("/change-password")
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
 			HttpServletRequest request) {
+		LOGGER.info("Change user password");
 		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		try {
-			boolean result = userService.changePassword(wrapper, token);
+			boolean result = userService.changePassword(userId, wrapper);
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 
 		} catch (ResponseStatusException e) {
@@ -61,10 +67,12 @@ public class UserController extends CommonResource {
 	@PutMapping("/create-password")
 	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
 			HttpServletRequest request) {
+		LOGGER.info("Create user password");
 		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		try {
-			boolean result = userService.createPassword(wrapper, token);
+			boolean result = userService.createPassword(userId, wrapper);
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 
 		} catch (ResponseStatusException e) {
@@ -76,10 +84,12 @@ public class UserController extends CommonResource {
 	@ApiOperation(value = "Remove user API", response = ResponseEntity.class)
 	@DeleteMapping("/remove")
 	public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
+		LOGGER.info("Remove user");
 		String token = getToken(request.getHeader("Authorization"));
-
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		
 		try {
-			userService.remove(token);
+			userService.remove(userId);
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
 
 		} catch (ResponseStatusException e) {

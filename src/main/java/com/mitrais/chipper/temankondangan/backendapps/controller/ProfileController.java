@@ -55,12 +55,14 @@ public class ProfileController extends CommonResource {
 			@RequestParam(value = "aboutMe", required = false) String aboutMe,
 			@RequestParam(value = "interest", required = false) String interest, HttpServletRequest request)
 			throws ParseException, IOException {
-
+		LOGGER.info("Update profile");
 		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		
 		try {
 
 			Profile result = profileService
-					.update(new ProfileUpdateWrapper(file, tokenProvider.getUserIdFromToken(token), fullName,
+					.update(new ProfileUpdateWrapper(file, userId, fullName,
 							LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
 
 			return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
@@ -75,9 +77,10 @@ public class ProfileController extends CommonResource {
 	@GetMapping("/find")
 	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
 		try {
+			LOGGER.info("Find a profile from token");
 			String token = getToken(request.getHeader("Authorization"));
-
 			Long userId = tokenProvider.getUserIdFromToken(token);
+			
 			Profile profile = profileService.findByUserId(userId)
 					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), profile, request.getRequestURI()));
