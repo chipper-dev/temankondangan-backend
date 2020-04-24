@@ -39,7 +39,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "event")
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
-@ApiModel(description = "All details about Profile. ")
+@ApiModel(description = "All details about Event. ")
 public class Event extends Auditable<String> {
 
 	@Id
@@ -75,7 +75,7 @@ public class Event extends Auditable<String> {
 	@Column(length = 1)
 	@ApiModelProperty(notes = "Preferred event gender of the companion")
 	@Enumerated(EnumType.STRING)
-	private Gender gender;
+	private Gender companionGender;
 
 	@NotEmpty
 	@Column(length = 300)
