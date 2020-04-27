@@ -48,7 +48,7 @@ node{
         withCredentials([
             usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
             string(credentialsId: 'token-secret', variable: 'tokenSecret'),
-            string(credentialsId: 'firebase-database', variable: 'firebaseDb')
+            string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
             sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
                 db_username = env.dbAuthUser
