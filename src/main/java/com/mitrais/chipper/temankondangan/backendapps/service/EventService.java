@@ -9,6 +9,6 @@ public interface EventService {
 
 	public Event create(Long userId, CreateEventWrapper wrapper);
 
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy);
+	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction);
 
 }

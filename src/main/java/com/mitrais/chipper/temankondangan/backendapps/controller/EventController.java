@@ -24,6 +24,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
 
 @Api(value = "Event Management System", description = "Operations regarding event in TemenKondangan System")
 @RestController
@@ -59,11 +60,13 @@ public class EventController extends CommonResource {
 	@GetMapping(value = "/find-all")
 	public ResponseEntity<?> findAll(@RequestParam(defaultValue = "0") Integer pageNumber,
 			@RequestParam(defaultValue = "10") Integer pageSize,
-			@RequestParam(defaultValue = "createdDate") String sortBy, HttpServletRequest request) {
+			@RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
-		
+
 		try {
-			List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy);
+			List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
 
 			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
 					getContentList(pageNumber, pageSize, events), request.getRequestURI()));

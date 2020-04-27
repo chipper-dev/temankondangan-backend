@@ -42,6 +42,7 @@ public class EventServiceTest {
 
 	private static Event event;
 	private static User user;
+	private static Page<Event> pageEvent;
 
 	@BeforeAll
 	public void init() {
@@ -61,24 +62,6 @@ public class EventServiceTest {
 
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
 
-	}
-
-	@Test
-	public void createEventTest() {
-		CreateEventWrapper wrapper = new CreateEventWrapper();
-		wrapper.setAdditionalInfo("info test");
-		wrapper.setCompanionGender(Gender.P);
-		wrapper.setDateAndTime(LocalDateTime.now());
-		wrapper.setMaximumAge(25);
-		wrapper.setMinimumAge(18);
-		wrapper.setTitle("title test");
-
-		Event result = eventService.create(1L, wrapper);
-		assertEquals(event.getTitle(), result.getTitle());
-	}
-
-	@Test
-	public void findAllEventTest() {
 		Event event2 = new Event();
 		event2 = new Event();
 		event2.setUser(user);
@@ -104,11 +87,38 @@ public class EventServiceTest {
 		eventList.add(event2);
 		eventList.add(event3);
 
-		Page<Event> pageEvent = new PageImpl<Event>(eventList);
+		pageEvent = new PageImpl<Event>(eventList);
+		pageEvent.getSort();
+	}
 
+	@Test
+	public void createEventTest() {
+		CreateEventWrapper wrapper = new CreateEventWrapper();
+		wrapper.setAdditionalInfo("info test");
+		wrapper.setCompanionGender(Gender.P);
+		wrapper.setDateAndTime(LocalDateTime.now());
+		wrapper.setMaximumAge(25);
+		wrapper.setMinimumAge(18);
+		wrapper.setTitle("title test");
+
+		Event result = eventService.create(1L, wrapper);
+		assertEquals(event.getTitle(), result.getTitle());
+	}
+
+	@Test
+	public void findAllEventTest_Descending() {
 		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key");
-		assertEquals(3, events.size());
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC");
+		assertEquals("title test", events.get(0).getTitle());
+	}
+
+	@Test
+	public void findAllEventTest_Ascending() {
+		pageEvent.getSort().ascending();
+		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
+
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC");
+		assertEquals("title test", events.get(0).getTitle());
 	}
 }

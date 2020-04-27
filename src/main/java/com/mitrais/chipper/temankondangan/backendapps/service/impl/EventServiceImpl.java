@@ -47,9 +47,16 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy) {
-
-		Pageable paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
+		Pageable paging = Pageable.unpaged();
+		
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Direction error!");
+		}
 
 		Page<Event> pagedResult = eventRepository.findAll(paging);
 
