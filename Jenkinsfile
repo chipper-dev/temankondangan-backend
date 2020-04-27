@@ -1,26 +1,15 @@
 node{
     def app
     def build = "${env.BUILD_NUMBER}"
-    def image = 'chippermitrais/temankondangan-backend:1.'+ build
+    def image = 'chippermitrais/temankondangan-backend:2.'+ build
     def containerName = 'chipper-backend'
     def mvnHome = tool name: 'maven-default', type: 'maven'
     def mvnCMD = "${mvnHome}/bin/mvn"
+    def remote = [:]
+    remote.name = 'chippermitrais'
+    remote.host = 'chippermitrais.ddns.net'
+    remote.allowAnyHosts = true
 
-    stage('Remove Existing Docker Image') {
-            script {
-                def cmd = "docker ps -aqf name=$containerName"
-                def container = sh (returnStdout: true, script: cmd)
-
-                if (container) {
-                    echo 'Existing container found!!! Deleting...'
-                    sh "docker stop \$($cmd)"
-                    sh "docker rm \$($cmd)"
-                    echo 'Done.'
-                }
-
-                sh "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
-            }
-    }
     stage('SCM Checkout') {
         checkout scm
     }
@@ -36,19 +25,40 @@ node{
                   sh "docker push $image"
         }
     }
+    stage('Remove Existing Docker Image') {
+        withCredentials([
+            sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
+            ]) {
+                remote.user = env.sshuname
+                remote.identity = env.sshkey
+                def cmd = "docker ps -aqf name=$containerName"
+                def container = sshCommand remote: remote, command: (returnStdout: true, script: cmd)
+
+                if (container) {
+                    echo 'Existing container found!!! Deleting...'
+                    sshCommand remote: remote, command: "docker stop \$($cmd)"
+                    sshCommand remote: remote, command: "docker rm \$($cmd)"
+                    echo 'Done.'
+                }
+
+                sshCommand remote: remote, command: "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
+        }
+    }
     stage('Run Application') {
         withCredentials([
             usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
-            usernamePassword(credentialsId: 'oAuth', passwordVariable: 'oAuthPassword', usernameVariable: 'oAuthUsername'),
-            string(credentialsId: 'token-secret', variable: 'tokenSecret')
+            string(credentialsId: 'token-secret', variable: 'tokenSecret'),
+            string(credentialsId: 'firebase-database', variable: 'firebaseDb')
+            sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
-                clientId = env.oAuthUsername
-                clientSecret = env.oAuthPassword
                 db_username = env.dbAuthUser
                 db_password = env.dbAuthPassword
                 token_secret = env.tokenSecret
+                firebase = env.firebaseDb
+                remote.user = env.sshuname
+                remote.identity = env.sshkey
 
-                sh "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e GOOGLE_CLIENT_ID=$clientId -e GOOGLE_CLIENT_SECRET=$clientSecret -e TOKEN_SECRET=$token_secret --restart always -d $image"
+                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase --restart always -d $image"
         }
     }
 }
