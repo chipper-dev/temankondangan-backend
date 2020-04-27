@@ -32,7 +32,7 @@ node{
                 remote.user = env.sshuname
                 remote.identity = env.sshkey
                 def cmd = "docker ps -aqf name=$containerName"
-                def container = sshCommand remote: remote, command: (returnStdout: true, script: cmd)
+                def container = sshCommand remote: remote, command: cmd
 
                 if (container) {
                     echo 'Existing container found!!! Deleting...'
