@@ -1,6 +1,13 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -37,5 +44,26 @@ public class EventServiceImpl implements EventService {
 
 		return eventRepository.save(event);
 
+	}
+
+	@Override
+	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
+		Pageable paging = Pageable.unpaged();
+		
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+		} else {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Direction error!");
+		}
+
+		Page<Event> pagedResult = eventRepository.findAll(paging);
+
+		if (pagedResult.hasContent()) {
+			return pagedResult.getContent();
+		} else {
+			return new ArrayList<Event>();
+		}
 	}
 }
