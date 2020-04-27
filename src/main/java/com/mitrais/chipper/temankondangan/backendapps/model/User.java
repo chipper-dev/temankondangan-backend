@@ -67,7 +67,7 @@ public class User extends Auditable<String> {
 	@Enumerated(EnumType.STRING)
 	private AuthProvider provider;
 
-	private String providerId;
+	private String uid;
 
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date logout;
