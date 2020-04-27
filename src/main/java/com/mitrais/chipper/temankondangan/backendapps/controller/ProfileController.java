@@ -8,6 +8,7 @@ import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -84,9 +85,8 @@ public class ProfileController extends CommonResource {
             String token = getToken(request.getHeader("Authorization"));
             Long userId = tokenProvider.getUserIdFromToken(token);
 
-            Profile profile = profileService.findByUserId(userId)
-                    .orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
-            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), profile, request.getRequestURI()));
+            ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
+            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(
                     getResponseBody(HttpStatus.NOT_FOUND, "No profile from token ", null, request.getRequestURI()),
