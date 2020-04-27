@@ -36,30 +36,18 @@ CREATE TABLE public.config (
 	modified_date timestamp NOT NULL
 );
 
-ALTER TABLE public.users
-RENAME COLUMN modified_by TO last_modified_by;
-
-ALTER TABLE public.users
-RENAME COLUMN modified_date TO last_modified_date;
-
-ALTER TABLE public.profile
-RENAME COLUMN modified_by TO last_modified_by;
-
-ALTER TABLE public.profile
-RENAME COLUMN modified_date TO last_modified_date;
-
-ALTER TABLE public.config
-RENAME COLUMN modified_by TO last_modified_by;
-
-ALTER TABLE public.config
-RENAME COLUMN modified_date TO last_modified_date;
-
-ALTER TABLE users
-ADD COLUMN data_state VARCHAR NOT NULL DEFAULT 'ACTIVE';
-
-ALTER TABLE users 
-ALTER COLUMN data_state 
-DROP DEFAULT;
-
-ALTER TABLE public.users
-ADD COLUMN logout timestamp NULL;
+CREATE TABLE public.event
+(
+    event_id int8 PRIMARY KEY,
+	user_id int8 NOT NULL REFERENCES users(user_id),
+    additional_info varchar(300) NOT NULL,
+    companion_gender varchar(1) NOT NULL,
+    date_and_time timestamp without time zone NOT NULL,
+    maximum_age integer NOT NULL,
+    minimum_age integer NOT NULL,
+    title varchar(50),
+	created_by varchar NOT NULL,
+	created_date timestamp NOT NULL,
+	last_modified_by varchar NOT NULL,
+	last_modified_date timestamp NOT NULL
+)

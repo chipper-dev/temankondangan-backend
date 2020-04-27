@@ -14,7 +14,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 
 @Service
@@ -26,18 +25,14 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
-	@Autowired
-	private TokenProvider tokenProvider;
-
 	@Override
 	public User findById(Long userId) {
 		return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}
 
 	@Override
-	public boolean changePassword(UserChangePasswordWrapper wrapper, String token) {
+	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) {
 
-		Long userId = tokenProvider.getUserIdFromToken(token);
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
@@ -67,9 +62,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean createPassword(UserCreatePasswordWrapper wrapper, String token) {
+	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) {
 
-		Long userId = tokenProvider.getUserIdFromToken(token);
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
@@ -126,8 +120,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void remove(String token) {
-		Long userId = tokenProvider.getUserIdFromToken(token);
+	public void remove(Long userId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
