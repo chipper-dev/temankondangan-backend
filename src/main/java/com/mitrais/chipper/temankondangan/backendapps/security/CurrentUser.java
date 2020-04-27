@@ -1,4 +1,4 @@
-package com.mitrais.chipper.temankondangan.backendapps.security.oauth2;
+package com.mitrais.chipper.temankondangan.backendapps.security;
 
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 

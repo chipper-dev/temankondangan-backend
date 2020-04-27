@@ -1,8 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.security;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -31,12 +30,22 @@ public class UserPrincipal implements OAuth2User, UserDetails {
         List<GrantedAuthority> authorities = Collections.
                 singletonList(new SimpleGrantedAuthority("ROLE_USER"));
 
-        return new UserPrincipal(
-                user.getUserId(),
-                user.getEmail(),
-                user.getPasswordHashed(),
-                authorities
-        );
+        // Handle for oauth
+        if (user.getProvider() == AuthProvider.google && user.getPasswordHashed() == null) {
+            return new UserPrincipal(
+                    user.getUserId(),
+                    user.getEmail(),
+                    user.getUid(),
+                    authorities
+            );
+        } else {
+            return new UserPrincipal(
+                    user.getUserId(),
+                    user.getEmail(),
+                    user.getPasswordHashed(),
+                    authorities
+            );
+        }
     }
 
     public static UserPrincipal create(User user, Map<String, Object> attributes) {
@@ -100,5 +109,16 @@ public class UserPrincipal implements OAuth2User, UserDetails {
     @Override
     public String getName() {
         return String.valueOf(id);
+    }
+
+    @Override
+    public String toString() {
+        return "UserPrincipal{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", authorities=" + authorities +
+                ", attributes=" + attributes +
+                '}';
     }
 }
