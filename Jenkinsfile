@@ -26,32 +26,32 @@ node{
         }
     }
     stage('Remove Existing Docker Image & Run Application') {
-            withCredentials([
-                usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
-                string(credentialsId: 'token-secret', variable: 'tokenSecret'),
-                string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
-                sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
-                ]) {
-                    remote.user = env.sshuname
-                    remote.identityFile = env.sshkey
-                    def cmd = "docker ps -aqf name=$containerName"
-                    def container = sshCommand remote: remote, command: cmd
+        withCredentials([
+            usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+            string(credentialsId: 'token-secret', variable: 'tokenSecret'),
+            string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
+            sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
+            ]) {
+                remote.user = env.sshuname
+                remote.identityFile = env.sshkey
+                def cmd = "docker ps -aqf name=$containerName"
+                def container = sshCommand remote: remote, command: cmd
 
-                    if (container) {
-                        echo 'Existing container found!!! Deleting...'
-                        sshCommand remote: remote, command: "docker stop \$($cmd)"
-                        sshCommand remote: remote, command: "docker rm \$($cmd)"
-                        echo 'Done.'
-                    }
+                if (container) {
+                    echo 'Existing container found!!! Deleting...'
+                    sshCommand remote: remote, command: "docker stop \$($cmd)"
+                    sshCommand remote: remote, command: "docker rm \$($cmd)"
+                    echo 'Done.'
+                }
 
-                    sshCommand remote: remote, command: "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
+                sshCommand remote: remote, command: "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
 
-                    db_username = env.dbAuthUser
-                    db_password = env.dbAuthPassword
-                    token_secret = env.tokenSecret
-                    firebase = env.firebaseDb
+                db_username = env.dbAuthUser
+                db_password = env.dbAuthPassword
+                token_secret = env.tokenSecret
+                firebase = env.firebaseDb
 
-                    sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase --restart always -d $image"
-            }
+                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase --restart always -d $image"
         }
+    }
 }
