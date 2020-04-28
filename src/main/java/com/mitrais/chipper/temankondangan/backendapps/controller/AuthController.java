@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.LoginWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(value="Register", description="Operations regarding registering in TemenKondangan System")
+@Api(value = "Register", description = "Operations regarding registering in TemenKondangan System")
 @RestController
 @RequestMapping("/auth")
 public class AuthController extends CommonResource {
@@ -89,12 +90,25 @@ public class AuthController extends CommonResource {
     public ResponseEntity<ResponseBody> logout(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         boolean result = authService.logout(tokenProvider.getUserIdFromToken(token));
-        if(result) {
+        if (result) {
             return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
         } else {
             return new ResponseEntity<>(
                     getResponseBody(HttpStatus.UNPROCESSABLE_ENTITY, null, null, request.getRequestURI()),
                     HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseBody> forgotPassword(@RequestBody ForgotPasswordWrapper data, HttpServletRequest request) {
+        try {
+            authService.forgotPassword(data.getEmail());
+            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
+        } catch (Exception ex) {
+            return new ResponseEntity<>(
+                    getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
+                    HttpStatus.BAD_REQUEST);
         }
     }
 }
