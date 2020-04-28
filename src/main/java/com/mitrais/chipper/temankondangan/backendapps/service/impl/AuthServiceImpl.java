@@ -1,15 +1,19 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.TempPassword;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.TempPasswordRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
+import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -21,20 +25,30 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.Date;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 @Service
 public class AuthServiceImpl implements AuthService {
 
-    @Autowired
     PasswordEncoder passwordEncoder;
-
-    @Autowired
     UserRepository userRepository;
+    ProfileRepository profileRepository;
+    TempPasswordRepository passwordRepository;
+    EmailService emailService;
+    SimpleMailMessage template;
 
     @Autowired
-    ProfileRepository profileRepository;
+    public AuthServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository, ProfileRepository profileRepository, EmailService emailService, SimpleMailMessage template, TempPasswordRepository tempPasswordRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.userRepository = userRepository;
+        this.profileRepository = profileRepository;
+        this.emailService = emailService;
+        this.template = template;
+        this.passwordRepository = tempPasswordRepository;
+    }
 
     @Override
     @Transactional
@@ -48,13 +62,13 @@ public class AuthServiceImpl implements AuthService {
         //check email format valid
         String regexEmail = "^(.+)@(.+)\\.(.+)$";
         Pattern patternEmail = Pattern.compile(regexEmail);
-        if(! patternEmail.matcher(register.getEmail()).matches()) {
+        if (!patternEmail.matcher(register.getEmail()).matches()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Email not valid!");
         }
 
         //check password empty
-        if(register.getPassword() == null || register.getPassword().equals("")) {
+        if (register.getPassword() == null || register.getPassword().equals("")) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Password cannot empty!");
         }
@@ -62,13 +76,13 @@ public class AuthServiceImpl implements AuthService {
         //check password pattern
         String regexPassword = "^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,20}$";
         Pattern patternPassword = Pattern.compile(regexPassword);
-        if(! patternPassword.matcher(register.getPassword()).matches()) {
+        if (!patternPassword.matcher(register.getPassword()).matches()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Password pattern not valid!");
         }
 
         //check password match
-        if(! register.getPassword().equals(register.getConfirmPassword())) {
+        if (!register.getPassword().equals(register.getConfirmPassword())) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Password and Confirm Password not match!");
         }
@@ -85,7 +99,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //check age over 18
-        if(Period.between(dob, LocalDate.now()).getYears() < 18) {
+        if (Period.between(dob, LocalDate.now()).getYears() < 18) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Age should not under 18!");
         }
@@ -94,10 +108,6 @@ public class AuthServiceImpl implements AuthService {
         User user = new User();
         user.setEmail(register.getEmail());
         user.setPasswordHashed(passwordEncoder.encode(register.getPassword()));
-//        user.setCreatedBy(register.getEmail());
-//        user.setCreatedDate(LocalDateTime.now());
-//        user.setModifiedBy(register.getEmail());
-//        user.setModifiedDate(LocalDateTime.now());
         user.setProvider(AuthProvider.email);
         user.setDataState(DataState.ACTIVE);
         user = userRepository.save(user);
@@ -107,10 +117,6 @@ public class AuthServiceImpl implements AuthService {
         profile.setFullName(register.getFullname());
         profile.setDob(dob);
         profile.setGender(register.getGender());
-//        profile.setCreatedBy(register.getEmail());
-//        profile.setCreatedDate(LocalDateTime.now());
-//        profile.setModifiedBy(register.getEmail());
-//        profile.setModifiedDate(LocalDateTime.now());
         profileRepository.save(profile);
 
         return user;
@@ -120,9 +126,9 @@ public class AuthServiceImpl implements AuthService {
     public boolean login(String email, String password) {
         boolean result = false;
         Optional<User> data = userRepository.findByEmail(email);
-        if(data.isPresent()) {
+        if (data.isPresent()) {
             User user = data.get();
-            if(password != null) {
+            if (password != null) {
                 result = passwordEncoder.matches(password, user.getPasswordHashed());
             }
         }
@@ -133,12 +139,43 @@ public class AuthServiceImpl implements AuthService {
     public boolean logout(Long userId) {
         boolean result = false;
         Optional<User> data = userRepository.findById(userId);
-        if(data.isPresent()) {
+        if (data.isPresent()) {
             User user = data.get();
             user.setLogout(new Date());
             userRepository.save(user);
             result = true;
         }
         return result;
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        Integer code = generateRandomCode(6);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Your email is not registered. Please try again"));
+
+        saveCode(user.getEmail(), code);
+        sendEmailJob(user.getEmail(), code);
+    }
+
+    private Integer generateRandomCode(Integer n) {
+        int m = (int) Math.pow(10, n - 1);
+        return m + new Random().nextInt(9 * m);
+    }
+
+    private void saveCode(String email, Integer code) {
+        TempPassword temp = TempPassword.builder()
+                .tempPassword(String.valueOf(code))
+                .email(email)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        passwordRepository.save(temp);
+    }
+
+    private void sendEmailJob(String email, Integer code) {
+        String subject = "Teman Kondangan - Reset Password";
+        String body = String.format(Objects.requireNonNull(template.getText()), email, code);
+        emailService.sendMessage(email, subject, body);
     }
 }

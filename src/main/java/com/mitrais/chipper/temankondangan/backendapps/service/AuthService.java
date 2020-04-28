@@ -7,4 +7,5 @@ public interface AuthService {
     User save(RegisterUserWrapper register);
     boolean login(String email, String password);
     boolean logout(Long userId);
+    void forgotPassword(String email);
 }
