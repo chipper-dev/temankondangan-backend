@@ -3,10 +3,12 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -85,7 +88,24 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public Optional<Profile> findByUserId(Long userId) {
-		return profileRepository.findByUserId(userId);
+	public ProfileResponseWrapper findByUserId(Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
+
+		String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath()
+				.path("/imagefile/download/")
+				.path(String.valueOf(profile.getProfileId()))
+				.toUriString();
+
+		return ProfileResponseWrapper.builder()
+				.profileId(profile.getProfileId())
+				.fullName(profile.getFullName())
+				.dob(profile.getDob())
+				.gender(profile.getGender())
+				.city(profile.getCity())
+				.aboutMe(profile.getAboutMe())
+				.interest(profile.getInterest())
+				.photoProfileUrl(photoProfileUrl)
+				.build();
 	}
 }

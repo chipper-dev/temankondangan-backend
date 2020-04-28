@@ -8,6 +8,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWra
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,6 +83,7 @@ public class AuthController extends CommonResource {
 
     }
 
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
     @GetMapping("/logout")
     @Validated
     public ResponseEntity<ResponseBody> logout(HttpServletRequest request) {
