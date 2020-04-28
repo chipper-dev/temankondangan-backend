@@ -10,10 +10,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -31,14 +31,14 @@ import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceI
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class EventServiceTest {
 
-	@Autowired
-	EventServiceImpl eventService;
-
-	@MockBean
+	@Mock
 	UserRepository userRepository;
 
-	@MockBean
+	@Mock
 	EventRepository eventRepository;
+
+	@InjectMocks
+	EventServiceImpl eventService;
 
 	private static Event event;
 	private static User user;
