@@ -35,7 +35,7 @@ public class ImageFileController extends CommonResource {
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + dbFile.getProfileId() + "\"")
                     .body(new ByteArrayResource(dbFile.getPhotoProfile()));
         } catch (Exception ex) {
-            ex.printStackTrace();
+            LOGGER.error("downloadFile",ex);
             return ResponseEntity.badRequest()
                     .body(null);
         }

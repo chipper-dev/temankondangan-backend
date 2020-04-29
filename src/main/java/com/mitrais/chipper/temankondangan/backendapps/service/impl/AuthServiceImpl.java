@@ -68,8 +68,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //check password pattern
-        String regexPassword = "^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,20}$";
-        Pattern patternPassword = Pattern.compile(regexPassword);
+        String regexPass = "^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,20}$";
+        Pattern patternPassword = Pattern.compile(regexPass);
         if (!patternPassword.matcher(register.getPassword()).matches()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Password pattern not valid!");

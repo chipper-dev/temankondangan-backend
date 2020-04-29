@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
+import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -10,6 +11,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.OauthResponseWr
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.OAuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,6 +24,8 @@ import java.util.Optional;
 
 @Service
 public class OAuthServiceImpl implements OAuthService {
+
+	public static final Logger LOGGER = LoggerFactory.getLogger(OAuthServiceImpl.class);
 
 	private PasswordEncoder passwordEncoder;
 	private AuthenticationManager authenticationManager;
@@ -46,7 +51,7 @@ public class OAuthServiceImpl implements OAuthService {
 				responseWrapper = generateResponse(userRecord);
 			}
 		} catch (FirebaseAuthException e) {
-			e.printStackTrace();
+			LOGGER.error("getToken", e);
 		}
 
 		return responseWrapper;
