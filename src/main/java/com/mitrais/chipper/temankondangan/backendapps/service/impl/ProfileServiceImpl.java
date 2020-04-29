@@ -26,14 +26,14 @@ public class ProfileServiceImpl implements ProfileService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
-	private ProfileRepository profileRepository;
+	private final ProfileRepository profileRepository;
 
 	@Autowired
 	public ProfileServiceImpl(ProfileRepository profileRepository) {
 		this.profileRepository = profileRepository;
 	}
 
-	private static String DEFAULT_IMAGE = "image/defaultprofile.jpg";
+	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
 	@Transactional

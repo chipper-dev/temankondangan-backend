@@ -1,34 +1,30 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
-import io.swagger.annotations.ApiImplicitParam;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
-import com.mitrais.chipper.temankondangan.backendapps.security.UserPrincipal;
-import com.mitrais.chipper.temankondangan.backendapps.security.CurrentUser;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
-
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
-@Api(value = "User Management System", description = "Operations regarding User in TemenKondangan System")
+import javax.servlet.http.HttpServletRequest;
+
+@Api(value = "User Management System")
 @RestController
 @RequestMapping("/user")
 public class UserController extends CommonResource {
+
+	private static final String HEADER_AUTH = "Authorization";
 
 	@Autowired
 	private UserService userService;
@@ -42,7 +38,7 @@ public class UserController extends CommonResource {
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
 			HttpServletRequest request) {
 		LOGGER.info("Change user password");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(HEADER_AUTH));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		try {
@@ -61,7 +57,7 @@ public class UserController extends CommonResource {
 	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
 			HttpServletRequest request) {
 		LOGGER.info("Create user password");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(HEADER_AUTH));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		try {
@@ -79,7 +75,7 @@ public class UserController extends CommonResource {
 	@DeleteMapping("/remove")
 	public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
 		LOGGER.info("Remove user");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(HEADER_AUTH));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		
 		try {

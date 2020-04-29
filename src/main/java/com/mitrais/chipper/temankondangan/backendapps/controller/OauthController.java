@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(value = "OAuth", description = "Operations regarding authentication using Gmail in TemanKondangan System")
+@Api(value = "OAuth")
 @RestController
 @RequestMapping("/oauth")
 public class OauthController extends CommonResource {

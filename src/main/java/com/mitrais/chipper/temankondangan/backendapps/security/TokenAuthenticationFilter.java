@@ -1,7 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.security;
 
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import org.apache.tomcat.jni.Local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +16,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.NoSuchElementException;
 
@@ -31,7 +29,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
 
-    private static final Logger logger = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TokenAuthenticationFilter.class);
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -48,7 +46,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception ex) {
-            logger.error("Could not set user authentication in security context", ex);
+            LOGGER.error("Could not set user authentication in security context", ex);
         }
 
         filterChain.doFilter(request, response);
