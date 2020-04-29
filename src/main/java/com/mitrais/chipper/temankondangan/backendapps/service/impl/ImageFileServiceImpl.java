@@ -10,13 +10,18 @@ import java.io.FileNotFoundException;
 
 @Service
 public class ImageFileServiceImpl implements ImageFileService {
-    @Autowired
-    ProfileRepository profileRepository;
 
-    public Profile getImage(String profileIdStr) throws FileNotFoundException {
-        Long profileId = Long.parseLong(profileIdStr);
+	private ProfileRepository profileRepository;
 
-        return profileRepository.findById(profileId)
-                .orElseThrow(() -> new FileNotFoundException("File not found with id " + profileId));
-    }
+	@Autowired
+	public ImageFileServiceImpl(ProfileRepository profileRepository) {
+		this.profileRepository = profileRepository;
+	}
+
+	public Profile getImage(String profileIdStr) throws FileNotFoundException {
+		Long profileId = Long.parseLong(profileIdStr);
+
+		return profileRepository.findById(profileId)
+				.orElseThrow(() -> new FileNotFoundException("File not found with id " + profileId));
+	}
 }
