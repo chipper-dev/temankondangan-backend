@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "temp_password")
-public class TempPassword {
+@Table(name = "verification_code")
+public class VerificationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String email;
 
-    private String tempPassword;
+    private String code;
 
     private LocalDateTime createdAt;
 }

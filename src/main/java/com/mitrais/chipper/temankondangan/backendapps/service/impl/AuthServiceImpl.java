@@ -1,7 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.TempPassword;
+import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -164,8 +164,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private void saveCode(String email, Integer code) {
-        TempPassword temp = TempPassword.builder()
-                .tempPassword(String.valueOf(code))
+        VerificationCode temp = VerificationCode.builder()
+                .code(String.valueOf(code))
                 .email(email)
                 .createdAt(LocalDateTime.now())
                 .build();
