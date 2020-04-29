@@ -48,6 +48,7 @@ node{
             usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
             string(credentialsId: 'token-secret', variable: 'tokenSecret'),
             string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
+            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
             sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
                 remote.user = env.sshuname
@@ -67,9 +68,11 @@ node{
                 db_username = env.dbAuthUser
                 db_password = env.dbAuthPassword
                 token_secret = env.tokenSecret
+                user_email = env.emailUser
+                password_email = env.emailPassword
                 firebase = env.firebaseDb
 
-                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase --restart always -d $image"
+                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase -e EMAIL_USER=$user_email -e EMAIL_PASSWORD=$emailPassword --restart always -d $image"
         }
     }
 }
