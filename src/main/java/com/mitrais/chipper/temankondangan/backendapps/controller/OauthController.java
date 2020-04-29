@@ -25,13 +25,13 @@ public class OauthController extends CommonResource {
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ResponseBody> token(@RequestBody OauthWrapper data,
                                               HttpServletRequest request) {
-        OauthResponseWrapper responseWrapper = oAuthService.getToken(data.getEmail(), data.getUid());
-
-        if (responseWrapper != null)
+        try {
+            OauthResponseWrapper responseWrapper = oAuthService.getToken(data.getEmail(), data.getUid());
             return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, null));
-        else
+        } catch (Exception ex) {
             return new ResponseEntity<>(
-                    getResponseBody(HttpStatus.UNAUTHORIZED, null, null, request.getRequestURI()),
+                    getResponseBody(HttpStatus.UNAUTHORIZED, null, ex.getMessage(), request.getRequestURI()),
                     HttpStatus.UNAUTHORIZED);
+        }
     }
 }
