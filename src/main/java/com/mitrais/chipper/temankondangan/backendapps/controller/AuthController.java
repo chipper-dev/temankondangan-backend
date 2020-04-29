@@ -20,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 
-@Api(value = "Register", description = "Operations regarding registering in TemenKondangan System")
+@Api(value = "Auth")
 @RestController
 @RequestMapping("/auth")
 public class AuthController extends CommonResource {

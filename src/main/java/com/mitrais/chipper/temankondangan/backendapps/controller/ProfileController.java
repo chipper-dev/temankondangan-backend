@@ -1,24 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.NoSuchElementException;
-
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -27,12 +8,24 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponse
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-@Api(value = "Profile Management System", description = "Operations regarding profile in TemenKondangan System")
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.text.ParseException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
+
+@Api(value = "Profile Management System")
 @RestController
 @Validated
 @RequestMapping("/profile")
@@ -56,7 +49,7 @@ public class ProfileController extends CommonResource {
 			@RequestParam(value = "city", required = false) String city,
 			@RequestParam(value = "aboutMe", required = false) String aboutMe,
 			@RequestParam(value = "interest", required = false) String interest, HttpServletRequest request)
-			throws ParseException, IOException {
+			throws IOException {
 		LOGGER.info("Update profile");
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);

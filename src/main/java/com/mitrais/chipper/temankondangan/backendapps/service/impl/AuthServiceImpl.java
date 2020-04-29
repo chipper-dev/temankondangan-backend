@@ -10,8 +10,6 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
@@ -30,7 +28,6 @@ import java.util.regex.Pattern;
 
 @Service
 public class AuthServiceImpl implements AuthService {
-    private final static Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     PasswordEncoder passwordEncoder;
     UserRepository userRepository;
@@ -68,8 +65,8 @@ public class AuthServiceImpl implements AuthService {
         }
 
         //check password pattern
-        String regexPassword = "^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,20}$";
-        Pattern patternPassword = Pattern.compile(regexPassword);
+        String regexPass = "^(?=.*[0-9])(?=.*[!@#$%^&*]).{6,20}$";
+        Pattern patternPassword = Pattern.compile(regexPass);
         if (!patternPassword.matcher(register.getPassword()).matches()) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST, "Error: Password pattern not valid!");

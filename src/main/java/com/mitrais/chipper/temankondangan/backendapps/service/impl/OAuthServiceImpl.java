@@ -10,6 +10,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.OauthResponseWr
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.OAuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

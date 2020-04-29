@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.config.FirebaseConfig;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class EmailServiceImpl implements EmailService {
-    private final static Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmailServiceImpl.class);
 
     @Autowired
     public JavaMailSender emailSender;
