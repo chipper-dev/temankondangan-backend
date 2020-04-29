@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,14 +39,8 @@ public class UserController extends CommonResource {
 	@Autowired
 	private TokenProvider tokenProvider;
 
-	@GetMapping("/me")
-	@PreAuthorize("hasRole('USER')")
-	public User getCurrentUser(@CurrentUser UserPrincipal userPrincipal) {
-		return userService.findById(userPrincipal.getId());
-
-	}
-
 	@ApiOperation(value = "Change password API", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PutMapping("/change-password")
 	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
 			HttpServletRequest request) {
@@ -64,6 +59,7 @@ public class UserController extends CommonResource {
 	}
 
 	@ApiOperation(value = "Create password API", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PutMapping("/create-password")
 	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
 			HttpServletRequest request) {
@@ -82,6 +78,7 @@ public class UserController extends CommonResource {
 	}
 
 	@ApiOperation(value = "Remove user API", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@DeleteMapping("/remove")
 	public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
 		LOGGER.info("Remove user");

@@ -10,10 +10,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -29,27 +29,26 @@ import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceIm
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class UserServiceTest {
 
-	@Autowired
-	UserServiceImpl userService;
-
-	@MockBean
+	@Mock
 	UserRepository userRepository;
 
-	@Autowired
+	@Mock
 	PasswordEncoder passwordEncoder;
+
+	@InjectMocks
+	UserServiceImpl userService;
 
 	private User user;
 
 	@BeforeEach
 	public void init() {
 
-		user = new User(1L, "test@email.com", passwordEncoder.encode("12345_"), AuthProvider.email, null, null,
-				DataState.ACTIVE);
+		user = new User(1L, "test@email.com", "12345_", AuthProvider.email, null, null, DataState.ACTIVE);
 
 		Optional<User> userOptional = Optional.of(user);
 
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
-
+		Mockito.when(passwordEncoder.matches("12345_", "12345_")).thenReturn(true);
 	}
 
 //	Testing for Change Password API

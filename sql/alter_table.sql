@@ -28,3 +28,6 @@ ADD COLUMN logout timestamp NULL;
 
 ALTER TABLE public.users
 RENAME COLUMN provider_id TO uid;
+
+ALTER TABLE public.profile ALTER COLUMN about_me TYPE varchar(200);
+ALTER TABLE public.profile ALTER COLUMN interest TYPE varchar(200);

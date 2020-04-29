@@ -18,17 +18,18 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 
 @Api(value = "Profile Management System", description = "Operations regarding profile in TemenKondangan System")
@@ -46,6 +47,7 @@ public class ProfileController extends CommonResource {
 	private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-uuuu");
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PostMapping("/update")
 	public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
 			@RequestParam(value = "fullName", required = true) String fullName,
@@ -58,32 +60,31 @@ public class ProfileController extends CommonResource {
 		LOGGER.info("Update profile");
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		
+
 		try {
 
-			Profile result = profileService
-					.update(new ProfileUpdateWrapper(file, userId, fullName,
-							LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
+			Profile result = profileService.update(new ProfileUpdateWrapper(file, userId, fullName,
+					LocalDate.parse(dob, formatter), gender, city, aboutMe, interest));
 
 			return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
 
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
+		} catch (Exception e) {
+			return ResponseEntity.badRequest()
+					.body(getResponseBody(HttpStatus.BAD_REQUEST, null, null, request.getRequestURI()));
 		}
 	}
 
 	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping("/find")
 	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
 		try {
 			LOGGER.info("Find a profile from token");
 			String token = getToken(request.getHeader("Authorization"));
 			Long userId = tokenProvider.getUserIdFromToken(token);
-			
-			Profile profile = profileService.findByUserId(userId)
-					.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), profile, request.getRequestURI()));
+
+			ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
+			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 		} catch (NoSuchElementException e) {
 			return new ResponseEntity<>(
 					getResponseBody(HttpStatus.NOT_FOUND, "No profile from token ", null, request.getRequestURI()),

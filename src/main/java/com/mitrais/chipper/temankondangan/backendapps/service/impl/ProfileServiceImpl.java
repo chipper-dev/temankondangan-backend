@@ -3,7 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 import javax.transaction.Transactional;
 
@@ -11,8 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
@@ -20,8 +22,12 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
-	@Autowired
 	private ProfileRepository profileRepository;
+
+	@Autowired
+	public ProfileServiceImpl(ProfileRepository profileRepository) {
+		this.profileRepository = profileRepository;
+	}
 
 	private static String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
@@ -31,7 +37,8 @@ public class ProfileServiceImpl implements ProfileService {
 
 		byte[] image;
 
-		if (wrapper.getImage() == null) {
+		// if null or if not select anything
+		if (wrapper.getImage() == null || wrapper.getImage().getSize() == 0) {
 			image = readBytesFromFile(DEFAULT_IMAGE);
 		} else {
 			image = wrapper.getImage().getBytes();
@@ -40,8 +47,6 @@ public class ProfileServiceImpl implements ProfileService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		profile.setPhotoProfile(image);
-//		profile.setModifiedDate(LocalDateTime.now());
-//		profile.setModifiedBy(wrapper.getFullName());
 		profile.setAboutMe(wrapper.getAboutMe());
 		profile.setCity(wrapper.getCity());
 		profile.setInterest(wrapper.getInterest());
@@ -49,7 +54,7 @@ public class ProfileServiceImpl implements ProfileService {
 		profile.setGender(wrapper.getGender());
 		profile.setFullName(wrapper.getFullName());
 
-		return profileRepository.save(profile);
+		return profile;
 
 	}
 
@@ -85,7 +90,15 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public Optional<Profile> findByUserId(Long userId) {
-		return profileRepository.findByUserId(userId);
+	public ProfileResponseWrapper findByUserId(Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
+
+		String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+				.path(String.valueOf(profile.getProfileId())).toUriString();
+
+		return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
+				.dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
+				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).build();
 	}
 }
