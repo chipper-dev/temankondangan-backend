@@ -1,11 +1,10 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import java.io.IOException;
-import java.util.Optional;
-
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
+
+import java.io.IOException;
 
 public interface ProfileService {
 

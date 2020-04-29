@@ -58,6 +58,11 @@ public class Event extends Auditable<String> {
 	@ApiModelProperty(notes = "Event title")
 	private String title;
 
+	@NotEmpty
+	@Column(length = 50)
+	@ApiModelProperty(notes = "The city where the event take place")
+	private String city;
+	
 	@NotNull
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	@ApiModelProperty(notes = "Event date and time")

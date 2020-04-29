@@ -26,16 +26,11 @@ node{
             sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar'
         }
 
-        context="sonarqube/qualitygate"
-        setBuildStatus ("${context}", 'Checking Sonarqube quality gate', 'PENDING')
-        sleep 5
+        sleep 10
         timeout(time: 5, unit: 'MINUTES') { // Just in case something goes wrong, pipeline will be killed after a timeout
             def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
-            if (qg.status != 'OK') {
-                setBuildStatus ("${context}", "Sonarqube quality gate fail: ${qg.status}", 'FAILURE')
+            if (qg.status == 'ERROR') {
                 error "Pipeline aborted due to quality gate failure: ${qg.status}"
-            } else {
-                setBuildStatus ("${context}", "Sonarqube quality gate pass: ${qg.status}", 'SUCCESS')
             }
         }
     }
