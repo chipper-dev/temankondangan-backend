@@ -3,10 +3,8 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.LoginWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import io.swagger.annotations.Api;
@@ -17,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 

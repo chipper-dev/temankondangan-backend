@@ -1,23 +1,18 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.config.FirebaseConfig;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,13 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.transaction.Transactional;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
-import java.util.*;
+import java.util.Date;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
