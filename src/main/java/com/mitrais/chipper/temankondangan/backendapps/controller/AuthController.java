@@ -6,6 +6,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.LoginWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import io.swagger.annotations.Api;
@@ -105,6 +106,19 @@ public class AuthController extends CommonResource {
         try {
             authService.forgotPassword(data.getEmail());
             return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
+        } catch (Exception ex) {
+            return new ResponseEntity<>(
+                    getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
+                    HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
+        try {
+            authService.resetPassword(wrapper);
+            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
         } catch (Exception ex) {
             return new ResponseEntity<>(
                     getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
