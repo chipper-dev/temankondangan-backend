@@ -36,9 +36,18 @@ public class EventServiceImpl implements EventService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
+		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Age must be between 18 and 40!");
+		}
+
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Inputted age error!");
+		}
+
 		Event event = new Event();
 		event.setUser(user);
 		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
 		event.setDateAndTime(wrapper.getDateAndTime());
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
