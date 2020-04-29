@@ -98,30 +98,4 @@ public class AuthController extends CommonResource {
                     HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
-
-    @PostMapping("/forgot-password")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> forgotPassword(@RequestBody ForgotPasswordWrapper data, HttpServletRequest request) {
-        try {
-            authService.forgotPassword(data.getEmail());
-            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
-        } catch (Exception ex) {
-            return new ResponseEntity<>(
-                    getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
-                    HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @PostMapping("/reset-password")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
-        try {
-            authService.resetPassword(wrapper);
-            return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
-        } catch (Exception ex) {
-            return new ResponseEntity<>(
-                    getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
-                    HttpStatus.BAD_REQUEST);
-        }
-    }
 }
