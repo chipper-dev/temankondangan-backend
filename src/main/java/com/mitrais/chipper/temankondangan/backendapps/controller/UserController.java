@@ -2,17 +2,14 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import io.swagger.annotations.ApiImplicitParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
@@ -92,6 +89,32 @@ public class UserController extends CommonResource {
 		} catch (ResponseStatusException e) {
 			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
 					e.getStatus());
+		}
+	}
+
+	@PostMapping("/forgot-password")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<ResponseBody> forgotPassword(@RequestBody ForgotPasswordWrapper data, HttpServletRequest request) {
+		try {
+			userService.forgotPassword(data.getEmail());
+			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
+		} catch (Exception ex) {
+			return new ResponseEntity<>(
+					getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@PostMapping("/reset-password")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
+		try {
+			userService.resetPassword(wrapper);
+			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
+		} catch (Exception ex) {
+			return new ResponseEntity<>(
+					getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
+					HttpStatus.BAD_REQUEST);
 		}
 	}
 
