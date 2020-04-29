@@ -1,7 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 
@@ -19,7 +17,7 @@ public class CreateEventWrapper {
 	private String title;
 	private String city;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-	private LocalDateTime dateAndTime;
+	private String dateAndTime;
 	private Integer minimumAge;
 	private Integer maximumAge;
 	private Gender companionGender;
