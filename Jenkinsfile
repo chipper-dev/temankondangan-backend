@@ -14,7 +14,30 @@ node{
         checkout scm
     }
     stage('Build Source Code') {
-        sh "${mvnCMD} clean package -DskipTests"
+    withCredentials([
+        usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+        string(credentialsId: 'firebase-database', variable: 'firebaseDb')
+        ]) {
+            sh "${mvnCMD} clean package -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json"
+        }
+    }
+    stage('SonarQube analysis') {
+        withSonarQubeEnv('sonarqube') {
+            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar'
+        }
+
+        context="sonarqube/qualitygate"
+        setBuildStatus ("${context}", 'Checking Sonarqube quality gate', 'PENDING')
+        sleep 5
+        timeout(time: 5, unit: 'MINUTES') { // Just in case something goes wrong, pipeline will be killed after a timeout
+            def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
+            if (qg.status != 'OK') {
+                setBuildStatus ("${context}", "Sonarqube quality gate fail: ${qg.status}", 'FAILURE')
+                error "Pipeline aborted due to quality gate failure: ${qg.status}"
+            } else {
+                setBuildStatus ("${context}", "Sonarqube quality gate pass: ${qg.status}", 'SUCCESS')
+            }
+        }
     }
     stage('Build Docker Image') {
         app = docker.build(image)

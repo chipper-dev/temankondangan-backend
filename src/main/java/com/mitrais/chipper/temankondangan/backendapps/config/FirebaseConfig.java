@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 
 @Configuration
@@ -19,13 +21,16 @@ public class FirebaseConfig {
     @Value("${app.firebase.databaseUrl}")
     String firebaseDatabaseUrl;
 
+    @Value("${app.firebase.googleCredentials}")
+    String googleCredentials;
+
 
     @Primary
     @Bean
     public void firebaseInit() throws IOException {
 
         FirebaseOptions options = new FirebaseOptions.Builder()
-                .setCredentials(GoogleCredentials.getApplicationDefault())
+                .setCredentials(GoogleCredentials.fromStream(new FileInputStream(new File(googleCredentials))))
                 .setDatabaseUrl(firebaseDatabaseUrl)
                 .build();
 
