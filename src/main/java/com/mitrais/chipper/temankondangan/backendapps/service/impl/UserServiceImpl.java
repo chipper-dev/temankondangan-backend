@@ -195,7 +195,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private Integer generateRandomCode(Integer n) {
-		int m = (int) Math.pow(10, n - 1);
+		int m = (int) Math.pow(10, (double) n - 1);
 		return m + new Random().nextInt(9 * m);
 	}
 

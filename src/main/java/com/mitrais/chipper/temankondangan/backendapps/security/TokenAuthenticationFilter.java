@@ -19,6 +19,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.NoSuchElementException;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
@@ -37,7 +38,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwt = getJwtFromRequest(request);
             Long userId = tokenProvider.getUserIdFromToken(jwt);
-            Date logoutTime = userRepository.findById(userId).get().getLogout();
+            Date logoutTime = userRepository.findById(userId).orElseThrow(() -> new NoSuchElementException("User Not Fpund")).getLogout();
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt, logoutTime)) {
 
                 UserDetails userDetails = customUserDetailsService.loadUserById(userId);
