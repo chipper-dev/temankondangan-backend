@@ -39,3 +39,4 @@ app:
     tokenExpirationMsec: 300000 #5 mins
   firebase:
     databaseUrl: ${FIREBASE_DATABASE}
+  verificationExpirationMsec: 300000 #5 mins
