@@ -27,7 +27,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 
-@Api(value = "Event Management System", description = "Operations regarding event in TemenKondangan System")
+@Api(value = "Event Management System")
 @RestController
 @Validated
 @RequestMapping("/event")

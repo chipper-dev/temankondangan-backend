@@ -16,7 +16,7 @@ import java.io.IOException;
 
 @Configuration
 public class FirebaseConfig {
-    private final static Logger logger = LoggerFactory.getLogger(FirebaseConfig.class);
+    private static final Logger logger = LoggerFactory.getLogger(FirebaseConfig.class);
 
     @Value("${app.firebase.databaseUrl}")
     String firebaseDatabaseUrl;

@@ -10,6 +10,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.OauthResponseWr
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.OAuthService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,72 +24,71 @@ import java.util.Optional;
 @Service
 public class OAuthServiceImpl implements OAuthService {
 
-	private PasswordEncoder passwordEncoder;
-	private AuthenticationManager authenticationManager;
-	private TokenProvider tokenProvider;
-	private UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
+    private AuthenticationManager authenticationManager;
+    private TokenProvider tokenProvider;
+    private UserRepository userRepository;
 
-	@Autowired
-	public OAuthServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
-			TokenProvider tokenProvider, UserRepository userRepository) {
-		this.passwordEncoder = passwordEncoder;
-		this.authenticationManager = authenticationManager;
-		this.tokenProvider = tokenProvider;
-		this.userRepository = userRepository;
-	}
+    @Autowired
+    public OAuthServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+                            TokenProvider tokenProvider, UserRepository userRepository) {
+        this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
+        this.tokenProvider = tokenProvider;
+        this.userRepository = userRepository;
+    }
 
-	@Override
-	public OauthResponseWrapper getToken(String email, String uid) {
-		OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
+    @Override
+    public OauthResponseWrapper getToken(String email, String uid) {
+        try {
+            UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
+            if (userRecord.getEmail().equalsIgnoreCase(email) && userRecord.getUid().equals(uid)) {
+                return generateResponse(userRecord);
+            } else {
+                throw new RuntimeException("Error: Email or UID didn't match");
+            }
+        } catch (FirebaseAuthException ex) {
+            // wrong uid
+            throw new RuntimeException("Error: No user record found from the provider");
+        }
+    }
 
-		try {
-			UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
-			if (userRecord.getEmail().equalsIgnoreCase(email)) {
-				responseWrapper = generateResponse(userRecord);
-			}
-		} catch (FirebaseAuthException e) {
-			e.printStackTrace();
-		}
+    private OauthResponseWrapper generateResponse(UserRecord userRecord) {
+        OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
+        Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
 
-		return responseWrapper;
-	}
+        if (!existUser.isPresent()) {
+            saveUser(userRecord);
+            responseWrapper.setExist(false);
+        } else {
+            updateUser(existUser.get(), userRecord);
+            responseWrapper.setExist(true);
+        }
 
-	private OauthResponseWrapper generateResponse(UserRecord userRecord) {
-		OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
-		Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
+        responseWrapper.setToken(generateToken(userRecord));
+        responseWrapper.setFullName(userRecord.getDisplayName());
 
-		if (!existUser.isPresent()) {
-			saveUser(userRecord);
-			responseWrapper.setExist(false);
-		} else {
-			updateUser(existUser.get(), userRecord);
-			responseWrapper.setExist(true);
-		}
+        return responseWrapper;
+    }
 
-		responseWrapper.setToken(generateToken(userRecord));
-		responseWrapper.setFullName(userRecord.getDisplayName());
+    private String generateToken(UserRecord userRecord) {
+        Authentication authentication = authenticationManager
+                .authenticate(new UsernamePasswordAuthenticationToken(userRecord.getEmail(), userRecord.getUid()));
 
-		return responseWrapper;
-	}
+        return tokenProvider.createToken(authentication);
+    }
 
-	private String generateToken(UserRecord userRecord) {
-		Authentication authentication = authenticationManager
-				.authenticate(new UsernamePasswordAuthenticationToken(userRecord.getEmail(), userRecord.getUid()));
+    private User saveUser(UserRecord userRecord) {
+        User user = User.builder().email(userRecord.getEmail()).uid(passwordEncoder.encode(userRecord.getUid()))
+                .provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
 
-		return tokenProvider.createToken(authentication);
-	}
+        return userRepository.save(user);
+    }
 
-	private User saveUser(UserRecord userRecord) {
-		User user = User.builder().email(userRecord.getEmail()).uid(passwordEncoder.encode(userRecord.getUid()))
-				.provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
-
-		return userRepository.save(user);
-	}
-
-	private void updateUser(User user, UserRecord userRecord) {
-		if (!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
-			user.setUid(passwordEncoder.encode(userRecord.getUid()));
-			userRepository.save(user);
-		}
-	}
+    private void updateUser(User user, UserRecord userRecord) {
+        if (!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
+            user.setUid(passwordEncoder.encode(userRecord.getUid()));
+            userRepository.save(user);
+        }
+    }
 }

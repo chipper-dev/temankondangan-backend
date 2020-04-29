@@ -87,7 +87,7 @@ public class EventServiceImpl implements EventService {
 		if (pagedResult.hasContent()) {
 			return pagedResult.getContent();
 		} else {
-			return new ArrayList<Event>();
+			return new ArrayList<>();
 		}
 	}
 }

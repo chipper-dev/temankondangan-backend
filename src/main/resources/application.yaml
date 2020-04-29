@@ -9,6 +9,17 @@ spring:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: chipper.mitrais@gmail.com
+    password: chipper011235
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   jpa:
     show-sql: true
@@ -29,3 +40,4 @@ app:
   firebase:
     databaseUrl: ${FIREBASE_DATABASE}
     googleCredentials: ${GOOGLE_APPLICATION_CREDENTIALS}
+  verificationExpirationMsec: 300000 #5 mins

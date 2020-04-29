@@ -1,14 +1,14 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Builder;
 import lombok.Data;
 
-import javax.persistence.*;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import java.time.LocalDate;
 
 @Data
