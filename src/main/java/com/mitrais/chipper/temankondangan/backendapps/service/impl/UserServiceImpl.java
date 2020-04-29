@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
@@ -19,11 +20,14 @@ import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 @Service
 public class UserServiceImpl implements UserService {
 
-	@Autowired
 	private UserRepository userRepository;
+	private PasswordEncoder passwordEncoder;
 
 	@Autowired
-	private PasswordEncoder passwordEncoder;
+	public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+		this.userRepository = userRepository;
+		this.passwordEncoder = passwordEncoder;
+	}
 
 	@Override
 	public User findById(Long userId) {
@@ -37,7 +41,7 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		// check if old password field empty
-		if (wrapper.getOldPassword() == "" || wrapper.getOldPassword() == null) {
+		if (StringUtils.isEmpty(wrapper.getOldPassword())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
 		}
 
@@ -68,7 +72,7 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		// check if there is password
-		if (!(user.getPasswordHashed() == null)) {
+		if (!StringUtils.isEmpty(user.getPasswordHashed())) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password has been created");
 		}
 
@@ -90,7 +94,7 @@ public class UserServiceImpl implements UserService {
 	private void passwordValidation(String password, String confirmPassword) {
 
 		// check if empty
-		if (password == "" || confirmPassword == "" || password == null || confirmPassword == null) {
+		if (StringUtils.isEmpty(password) || StringUtils.isEmpty(confirmPassword)) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
 		}
 

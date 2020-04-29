@@ -87,7 +87,6 @@ public class AuthController extends CommonResource {
 
     @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
     @GetMapping("/logout")
-    @Validated
     public ResponseEntity<ResponseBody> logout(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         boolean result = authService.logout(tokenProvider.getUserIdFromToken(token));

@@ -21,75 +21,73 @@ import java.util.Optional;
 
 @Service
 public class OAuthServiceImpl implements OAuthService {
-    @Autowired
-    PasswordEncoder passwordEncoder;
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+	private PasswordEncoder passwordEncoder;
+	private AuthenticationManager authenticationManager;
+	private TokenProvider tokenProvider;
+	private UserRepository userRepository;
 
-    @Autowired
-    TokenProvider tokenProvider;
+	@Autowired
+	public OAuthServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
+			TokenProvider tokenProvider, UserRepository userRepository) {
+		this.passwordEncoder = passwordEncoder;
+		this.authenticationManager = authenticationManager;
+		this.tokenProvider = tokenProvider;
+		this.userRepository = userRepository;
+	}
 
-    @Autowired
-    UserRepository userRepository;
+	@Override
+	public OauthResponseWrapper getToken(String email, String uid) {
+		OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
 
-    @Override
-    public OauthResponseWrapper getToken(String email, String uid) {
-        OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
+		try {
+			UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
+			if (userRecord.getEmail().equalsIgnoreCase(email)) {
+				responseWrapper = generateResponse(userRecord);
+			}
+		} catch (FirebaseAuthException e) {
+			e.printStackTrace();
+		}
 
-        try {
-            UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
-            if (userRecord.getEmail().equalsIgnoreCase(email)) {
-                responseWrapper = generateResponse(userRecord);
-            }
-        } catch (FirebaseAuthException e) {
-            e.printStackTrace();
-        }
+		return responseWrapper;
+	}
 
-        return responseWrapper;
-    }
+	private OauthResponseWrapper generateResponse(UserRecord userRecord) {
+		OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
+		Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
 
-    private OauthResponseWrapper generateResponse(UserRecord userRecord) {
-        OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
-        Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
+		if (!existUser.isPresent()) {
+			saveUser(userRecord);
+			responseWrapper.setExist(false);
+		} else {
+			updateUser(existUser.get(), userRecord);
+			responseWrapper.setExist(true);
+		}
 
-        if (!existUser.isPresent()) {
-            saveUser(userRecord);
-            responseWrapper.setExist(false);
-        } else {
-            updateUser(existUser.get(), userRecord);
-            responseWrapper.setExist(true);
-        }
+		responseWrapper.setToken(generateToken(userRecord));
+		responseWrapper.setFullName(userRecord.getDisplayName());
 
-        responseWrapper.setToken(generateToken(userRecord));
-        responseWrapper.setFullName(userRecord.getDisplayName());
+		return responseWrapper;
+	}
 
-        return responseWrapper;
-    }
+	private String generateToken(UserRecord userRecord) {
+		Authentication authentication = authenticationManager
+				.authenticate(new UsernamePasswordAuthenticationToken(userRecord.getEmail(), userRecord.getUid()));
 
-    private String generateToken(UserRecord userRecord) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                userRecord.getEmail(), userRecord.getUid()
-        ));
+		return tokenProvider.createToken(authentication);
+	}
 
-        return tokenProvider.createToken(authentication);
-    }
+	private User saveUser(UserRecord userRecord) {
+		User user = User.builder().email(userRecord.getEmail()).uid(passwordEncoder.encode(userRecord.getUid()))
+				.provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
 
-    private User saveUser(UserRecord userRecord) {
-        User user = User.builder()
-                .email(userRecord.getEmail())
-                .uid(passwordEncoder.encode(userRecord.getUid()))
-                .provider(AuthProvider.google)
-                .dataState(DataState.ACTIVE)
-                .build();
+		return userRepository.save(user);
+	}
 
-        return userRepository.save(user);
-    }
-
-    private void updateUser(User user, UserRecord userRecord) {
-        if(!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
-            user.setUid(passwordEncoder.encode(userRecord.getUid()));
-            userRepository.save(user);
-        }
-    }
+	private void updateUser(User user, UserRecord userRecord) {
+		if (!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
+			user.setUid(passwordEncoder.encode(userRecord.getUid()));
+			userRepository.save(user);
+		}
+	}
 }

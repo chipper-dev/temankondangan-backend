@@ -14,7 +14,25 @@ node{
         checkout scm
     }
     stage('Build Source Code') {
-        sh "${mvnCMD} clean package -DskipTests"
+    withCredentials([
+        usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+        string(credentialsId: 'firebase-database', variable: 'firebaseDb')
+        ]) {
+            sh "${mvnCMD} clean package -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json"
+        }
+    }
+    stage('SonarQube analysis') {
+        withSonarQubeEnv('sonarqube') {
+            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar'
+        }
+
+        sleep 10
+        timeout(time: 5, unit: 'MINUTES') { // Just in case something goes wrong, pipeline will be killed after a timeout
+            def qg = waitForQualityGate() // Reuse taskId previously collected by withSonarQubeEnv
+            // if (qg.status != 'OK') {
+            //     error "Pipeline aborted due to quality gate failure: ${qg.status}"
+            // }
+        }
     }
     stage('Build Docker Image') {
         app = docker.build(image)

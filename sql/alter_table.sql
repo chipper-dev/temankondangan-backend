@@ -20,11 +20,19 @@ ALTER TABLE users
 ADD COLUMN data_state VARCHAR NOT NULL DEFAULT 'ACTIVE';
 
 ALTER TABLE users
-ALTER COLUMN data_state
-DROP DEFAULT;
+ALTER COLUMN data_state DROP DEFAULT;
 
 ALTER TABLE public.users
 ADD COLUMN logout timestamp NULL;
 
 ALTER TABLE public.users
 RENAME COLUMN provider_id TO uid;
+
+ALTER TABLE public.profile ALTER COLUMN about_me TYPE varchar(200);
+ALTER TABLE public.profile ALTER COLUMN interest TYPE varchar(200);
+
+ALTER TABLE event
+ADD COLUMN city VARCHAR NOT NULL DEFAULT 'Yogyakarta';
+
+ALTER TABLE event
+ALTER COLUMN city DROP DEFAULT;

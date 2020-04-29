@@ -9,10 +9,10 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,24 +23,20 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.AuthServiceImpl;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class ProfileServiceTest {
 
-	@Autowired
-	AuthServiceImpl registerService;
-
-	@Autowired
-	ProfileServiceImpl profileService;
-
-	@MockBean
+	@Mock
 	UserRepository userRepository;
 
-	@MockBean
+	@Mock
 	ProfileRepository profileRepository;
+
+	@InjectMocks
+	ProfileServiceImpl profileService;
 
 	private static MultipartFile multipartFile;
 

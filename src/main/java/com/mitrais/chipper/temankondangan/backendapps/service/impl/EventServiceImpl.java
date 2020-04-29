@@ -22,20 +22,32 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 @Service
 public class EventServiceImpl implements EventService {
 
-	@Autowired
 	private EventRepository eventRepository;
+	private UserRepository userRepository;
 
 	@Autowired
-	private UserRepository userRepository;
+	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
+		this.eventRepository = eventRepository;
+		this.userRepository = userRepository;
+	}
 
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
+		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Age must be between 18 and 40!");
+		}
+
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Inputted age error!");
+		}
+
 		Event event = new Event();
 		event.setUser(user);
 		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
 		event.setDateAndTime(wrapper.getDateAndTime());
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
@@ -49,7 +61,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
 		Pageable paging = Pageable.unpaged();
-		
+
 		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
 		} else if (direction.equalsIgnoreCase("ASC")) {

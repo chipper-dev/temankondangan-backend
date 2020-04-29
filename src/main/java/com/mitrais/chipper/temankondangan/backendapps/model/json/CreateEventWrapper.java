@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class CreateEventWrapper {
 
 	private String title;
+	private String city;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
 	private LocalDateTime dateAndTime;
 	private Integer minimumAge;
