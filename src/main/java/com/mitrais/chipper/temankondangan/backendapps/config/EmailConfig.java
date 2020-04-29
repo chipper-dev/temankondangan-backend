@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.mail.SimpleMailMessage;
@@ -10,6 +11,12 @@ import java.util.Properties;
 
 @Configuration
 public class EmailConfig {
+    @Value("spring.mail.username")
+    String username;
+
+    @Value("spring.mail.password")
+    String password;
+
     @Bean
     public JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -17,8 +24,8 @@ public class EmailConfig {
         mailSender.setHost("smtp.gmail.com");
         mailSender.setPort(587);
 
-        mailSender.setUsername("chipper.mitrais@gmail.com");
-        mailSender.setPassword("chipper011235");
+        mailSender.setUsername(username);
+        mailSender.setPassword(password);
 
         Properties props = mailSender.getJavaMailProperties();
         props.put("mail.transport.protocol", "smtp");
