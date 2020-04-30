@@ -3,9 +3,9 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.NoSuchElementException;
-
-import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,27 +36,34 @@ public class ProfileServiceImpl implements ProfileService {
 	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
-	@Transactional
 	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws IOException {
 
 		byte[] image;
+
+		String[] allowedFormatImage = { "jpeg", "png", "jpg" };
+		List<String> allowedFormatImageList = Arrays.asList(allowedFormatImage);
 
 		// if null or if not select anything
 		if (wrapper.getImage() == null || wrapper.getImage().getSize() == 0) {
 			image = readBytesFromFile(DEFAULT_IMAGE);
 		} else {
+			// throw error if image format is not allowed
+			String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
+			if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Image format not allowed!");
+			}
 			image = wrapper.getImage().getBytes();
 		}
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
-		profile.setPhotoProfile(image);
-		profile.setAboutMe(wrapper.getAboutMe());
-		profile.setCity(wrapper.getCity());
-		profile.setInterest(wrapper.getInterest());
-
 		try {
-			return profile;
+			profile.setPhotoProfile(image);
+			profile.setAboutMe(wrapper.getAboutMe());
+			profile.setCity(wrapper.getCity());
+			profile.setInterest(wrapper.getInterest());
+
+			return profileRepository.save(profile);
 		} catch (Exception e) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Data sent is not valid!");
 		}
