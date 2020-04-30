@@ -2,16 +2,6 @@ package com.mitrais.chipper.temankondangan.backendapps.common.response;
 
 import java.util.List;
 
-/**
- * Class that defined response message from server containing list object and
- * the return type should be
- * written straight to the HTTP response body.
- * 
- * @author aulia.istamar
- * @since 0.0.1-SNAPSHOT
- * @version 0.0.1-SNAPSHOT
- * @updated 5 Sept 2016
- */
 public class ContentList {
     
     private int pageSize;
