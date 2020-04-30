@@ -7,16 +7,16 @@ public class ContentList {
     private int pageSize;
     private int pageNumber;
     private int actualSize;
-    private List<?> contentList;
+    private List contents;
     
     public ContentList() {
     }
     
-    public ContentList(int pageSize, int pageNumber, int actualSize, List<?> list) {
+    public ContentList(int pageSize, int pageNumber, int actualSize, List list) {
 	this.pageSize = pageSize;
 	this.pageNumber = pageNumber;
 	this.actualSize = actualSize;
-	this.contentList = list;
+	this.contents = list;
     }
     
     public int getPageSize() {
@@ -43,18 +43,18 @@ public class ContentList {
 	this.actualSize = actualSize;
     }
     
-    public List<?> getContentList() {
-	return contentList;
+    public List getContentList() {
+	return contents;
     }
     
-    public void setContentList(List<?> list) {
-	this.contentList = list;
+    public void setContentList(List list) {
+	this.contents = list;
     }
     
     @Override
     public String toString() {
 	return "ContentList [pageSize=" + pageSize + ", pageNumber=" + pageNumber + ", actualSize=" + actualSize
-	        + ", contentList=" + contentList + "]";
+	        + ", contents=" + contents + "]";
     }
     
 }
