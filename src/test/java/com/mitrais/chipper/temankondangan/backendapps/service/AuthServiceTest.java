@@ -65,9 +65,10 @@ public class AuthServiceTest {
 
 	@Test
 	public void testRegisteringNewUser() {
-		int day = LocalDate.now().getDayOfMonth();
-		int month = LocalDate.now().getMonthValue();
-		int year = LocalDate.now().getYear() - 18;
+		LocalDate eighteenYearsAgo = LocalDate.now().minusYears(18);
+		int day = eighteenYearsAgo.getDayOfMonth();
+		int month = eighteenYearsAgo.getMonthValue();
+		int year = eighteenYearsAgo.getYear() - 18;
 		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
 
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
@@ -186,9 +187,10 @@ public class AuthServiceTest {
 		//set dob dynamic 1 day before 18
 		LocalDate today = LocalDate.now();
 		LocalDate tomorrow = today.plusDays(1);
-		int day = tomorrow.getDayOfMonth();
-		int month = tomorrow.getMonthValue();
-		int year = tomorrow.getYear() - 18;
+		LocalDate eighteenYearsAgo = tomorrow.minusYears(18);
+		int day = eighteenYearsAgo.getDayOfMonth();
+		int month = eighteenYearsAgo.getMonthValue();
+		int year = eighteenYearsAgo.getYear();
 		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
 
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
