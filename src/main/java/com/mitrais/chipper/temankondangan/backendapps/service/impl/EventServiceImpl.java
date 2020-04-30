@@ -1,5 +1,8 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,11 +47,20 @@ public class EventServiceImpl implements EventService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Inputted age error!");
 		}
 
+		// check dateAndTime valid
+		LocalDateTime dateAndTime;
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+
+		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+		}
+
 		Event event = new Event();
 		event.setUser(user);
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setDateAndTime(wrapper.getDateAndTime());
+		event.setDateAndTime(dateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
@@ -75,7 +87,7 @@ public class EventServiceImpl implements EventService {
 		if (pagedResult.hasContent()) {
 			return pagedResult.getContent();
 		} else {
-			return new ArrayList<Event>();
+			return new ArrayList<>();
 		}
 	}
 }

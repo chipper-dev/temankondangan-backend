@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +54,7 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
-		wrapper.setDateAndTime(LocalDateTime.now());
+		wrapper.setDateAndTime(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -115,20 +116,26 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenAgeMoreThan40() {
-		event.setMaximumAge(41);
+		wrapper.setMaximumAge(41);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenAgeLessThan18() {
-		event.setMaximumAge(17);
+		wrapper.setMaximumAge(17);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenMinimumAgeIsMoreThanMaximumAge() {
-		event.setMinimumAge(25);
-		event.setMaximumAge(20);
+		wrapper.setMinimumAge(25);
+		wrapper.setMaximumAge(20);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
+	}
+
+	@Test
+	public void shouldThrowResponseStatusException_WhenDateIsBeforeTodayPlus1() {
+		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
 	}
 

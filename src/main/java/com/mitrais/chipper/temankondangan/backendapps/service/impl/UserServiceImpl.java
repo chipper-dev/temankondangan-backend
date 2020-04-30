@@ -1,17 +1,16 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.regex.Pattern;
-
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
-import org.hibernate.sql.Template;
+import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,17 +22,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
-	private final static Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+
+	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
 
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
 
 		// check if old password field empty
 		if (StringUtils.isEmpty(wrapper.getOldPassword())) {
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
 	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
 
 		// check if there is password
 		if (!StringUtils.isEmpty(user.getPasswordHashed())) {
@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void remove(Long userId) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
 
 		userRepository.delete(user);
 
@@ -195,7 +195,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private Integer generateRandomCode(Integer n) {
-		int m = (int) Math.pow(10, n - 1);
+		int m = (int) Math.pow(10, (double) n - 1);
 		return m + new Random().nextInt(9 * m);
 	}
 

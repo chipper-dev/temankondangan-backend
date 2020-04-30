@@ -19,7 +19,7 @@ import java.util.List;
  */
 public class CommonResource {
 
-	public final static Logger LOGGER = LoggerFactory.getLogger(CommonResource.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(CommonResource.class);
 
 	/**
 	 * Method to get Response Message (Success process).

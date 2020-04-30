@@ -7,6 +7,8 @@ import java.util.NoSuchElementException;
 
 import javax.transaction.Transactional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,14 +24,16 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
-	private ProfileRepository profileRepository;
+	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
+
+	private final ProfileRepository profileRepository;
 
 	@Autowired
 	public ProfileServiceImpl(ProfileRepository profileRepository) {
 		this.profileRepository = profileRepository;
 	}
 
-	private static String DEFAULT_IMAGE = "image/defaultprofile.jpg";
+	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
 	@Transactional
@@ -79,7 +83,7 @@ public class ProfileServiceImpl implements ProfileService {
 				try {
 					fileInputStream.close();
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.error("readBytesFromFile", e);
 				}
 			}
 
