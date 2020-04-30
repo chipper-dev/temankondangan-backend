@@ -60,8 +60,9 @@ public class EventController extends CommonResource {
 	}
 
 	@ApiOperation(value = "Find all event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find-all")
-	public ResponseEntity<?> findAll(@RequestParam(defaultValue = "0") Integer pageNumber,
+	public ResponseEntity<ResponseBody> findAll(@RequestParam(defaultValue = "0") Integer pageNumber,
 			@RequestParam(defaultValue = "10") Integer pageSize,
 			@RequestParam(defaultValue = "createdDate") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,

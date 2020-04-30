@@ -80,7 +80,7 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
-		Pageable paging = Pageable.unpaged();
+		Pageable paging;
 
 		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
