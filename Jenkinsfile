@@ -16,9 +16,10 @@ node{
     stage('Build Source Code') {
     withCredentials([
         usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
-        string(credentialsId: 'firebase-database', variable: 'firebaseDb')
+        string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
+        usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
         ]) {
-            sh "${mvnCMD} clean package -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json"
+            sh "${mvnCMD} clean package -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json -Dspring.mail.username=$env.emailUser -Dspring.mail.password=$env.emailPassword"
         }
     }
     stage('SonarQube analysis') {
@@ -48,7 +49,7 @@ node{
             usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
             string(credentialsId: 'token-secret', variable: 'tokenSecret'),
             string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
-            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
+            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser'),
             sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
                 remote.user = env.sshuname
