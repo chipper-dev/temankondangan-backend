@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
@@ -40,7 +40,7 @@ public class ProfileServiceTest {
 
 	private static MultipartFile multipartFile;
 
-	@BeforeAll
+	@BeforeEach
 	public void init() {
 
 		User user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);

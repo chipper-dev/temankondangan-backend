@@ -40,20 +40,24 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Age must be between 18 and 40!");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Age must be between 18 and 40!");
 		}
 
 		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Inputted age error!");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Inputted age is not valid!");
 		}
 
 		// check dateAndTime valid
-		LocalDateTime dateAndTime;
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+		LocalDateTime dateAndTime;
+		try {
+			dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+		}
 
 		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date inputted have to be after today!");
 		}
 
 		Event event = new Event();
@@ -66,7 +70,11 @@ public class EventServiceImpl implements EventService {
 		event.setMaximumAge(wrapper.getMaximumAge());
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 
-		return eventRepository.save(event);
+		try {
+			return eventRepository.save(event);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data sent is not valid!");
+		}
 
 	}
 
