@@ -53,6 +53,7 @@ public class ProfileServiceTest {
 				"All about me", "Not interested");
 		Optional<Profile> profileOptional = Optional.of(profile);
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
+		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenReturn(profile);
 
 		wrapper = new ProfileUpdateWrapper(multipartFile, "Klaten city", "All about me", "Not interested");
 	}
