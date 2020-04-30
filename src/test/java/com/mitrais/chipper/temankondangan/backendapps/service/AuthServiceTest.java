@@ -68,7 +68,7 @@ public class AuthServiceTest {
 		LocalDate eighteenYearsAgo = LocalDate.now().minusYears(18);
 		int day = eighteenYearsAgo.getDayOfMonth();
 		int month = eighteenYearsAgo.getMonthValue();
-		int year = eighteenYearsAgo.getYear() - 18;
+		int year = eighteenYearsAgo.getYear();
 		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
 
 		RegisterUserWrapper wrapper = new RegisterUserWrapper();
