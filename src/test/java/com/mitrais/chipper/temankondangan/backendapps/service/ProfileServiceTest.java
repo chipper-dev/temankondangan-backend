@@ -39,6 +39,7 @@ public class ProfileServiceTest {
 	ProfileServiceImpl profileService;
 
 	private static MultipartFile multipartFile;
+	private static ProfileUpdateWrapper wrapper;
 
 	@BeforeEach
 	public void init() {
@@ -48,25 +49,19 @@ public class ProfileServiceTest {
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
 		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
+		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "Klaten city",
+				"All about me", "Not interested");
+		Optional<Profile> profileOptional = Optional.of(profile);
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 
-		Profile beforeProfile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null,
-				"Klaten city", "All about me", "Not interested");
-		Profile afterProfile = new Profile((long) 1, user, "full name changed", LocalDate.now(), Gender.L, null,
-				"Klaten city", "All about me", "Not interested");
-
-		Optional<Profile> beforeProfileOptional = Optional.of(beforeProfile);
-
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(beforeProfileOptional);
-		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenReturn(afterProfile);
-
+		wrapper = new ProfileUpdateWrapper(multipartFile, "Klaten city", "All about me", "Not interested");
 	}
 
 	@Test
-	public void UpdateProfileTestWithImage() throws IOException {
-		ProfileUpdateWrapper profileWrapper = new ProfileUpdateWrapper(multipartFile, 1L, "full name changed",
-				LocalDate.now(), Gender.L, "Klaten city", "All about me", "Not interested");
-		Profile result = profileService.update(profileWrapper);
-		assertEquals("full name changed", result.getFullName());
+	public void updateProfileTestWithImage() throws IOException {
+
+		Profile result = profileService.update(1L, wrapper);
+		assertEquals("full name test", result.getFullName());
 	}
 
 }

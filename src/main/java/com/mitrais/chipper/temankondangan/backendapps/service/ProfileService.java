@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public interface ProfileService {
 
-	public Profile update(ProfileUpdateWrapper wrapper) throws IOException;
+	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws IOException;
 
 	public ProfileResponseWrapper findByUserId(Long userId);
 
