@@ -48,7 +48,7 @@ node{
             usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
             string(credentialsId: 'token-secret', variable: 'tokenSecret'),
             string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
-            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
+            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser'),
             sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
                 remote.user = env.sshuname
