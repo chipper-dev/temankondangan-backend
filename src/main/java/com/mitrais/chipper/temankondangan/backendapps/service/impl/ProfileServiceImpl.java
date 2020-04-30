@@ -37,7 +37,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	@Transactional
-	public Profile update(ProfileUpdateWrapper wrapper) throws IOException {
+	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws IOException {
 
 		byte[] image;
 
@@ -47,18 +47,19 @@ public class ProfileServiceImpl implements ProfileService {
 		} else {
 			image = wrapper.getImage().getBytes();
 		}
-		Profile profile = profileRepository.findByUserId(wrapper.getUserId())
+		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
 
 		profile.setPhotoProfile(image);
 		profile.setAboutMe(wrapper.getAboutMe());
 		profile.setCity(wrapper.getCity());
 		profile.setInterest(wrapper.getInterest());
-		profile.setDob(wrapper.getDob());
-		profile.setGender(wrapper.getGender());
-		profile.setFullName(wrapper.getFullName());
 
-		return profile;
+		try {
+			return profile;
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Data sent is not valid!");
+		}
 
 	}
 
