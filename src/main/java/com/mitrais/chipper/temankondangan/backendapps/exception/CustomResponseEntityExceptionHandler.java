@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
@@ -36,7 +35,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		CommonResource resource = new CommonResource();
 		return new ResponseEntity<Object>(
-				resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getContextPath()),
+				resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getRequestURI()),
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 
@@ -50,7 +49,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 		CommonResource resource = new CommonResource();
 		return new ResponseEntity<Object>(
-				resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getContextPath()),
+				resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getRequestURI()),
 				HttpStatus.NOT_FOUND);
 	}
 
@@ -58,17 +57,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
 		return new ResponseEntity<Object>(
-				resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getContextPath()),
+				resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
 				HttpStatus.BAD_REQUEST);
-	}
-
-	@ExceptionHandler(ResponseStatusException.class)
-	public final ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex,
-			HttpServletRequest request) {
-		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
-				resource.getResponseBody(ex.getStatus(), null, ex.getReason(), request.getRequestURI()),
-				ex.getStatus());
 	}
 
 	@ExceptionHandler(NullPointerException.class)
@@ -91,13 +81,10 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleDateTimeParseException(DateTimeParseException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		ex.getCause();
-		ex.getErrorIndex();
-		ex.getLocalizedMessage();
-		ex.getMessage();
-		ex.getParsedString();
-		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
-				"Error: " + ex.getMessage(), request.getRequestURI()), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Object>(
+				resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
+						"Error: '" + ex.getParsedString() + "' is not a valid format", request.getRequestURI()),
+				HttpStatus.BAD_REQUEST);
 	}
 
 	@Override

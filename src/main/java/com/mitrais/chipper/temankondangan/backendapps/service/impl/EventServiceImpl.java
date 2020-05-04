@@ -11,10 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
@@ -41,11 +40,11 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Age must be between 18 and 40!");
+			throw new BadRequestException("Error: Age must be between 18 and 40!");
 		}
 
 		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Inputted age is not valid!");
+			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 
 		// check dateAndTime valid
@@ -54,7 +53,7 @@ public class EventServiceImpl implements EventService {
 		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
 
 		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date inputted have to be after today!");
+			throw new BadRequestException("Error: Date inputted have to be after today!");
 		}
 
 		Event event = new Event();
@@ -80,8 +79,7 @@ public class EventServiceImpl implements EventService {
 		} else if (direction.equalsIgnoreCase("ASC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
 		} else {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: Can only input ASC or DESC for direction!");
+			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
 		Page<Event> pagedResult = eventRepository.findAll(paging);

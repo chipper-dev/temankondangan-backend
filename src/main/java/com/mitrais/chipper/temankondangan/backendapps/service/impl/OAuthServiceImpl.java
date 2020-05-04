@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -37,17 +38,17 @@ public class OAuthServiceImpl implements OAuthService {
     }
 
     @Override
-    public OauthResponseWrapper getToken(String email, String uid) {
+    public OauthResponseWrapper getToken(String email, String uid) throws BadRequestException {
         try {
             UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
             if (userRecord.getEmail().equalsIgnoreCase(email) && userRecord.getUid().equals(uid)) {
                 return generateResponse(userRecord);
             } else {
-                throw new RuntimeException("Error: Email or UID didn't match");
+                throw new BadRequestException("Error: Email or UID didn't match");
             }
         } catch (FirebaseAuthException ex) {
             // wrong uid
-            throw new RuntimeException("Error: No user record found from the provider");
+            throw new BadRequestException("Error: No user record found from the provider");
         }
     }
 
