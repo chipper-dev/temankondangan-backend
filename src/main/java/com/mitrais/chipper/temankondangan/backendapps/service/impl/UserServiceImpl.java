@@ -162,6 +162,9 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new RuntimeException("Error: Your email is not registered. Please try again"));
 
+		if(StringUtils.isEmpty(user.getPasswordHashed()) && user.getProvider().equals(AuthProvider.google))
+			throw new RuntimeException("Error: You have not set password for your Email. Please login using your Gmail account and create password");
+
 		saveCode(user.getEmail(), code);
 		sendEmailJob(user.getEmail(), code);
 	}
