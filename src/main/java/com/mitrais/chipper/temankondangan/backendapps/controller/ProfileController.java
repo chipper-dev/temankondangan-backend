@@ -61,13 +61,11 @@ public class ProfileController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping("/find")
 	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
-
 		LOGGER.info("Find a profile from token");
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
-
 	}
 }

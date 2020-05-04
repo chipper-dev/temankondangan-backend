@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
@@ -59,6 +60,15 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		return new ResponseEntity<Object>(
 				resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
 				HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(ResponseStatusException.class)
+	public final ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex,
+			HttpServletRequest request) {
+		CommonResource resource = new CommonResource();
+		return new ResponseEntity<>(
+				resource.getResponseBody(ex.getStatus(), null, ex.getReason(), request.getRequestURI()),
+				ex.getStatus());
 	}
 
 	@ExceptionHandler(NullPointerException.class)

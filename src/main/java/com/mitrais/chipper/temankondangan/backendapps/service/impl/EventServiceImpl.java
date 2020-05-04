@@ -11,13 +11,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
@@ -89,5 +92,44 @@ public class EventServiceImpl implements EventService {
 		} else {
 			return new ArrayList<>();
 		}
+	}
+
+	@Override
+	public Event edit(Long userId, EditEventWrapper wrapper) {
+		Event event = eventRepository.findById(wrapper.getEventId())
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
+
+		if (!event.getUser().getUserId().equals(userId)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"Error: Users are not authorized to edit this event");
+		}
+
+		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
+			throw new BadRequestException("Error: Age must be between 18 and 40!");
+		}
+
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+
+		// check dateAndTime valid
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime dateAndTime;
+		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+
+		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new BadRequestException("Error: Date inputted have to be after today!");
+		}
+
+		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
+		event.setDateAndTime(dateAndTime);
+		event.setCompanionGender(wrapper.getCompanionGender());
+		event.setMinimumAge(wrapper.getMinimumAge());
+		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+
+		return eventRepository.save(event);
+
 	}
 }
