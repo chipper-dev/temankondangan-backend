@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +78,25 @@ public class EventController extends CommonResource {
 		} catch (Exception e) {
 			return ResponseEntity.badRequest()
 					.body(getResponseBody(HttpStatus.BAD_REQUEST, null, null, request.getRequestURI()));
+		}
+	}
+
+	@ApiOperation(value = "Edit Event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping("/edit")
+	public ResponseEntity<ResponseBody> edit(@RequestBody EditEventWrapper wrapper, HttpServletRequest request) {
+		LOGGER.info("Edit an event");
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		try {
+
+			Event result = eventService.edit(userId, wrapper);
+			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+
+		} catch (ResponseStatusException e) {
+			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
+					e.getStatus());
 		}
 	}
 
