@@ -1,7 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -35,11 +34,12 @@ import io.swagger.annotations.ApiOperation;
 @RequestMapping("/profile")
 public class ProfileController extends CommonResource {
 
-	@Autowired
-	private ProfileService profileService;
+    @Autowired
+    private ProfileService profileService;
 
-	@Autowired
-	private TokenProvider tokenProvider;
+    @Autowired
+    private TokenProvider tokenProvider;
+
 
 	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
@@ -53,33 +53,19 @@ public class ProfileController extends CommonResource {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		try {
+    Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
+  }
+  
+    @ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @GetMapping("/find")
+    public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
+        LOGGER.info("Find a profile from token");
+        String token = getToken(request.getHeader("Authorization"));
+        Long userId = tokenProvider.getUserIdFromToken(token);
 
-			Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
-
-			return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
-
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
-		}
-	}
-
-	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping("/find")
-	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
-		try {
-			LOGGER.info("Find a profile from token");
-			String token = getToken(request.getHeader("Authorization"));
-			Long userId = tokenProvider.getUserIdFromToken(token);
-
-			ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
-		} catch (NoSuchElementException e) {
-			return new ResponseEntity<>(
-					getResponseBody(HttpStatus.NOT_FOUND, "No profile from token ", null, request.getRequestURI()),
-					HttpStatus.NOT_FOUND);
-		}
-	}
+        ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
+    }
 }
