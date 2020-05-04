@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
@@ -48,7 +48,7 @@ public class EventServiceTest {
 	private static User user;
 	private static Page<Event> pageEvent;
 
-	@BeforeAll
+	@BeforeEach
 	public void init() {
 
 		wrapper = new CreateEventWrapper();
@@ -117,26 +117,39 @@ public class EventServiceTest {
 	@Test
 	public void shouldThrowResponseStatusException_WhenAgeMoreThan40() {
 		wrapper.setMaximumAge(41);
-		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Age must be between 18 and 40!")
+				.isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenAgeLessThan18() {
-		wrapper.setMaximumAge(17);
-		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
+		wrapper.setMinimumAge(17);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Age must be between 18 and 40!")
+				.isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenMinimumAgeIsMoreThanMaximumAge() {
 		wrapper.setMinimumAge(25);
 		wrapper.setMaximumAge(20);
-		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Inputted age is not valid!").isInstanceOf(ResponseStatusException.class);
+	}
+
+	@Test
+	public void shouldThrowResponseStatusException_WhenDateIsFormatIsNotValid() {
+		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
+		assertThatThrownBy(() -> eventService.create(1L, wrapper)).hasMessageContaining("Error: Date not valid!").isInstanceOf(ResponseStatusException.class);
 	}
 
 	@Test
 	public void shouldThrowResponseStatusException_WhenDateIsBeforeTodayPlus1() {
 		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
-		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResponseStatusException.class);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Date inputted have to be after today!")
+				.isInstanceOf(ResponseStatusException.class);
 	}
 
 	// find all service
