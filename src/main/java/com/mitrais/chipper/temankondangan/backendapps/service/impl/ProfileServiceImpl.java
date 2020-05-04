@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 
 import javax.transaction.Transactional;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,85 +25,89 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
+    public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
 
-	private final ProfileRepository profileRepository;
+    private final ProfileRepository profileRepository;
 
-	@Autowired
-	public ProfileServiceImpl(ProfileRepository profileRepository) {
-		this.profileRepository = profileRepository;
-	}
+    @Autowired
+    public ProfileServiceImpl(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
+    }
 
-	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
+    private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
-	@Override
-	@Transactional
-	public Profile update(ProfileUpdateWrapper wrapper) throws IOException {
+    @Override
+    @Transactional
+    public Profile update(ProfileUpdateWrapper wrapper) throws BadRequestException {
 
-		byte[] image;
+        byte[] image;
 
-		// if null or if not select anything
-		if (wrapper.getImage() == null || wrapper.getImage().getSize() == 0) {
-			image = readBytesFromFile(DEFAULT_IMAGE);
-		} else {
-			image = wrapper.getImage().getBytes();
-		}
-		Profile profile = profileRepository.findByUserId(wrapper.getUserId())
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+        // if null or if not select anything
+        if (wrapper.getImage() == null || wrapper.getImage().getSize() == 0) {
+            image = readBytesFromFile(DEFAULT_IMAGE);
+        } else {
+            try {
+                image = wrapper.getImage().getBytes();
+            } catch (IOException e) {
+                throw new BadRequestException(e.getMessage());
+            }
+        }
+        Profile profile = profileRepository.findByUserId(wrapper.getUserId())
+                .orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
-		profile.setPhotoProfile(image);
-		profile.setAboutMe(wrapper.getAboutMe());
-		profile.setCity(wrapper.getCity());
-		profile.setInterest(wrapper.getInterest());
-		profile.setDob(wrapper.getDob());
-		profile.setGender(wrapper.getGender());
-		profile.setFullName(wrapper.getFullName());
+        profile.setPhotoProfile(image);
+        profile.setAboutMe(wrapper.getAboutMe());
+        profile.setCity(wrapper.getCity());
+        profile.setInterest(wrapper.getInterest());
+        profile.setDob(wrapper.getDob());
+        profile.setGender(wrapper.getGender());
+        profile.setFullName(wrapper.getFullName());
 
-		return profile;
+        return profile;
 
-	}
+    }
 
-	private static byte[] readBytesFromFile(String filePath) {
+    private static byte[] readBytesFromFile(String filePath) {
 
-		FileInputStream fileInputStream = null;
-		byte[] bytesArray = null;
+        FileInputStream fileInputStream = null;
+        byte[] bytesArray = null;
 
-		try {
+        try {
 
-			File file = new File(filePath);
-			bytesArray = new byte[(int) file.length()];
+            File file = new File(filePath);
+            bytesArray = new byte[(int) file.length()];
 
-			// read file into bytes[]
-			fileInputStream = new FileInputStream(file);
-			fileInputStream.read(bytesArray);
+            // read file into bytes[]
+            fileInputStream = new FileInputStream(file);
+            fileInputStream.read(bytesArray);
 
-		} catch (IOException e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error image file!");
-		} finally {
-			if (fileInputStream != null) {
-				try {
-					fileInputStream.close();
-				} catch (IOException e) {
-					LOGGER.error("readBytesFromFile", e);
-				}
-			}
+        } catch (IOException e) {
+            throw new BadRequestException("Error image file!");
+        } finally {
+            if (fileInputStream != null) {
+                try {
+                    fileInputStream.close();
+                } catch (IOException e) {
+                    LOGGER.error("readBytesFromFile", e);
+                }
+            }
 
-		}
+        }
 
-		return bytesArray;
+        return bytesArray;
 
-	}
+    }
 
-	@Override
-	public ProfileResponseWrapper findByUserId(Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
+    @Override
+    public ProfileResponseWrapper findByUserId(Long userId) throws BadRequestException {
+        Profile profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
-		String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-				.path(String.valueOf(profile.getProfileId())).toUriString();
+        String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+                .path(String.valueOf(profile.getProfileId())).toUriString();
 
-		return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
-				.dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
-				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).build();
-	}
+        return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
+                .dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
+                .interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).build();
+    }
 }
