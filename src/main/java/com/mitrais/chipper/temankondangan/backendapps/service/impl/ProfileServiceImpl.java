@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.NoSuchElementException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
@@ -36,7 +36,7 @@ public class ProfileServiceImpl implements ProfileService {
 	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
-	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws IOException {
+	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws BadRequestException {
 
 		byte[] image;
 
@@ -52,21 +52,21 @@ public class ProfileServiceImpl implements ProfileService {
 			if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
 				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Image format not allowed!");
 			}
-			image = wrapper.getImage().getBytes();
+			try {
+				image = wrapper.getImage().getBytes();
+			} catch (IOException e) {
+				throw new BadRequestException(e.getMessage());
+			}
 		}
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
-		try {
-			profile.setPhotoProfile(image);
-			profile.setAboutMe(wrapper.getAboutMe());
-			profile.setCity(wrapper.getCity());
-			profile.setInterest(wrapper.getInterest());
+		profile.setPhotoProfile(image);
+		profile.setAboutMe(wrapper.getAboutMe());
+		profile.setCity(wrapper.getCity());
+		profile.setInterest(wrapper.getInterest());
 
-			return profileRepository.save(profile);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Data sent is not valid!");
-		}
+		return profileRepository.save(profile);
 
 	}
 
@@ -85,7 +85,7 @@ public class ProfileServiceImpl implements ProfileService {
 			fileInputStream.read(bytesArray);
 
 		} catch (IOException e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error image file!");
+			throw new BadRequestException("Error image file!");
 		} finally {
 			if (fileInputStream != null) {
 				try {
@@ -102,9 +102,9 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public ProfileResponseWrapper findByUserId(Long userId) {
+	public ProfileResponseWrapper findByUserId(Long userId) throws BadRequestException {
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new NoSuchElementException("No profile with user id : " + userId));
+				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
 		String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
 				.path(String.valueOf(profile.getProfileId())).toUriString();
