@@ -76,4 +76,9 @@ node{
                 sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase -e EMAIL_USER=$user_email -e EMAIL_PASSWORD=$emailPassword --restart always -d $image"
         }
     }
+    post {
+        always {
+            cleanWs()
+        }
+    }
 }
