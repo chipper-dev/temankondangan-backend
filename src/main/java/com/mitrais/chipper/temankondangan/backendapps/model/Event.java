@@ -17,6 +17,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.Future;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -68,16 +69,18 @@ public class Event extends Auditable<String> {
 	private String city;
 
 	@NotNull
-	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	@Future
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	@ApiModelProperty(notes = "Event date and time")
 	private LocalDateTime dateAndTime;
 
 	@NotNull
+	@Positive
 	@ApiModelProperty(notes = "Preferred minimum age of the companion")
 	private Integer minimumAge;
 
 	@NotNull
+	@Positive
 	@ApiModelProperty(notes = "Preferred maximum age of the companion")
 	private Integer maximumAge;
 

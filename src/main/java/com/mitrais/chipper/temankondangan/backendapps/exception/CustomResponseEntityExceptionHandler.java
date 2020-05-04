@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.exception;
 
-import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Set;
@@ -9,8 +8,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
-import org.hibernate.exception.DataException;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -82,23 +79,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleNullPointerException(NullPointerException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		Throwable cause = ((NullPointerException) ex).getCause();
-//		if (cause instanceof ConstraintViolationException) {
-		cause.getCause();
-		cause.getClass().getSimpleName();
-		cause.getClass().getName();
-		cause.getClass().getTypeName();
-		cause.getLocalizedMessage();
-		cause.getMessage();
-		
-		ex.getCause();
-		ex.getClass().getSimpleName();
-		ex.getClass().getName();
-		ex.getClass().getTypeName();
-		ex.getLocalizedMessage();
-		ex.getMessage();
-		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
-				"Error: Some values are missing", request.getRequestURI()), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"Error: Cannot send null values!", request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(PropertyReferenceException.class)

@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -39,23 +38,21 @@ public class ProfileController extends CommonResource {
 	@Autowired
 	private TokenProvider tokenProvider;
 
-	@ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@PostMapping("/update")
-	public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
-			@RequestParam(value = "city", required = false) String city,
-			@RequestParam(value = "aboutMe", required = false) String aboutMe,
-			@RequestParam(value = "interest", required = false) String interest, HttpServletRequest request)
-			throws IOException {
-		LOGGER.info("Update profile");
-		String token = getToken(request.getHeader("Authorization"));
-		Long userId = tokenProvider.getUserIdFromToken(token);
+    @ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @PostMapping("/update")
+    public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
+                                               @RequestParam(value = "city", required = false) String city,
+                                               @RequestParam(value = "aboutMe", required = false) String aboutMe,
+                                               @RequestParam(value = "interest", required = false) String interest, HttpServletRequest request) {
+        LOGGER.info("Update profile");
+        String token = getToken(request.getHeader("Authorization"));
+        Long userId = tokenProvider.getUserIdFromToken(token);
 
-		Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
+        Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
+        return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
+    }
 
-		return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
-
-	}
 
 	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")

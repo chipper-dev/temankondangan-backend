@@ -17,6 +17,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -56,6 +57,7 @@ public class Profile extends Auditable<String> {
 
 	@NotEmpty
 	@ApiModelProperty(notes = "Profile full name")
+	@Size(min = 1, max = 50)
 	private String fullName;
 
 	@NotNull
@@ -78,9 +80,11 @@ public class Profile extends Auditable<String> {
 
 	@ApiModelProperty(notes = "Profile about me")
 	@Column(length = 200)
+	@Size(min = 1, max = 200)
 	private String aboutMe;
 
 	@ApiModelProperty(notes = "Profile interest")
 	@Column(length = 200)
+	@Size(min = 1, max = 200)
 	private String interest;
 }
