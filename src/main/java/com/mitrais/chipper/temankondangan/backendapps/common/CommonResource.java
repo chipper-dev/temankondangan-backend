@@ -29,7 +29,7 @@ public class CommonResource {
 	 * @param path    {@link String} Path URL.
 	 * @return {@link ResponseBody} Response message.
 	 */
-	protected ResponseBody getResponseBody(int status, Object content, String path) {
+	public ResponseBody getResponseBody(int status, Object content, String path) {
 		ResponseBody responseBody = new ResponseBody();
 		responseBody.setTimestamp(LocalDateTime.now());
 		responseBody.setStatus(status);
@@ -48,7 +48,7 @@ public class CommonResource {
 	 * @param path    {@link String} Path URL.
 	 * @return {@link ResponseBody} Response message.
 	 */
-	protected ResponseBody getResponseBody(HttpStatus status, String exception, Object message, String path) {
+	public ResponseBody getResponseBody(HttpStatus status, String exception, Object message, String path) {
 		ResponseBody responseBody = new ResponseBody();
 		responseBody.setTimestamp(LocalDateTime.now());
 		responseBody.setStatus(status.value());
