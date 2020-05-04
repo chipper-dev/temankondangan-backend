@@ -14,8 +14,10 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.Future;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -55,16 +57,19 @@ public class Event extends Auditable<String> {
 
 	@NotEmpty
 	@Column(length = 50)
+	@Size(min = 1, max = 50)
 	@ApiModelProperty(notes = "Event title")
 	private String title;
 
 	@NotEmpty
 	@Column(length = 50)
+	@Size(min = 1, max = 50)
 	@ApiModelProperty(notes = "The city where the event take place")
 	private String city;
-	
+
 	@NotNull
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
+	@Future
 	@ApiModelProperty(notes = "Event date and time")
 	private LocalDateTime dateAndTime;
 
@@ -84,6 +89,7 @@ public class Event extends Auditable<String> {
 
 	@NotEmpty
 	@Column(length = 300)
+	@Size(min = 1, max = 300)
 	@ApiModelProperty(notes = "Additional info for the event")
 	private String additionalInfo;
 }

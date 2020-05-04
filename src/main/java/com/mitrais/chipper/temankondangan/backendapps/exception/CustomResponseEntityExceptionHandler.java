@@ -1,14 +1,21 @@
 package com.mitrais.chipper.temankondangan.backendapps.exception;
 
+import java.sql.SQLException;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.ConstraintViolation;
+import javax.validation.ConstraintViolationException;
 
+import org.hibernate.exception.DataException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -75,6 +82,21 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleNullPointerException(NullPointerException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
+		Throwable cause = ((NullPointerException) ex).getCause();
+//		if (cause instanceof ConstraintViolationException) {
+		cause.getCause();
+		cause.getClass().getSimpleName();
+		cause.getClass().getName();
+		cause.getClass().getTypeName();
+		cause.getLocalizedMessage();
+		cause.getMessage();
+		
+		ex.getCause();
+		ex.getClass().getSimpleName();
+		ex.getClass().getName();
+		ex.getClass().getTypeName();
+		ex.getLocalizedMessage();
+		ex.getMessage();
 		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
 				"Error: Some values are missing", request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
@@ -95,6 +117,31 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 				resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
 						"Error: '" + ex.getParsedString() + "' is not a valid format", request.getRequestURI()),
 				HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(TransactionSystemException.class)
+	public final ResponseEntity<Object> handleTransactionSystemException(TransactionSystemException ex,
+			HttpServletRequest request) {
+		CommonResource resource = new CommonResource();
+
+		Throwable cause = ((TransactionSystemException) ex).getRootCause();
+		if (cause instanceof ConstraintViolationException) {
+			Set<ConstraintViolation<?>> constraintViolations = ((ConstraintViolationException) cause)
+					.getConstraintViolations();
+			// do something here
+
+			for (ConstraintViolation<?> contraints : constraintViolations) {
+
+				// handle Constraints in model
+				return new ResponseEntity<Object>(resource.getResponseBody(
+						HttpStatus.BAD_REQUEST, null, "Error: " + contraints.getRootBeanClass().getSimpleName() + " "
+								+ contraints.getPropertyPath() + " " + contraints.getMessage(),
+						request.getRequestURI()), HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null,
+				"Error: " + ex.getMessage(), request.getRequestURI()), HttpStatus.INTERNAL_SERVER_ERROR);
+
 	}
 
 	@Override
