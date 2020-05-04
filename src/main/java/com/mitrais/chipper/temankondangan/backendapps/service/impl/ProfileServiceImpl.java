@@ -50,7 +50,7 @@ public class ProfileServiceImpl implements ProfileService {
 			// throw error if image format is not allowed
 			String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
 			if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
-				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Image format not allowed!");
+				throw new BadRequestException("Error: Image format not allowed!");
 			}
 			try {
 				image = wrapper.getImage().getBytes();
