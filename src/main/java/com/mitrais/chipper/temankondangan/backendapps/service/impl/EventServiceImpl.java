@@ -6,6 +6,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -96,6 +97,50 @@ public class EventServiceImpl implements EventService {
 			return pagedResult.getContent();
 		} else {
 			return new ArrayList<>();
+		}
+	}
+
+	@Override
+	public Event edit(Long userId, EditEventWrapper wrapper) {
+		Event event = eventRepository.findById(wrapper.getEventId())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Event not found!"));
+
+		if(!event.getUser().getUserId().equals(userId)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Error: Users are not authorized to edit this event");
+		}
+
+		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Age must be between 18 and 40!");
+		}
+
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Inputted age is not valid!");
+		}
+
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime dateAndTime;
+		try {
+			dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
+		}
+
+		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date inputted have to be after today!");
+		}
+
+		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
+		event.setDateAndTime(dateAndTime);
+		event.setCompanionGender(wrapper.getCompanionGender());
+		event.setMinimumAge(wrapper.getMinimumAge());
+		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+
+		try {
+			return eventRepository.save(event);
+		} catch (Exception e) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data sent is not valid!");
 		}
 	}
 }
