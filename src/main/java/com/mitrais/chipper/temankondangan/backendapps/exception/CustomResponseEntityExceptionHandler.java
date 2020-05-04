@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 @ControllerAdvice
@@ -21,7 +22,7 @@ import java.util.HashMap;
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
-    public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
+    public final ResponseEntity<Object> handleAllExceptions(Exception ex, HttpServletRequest request) {
         HashMap<String, String> hashError = new HashMap<>();
         hashError.put("Error", ex.getMessage());
         JSONObject json = new JSONObject();
@@ -29,13 +30,13 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         CommonResource resource = new CommonResource();
         return new ResponseEntity<Object>(
-                resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getContextPath()),
+                resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getRequestURI()),
                 HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public final ResponseEntity<Object> handleUserNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+    public final ResponseEntity<Object> handleUserNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {
         HashMap<String, String> hashError = new HashMap<>();
         hashError.put(ex.getFieldName(), ex.getResourceName());
         JSONObject json = new JSONObject();
@@ -43,16 +44,16 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         CommonResource resource = new CommonResource();
         return new ResponseEntity<Object>(
-                resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getContextPath()),
+                resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getRequestURI()),
                 HttpStatus.NOT_FOUND
         );
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public final ResponseEntity<Object> handleBadRequestException(BadRequestException ex, WebRequest request) {
+    public final ResponseEntity<Object> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
         CommonResource resource = new CommonResource();
         return new ResponseEntity<Object>(
-                resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getContextPath()),
+                resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
                 HttpStatus.BAD_REQUEST
         );
     }
