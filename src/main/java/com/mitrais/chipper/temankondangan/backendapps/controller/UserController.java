@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -24,94 +23,63 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/user")
 public class UserController extends CommonResource {
 
-	private static final String HEADER_AUTH = "Authorization";
+    private static final String HEADER_AUTH = "Authorization";
 
-	@Autowired
-	private UserService userService;
+    @Autowired
+    private UserService userService;
 
-	@Autowired
-	private TokenProvider tokenProvider;
+    @Autowired
+    private TokenProvider tokenProvider;
 
-	@ApiOperation(value = "Change password API", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@PutMapping("/change-password")
-	public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
-			HttpServletRequest request) {
-		LOGGER.info("Change user password");
-		String token = getToken(request.getHeader(HEADER_AUTH));
-		Long userId = tokenProvider.getUserIdFromToken(token);
+    @ApiOperation(value = "Change password API", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @PutMapping("/change-password")
+    public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
+                                                       HttpServletRequest request) {
 
-		try {
-			boolean result = userService.changePassword(userId, wrapper);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+        String token = getToken(request.getHeader(HEADER_AUTH));
+        Long userId = tokenProvider.getUserIdFromToken(token);
+        boolean result = userService.changePassword(userId, wrapper);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+    }
 
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
-		}
-	}
+    @ApiOperation(value = "Create password API", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @PutMapping("/create-password")
+    public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
+                                                       HttpServletRequest request) {
+        LOGGER.info("Create user password");
+        String token = getToken(request.getHeader(HEADER_AUTH));
+        Long userId = tokenProvider.getUserIdFromToken(token);
+        boolean result = userService.createPassword(userId, wrapper);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 
-	@ApiOperation(value = "Create password API", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@PutMapping("/create-password")
-	public ResponseEntity<ResponseBody> createPassword(@RequestBody UserCreatePasswordWrapper wrapper,
-			HttpServletRequest request) {
-		LOGGER.info("Create user password");
-		String token = getToken(request.getHeader(HEADER_AUTH));
-		Long userId = tokenProvider.getUserIdFromToken(token);
+    }
 
-		try {
-			boolean result = userService.createPassword(userId, wrapper);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
+    @ApiOperation(value = "Remove user API", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @DeleteMapping("/remove")
+    public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
+        LOGGER.info("Remove user");
+        String token = getToken(request.getHeader(HEADER_AUTH));
+        Long userId = tokenProvider.getUserIdFromToken(token);
+        userService.remove(userId);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
 
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
-		}
-	}
+    }
 
-	@ApiOperation(value = "Remove user API", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@DeleteMapping("/remove")
-	public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
-		LOGGER.info("Remove user");
-		String token = getToken(request.getHeader(HEADER_AUTH));
-		Long userId = tokenProvider.getUserIdFromToken(token);
-		
-		try {
-			userService.remove(userId);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
+    @PostMapping("/forgot-password")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseBody> forgotPassword(@RequestBody ForgotPasswordWrapper data, HttpServletRequest request) {
+        userService.forgotPassword(data.getEmail());
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
+    }
 
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
-		}
-	}
-
-	@PostMapping("/forgot-password")
-	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> forgotPassword(@RequestBody ForgotPasswordWrapper data, HttpServletRequest request) {
-		try {
-			userService.forgotPassword(data.getEmail());
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Verification code already sent to your email. Please check your email", request.getRequestURI()));
-		} catch (Exception ex) {
-			return new ResponseEntity<>(
-					getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@PostMapping("/reset-password")
-	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
-		try {
-			userService.resetPassword(wrapper);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
-		} catch (Exception ex) {
-			return new ResponseEntity<>(
-					getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
-					HttpStatus.BAD_REQUEST);
-		}
-	}
+    @PostMapping("/reset-password")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
+        userService.resetPassword(wrapper);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
+    }
 
 }

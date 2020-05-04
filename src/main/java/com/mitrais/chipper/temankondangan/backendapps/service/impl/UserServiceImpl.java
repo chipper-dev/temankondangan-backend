@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
@@ -15,12 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -54,30 +53,29 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User findById(Long userId) {
+	public User findById(Long userId) throws ResourceNotFoundException {
 		return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}
 
 	@Override
-	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) {
+	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) throws BadRequestException, ResourceNotFoundException {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
 		// check if old password field empty
 		if (StringUtils.isEmpty(wrapper.getOldPassword())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
+			throw new BadRequestException("Error: Password cannot be empty!");
 		}
 
 		// check if old password matched with password in DB
 		if (!passwordEncoder.matches(wrapper.getOldPassword(), user.getPasswordHashed())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Old password do not match!");
+			throw new BadRequestException("Error: Old password do not match!");
 		}
 
 		// check if old password same as new password
 		if (wrapper.getOldPassword().equals(wrapper.getNewPassword())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: New password cannot be the same as old password!");
+			throw new BadRequestException("Error: New password cannot be the same as old password!");
 		}
 
 		this.passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmNewPassword());
@@ -90,20 +88,19 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) {
+	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) throws BadRequestException {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
+				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
 
 		// check if there is password
 		if (!StringUtils.isEmpty(user.getPasswordHashed())) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password has been created");
+			throw new BadRequestException("Error: Password has been created");
 		}
 
 		// check if provider is google
 		if (!user.getProvider().equals(AuthProvider.google)) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: Cannot create password without google provider");
+			throw new BadRequestException("Error: Cannot create password without google provider");
 		}
 
 		this.passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmNewPassword());
@@ -115,63 +112,31 @@ public class UserServiceImpl implements UserService {
 
 	}
 
-	private void passwordValidation(String password, String confirmPassword) {
-
-		// check if empty
-		if (StringUtils.isEmpty(password) || StringUtils.isEmpty(confirmPassword)) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Password cannot be empty!");
-		}
-
-		// new password and confirmed password need to be matched
-		if (!password.equals(confirmPassword)) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Confirmed password do not match!");
-		}
-
-		Pattern specialCharPatten = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
-		Pattern digitCasePatten = Pattern.compile("[0-9 ]");
-
-		if (password.length() < 6 || password.length() > 20) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: Password length must be 6-20 characters!");
-		}
-
-		if (!specialCharPatten.matcher(password).find()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: Password must have at least one special character!");
-		}
-
-		if (!digitCasePatten.matcher(password).find()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-					"Error: Password must have at least one digit character!");
-		}
-
-	}
-
 	@Override
-	public void remove(Long userId) {
+	public void remove(Long userId) throws BadRequestException {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, ERROR_USER_NOT_FOUND));
+				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
 
 		userRepository.delete(user);
 
 	}
 
 	@Override
-	public void forgotPassword(String email) {
+	public void forgotPassword(String email) throws BadRequestException, ResourceNotFoundException {
 		Integer code = generateRandomCode(6);
 		User user = userRepository.findByEmail(email)
-				.orElseThrow(() -> new RuntimeException("Error: Your email is not registered. Please try again"));
+				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
 
 		if(StringUtils.isEmpty(user.getPasswordHashed()) && user.getProvider().equals(AuthProvider.google))
-			throw new RuntimeException("Error: You have not set password for your Email. Please login using your Gmail account and create password");
+			throw new BadRequestException("Error: You have not set password for your Email. Please login using your Gmail account and create password");
 
 		saveCode(user.getEmail(), code);
 		sendEmailJob(user.getEmail(), code);
 	}
 
 	@Override
-	public void resetPassword(ResetPasswordWrapper wrapper) {
-		resetPasswordValidation(wrapper);
+	public void resetPassword(ResetPasswordWrapper wrapper) throws BadRequestException {
+		passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmPassword());
 
 		VerificationCode verificationCode = verificationRepository.findByCode(wrapper.getVerificationCode())
 				.orElseThrow(() -> new RuntimeException("Error: Please input correct verification code from your email"));
@@ -179,11 +144,11 @@ public class UserServiceImpl implements UserService {
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
 			User user = userRepository.findByEmail(verificationCode.getEmail())
-					.orElseThrow(() -> new RuntimeException("Error: User not Found"));
+					.orElseThrow(() -> new ResourceNotFoundException("User", "email", verificationCode.getEmail()));
 
 			// check the new password can't be same with old password
 			if (passwordEncoder.matches(wrapper.getNewPassword(), user.getPasswordHashed()))
-				throw new RuntimeException("Error: New password must be different from current password");
+				throw new BadRequestException("Error: New password must be different from current password");
 
 			// Update password
 			user.setPasswordHashed(passwordEncoder.encode(wrapper.getNewPassword()));
@@ -193,7 +158,7 @@ public class UserServiceImpl implements UserService {
 			deleteCode(user.getEmail());
 		} else {
 			//Expired
-			throw new RuntimeException("Error: Please input correct verification code from your email");
+			throw new BadRequestException("Error: Please input correct verification code from your email");
 		}
 	}
 
@@ -216,7 +181,7 @@ public class UserServiceImpl implements UserService {
 		List<VerificationCode> list = verificationRepository.findByEmail(email);
 		if(!list.isEmpty()) {
 			list.forEach(verificationCode -> {
-				logger.info("Delete code: {}", verificationCode.getCode());
+				logger.info("Deleting verification code: {}", verificationCode.getCode());
 				verificationRepository.delete(verificationCode);
 			});
 		}
@@ -234,28 +199,31 @@ public class UserServiceImpl implements UserService {
 		return duration.getSeconds() * 1000 < expiration;
 	}
 
-	private void resetPasswordValidation(ResetPasswordWrapper wrapper) {
-		if (org.apache.commons.lang3.StringUtils.isAnyEmpty(wrapper.getVerificationCode(), wrapper.getNewPassword(), wrapper.getConfirmPassword())) {
-			throw new RuntimeException("Error: Field can't be blank.");
+	private void passwordValidation(String password, String confirmPassword) {
+
+		// check if empty
+		if (StringUtils.isEmpty(password) || StringUtils.isEmpty(confirmPassword)) {
+			throw new BadRequestException("Error: Password cannot be empty!");
 		}
 
-		if (!wrapper.getNewPassword().equals(wrapper.getConfirmPassword())) {
-			throw new RuntimeException("Error: Confirmed password do not match!");
+		// new password and confirmed password need to be matched
+		if (!password.equals(confirmPassword)) {
+			throw new BadRequestException("Error: Confirmed password do not match!");
 		}
 
 		Pattern specialCharPatten = Pattern.compile("[^a-z0-9 ]", Pattern.CASE_INSENSITIVE);
 		Pattern digitCasePatten = Pattern.compile("[0-9 ]");
 
-		if (wrapper.getNewPassword().length() < 6 || wrapper.getNewPassword().length() > 20) {
-			throw new RuntimeException("Error: Password length must be 6-20 characters!");
+		if (password.length() < 6 || password.length() > 20) {
+			throw new BadRequestException("Error: Password length must be 6-20 characters!");
 		}
 
-		if (!specialCharPatten.matcher(wrapper.getNewPassword()).find()) {
-			throw new RuntimeException("Error: Password must have at least one special character!");
+		if (!specialCharPatten.matcher(password).find()) {
+			throw new BadRequestException("Error: Password must have at least one special character!");
 		}
 
-		if (!digitCasePatten.matcher(wrapper.getNewPassword()).find()) {
-			throw new RuntimeException("Error: Password must have at least one digit character!");
+		if (!digitCasePatten.matcher(password).find()) {
+			throw new BadRequestException("Error: Password must have at least one digit character!");
 		}
 	}
 
