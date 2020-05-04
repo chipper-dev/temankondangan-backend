@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
@@ -37,7 +38,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Age must be between 18 and 40!");
@@ -50,11 +51,7 @@ public class EventServiceImpl implements EventService {
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime dateAndTime;
-		try {
-			dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
-		}
+		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
 
 		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date inputted have to be after today!");
@@ -70,11 +67,7 @@ public class EventServiceImpl implements EventService {
 		event.setMaximumAge(wrapper.getMaximumAge());
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 
-		try {
-			return eventRepository.save(event);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data sent is not valid!");
-		}
+		return eventRepository.save(event);
 
 	}
 
@@ -87,7 +80,8 @@ public class EventServiceImpl implements EventService {
 		} else if (direction.equalsIgnoreCase("ASC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
 		} else {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Direction error!");
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+					"Error: Can only input ASC or DESC for direction!");
 		}
 
 		Page<Event> pagedResult = eventRepository.findAll(paging);

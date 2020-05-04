@@ -1,13 +1,14 @@
 package com.mitrais.chipper.temankondangan.backendapps.common;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ContentList;
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ContentList;
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 
 /**
  * Class that defined common function that exist in every resource.

@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
@@ -48,15 +47,9 @@ public class EventController extends CommonResource {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		try {
+		Event result = eventService.create(userId, wrapper);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
 
-			Event result = eventService.create(userId, wrapper);
-			return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
-
-		} catch (ResponseStatusException e) {
-			return new ResponseEntity<>(getResponseBody(e.getStatus(), null, e.getReason(), request.getRequestURI()),
-					e.getStatus());
-		}
 	}
 
 	@ApiOperation(value = "Find all event", response = ResponseEntity.class)
@@ -69,15 +62,10 @@ public class EventController extends CommonResource {
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
 
-		try {
-			List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
+		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
+				request.getRequestURI()));
 
-			return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
-					getContentList(pageNumber, pageSize, events), request.getRequestURI()));
-		} catch (Exception e) {
-			return ResponseEntity.badRequest()
-					.body(getResponseBody(HttpStatus.BAD_REQUEST, null, null, request.getRequestURI()));
-		}
 	}
 
 }
