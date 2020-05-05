@@ -1,25 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.util.Date;
-import java.util.Optional;
-import java.util.regex.Pattern;
-
-import javax.transaction.Transactional;
-
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -30,6 +12,17 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
+import java.util.Date;
+import java.util.regex.Pattern;
 
 @Service
 public class AuthServiceImpl implements AuthService {

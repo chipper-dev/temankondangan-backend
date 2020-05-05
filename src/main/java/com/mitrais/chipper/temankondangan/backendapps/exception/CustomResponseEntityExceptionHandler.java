@@ -31,6 +31,8 @@ import net.minidev.json.JSONObject;
 @RestController
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
+	private static final String ERROR = "Error: ";
+
 	@ExceptionHandler(Exception.class)
 	public final ResponseEntity<Object> handleAllExceptions(Exception ex, HttpServletRequest request) {
 		HashMap<String, String> hashError = new HashMap<>();
@@ -39,7 +41,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		json.putAll(hashError);
 
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
+		return new ResponseEntity<>(
 				resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getRequestURI()),
 				HttpStatus.INTERNAL_SERVER_ERROR);
 	}
@@ -53,7 +55,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		json.putAll(hashError);
 
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
+		return new ResponseEntity<>(
 				resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getRequestURI()),
 				HttpStatus.NOT_FOUND);
 	}
@@ -61,7 +63,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	@ExceptionHandler(BadRequestException.class)
 	public final ResponseEntity<Object> handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
+		return new ResponseEntity<>(
 				resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ex.getMessage(), request.getRequestURI()),
 				HttpStatus.BAD_REQUEST);
 	}
@@ -79,7 +81,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleNullPointerException(NullPointerException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
 				"Error: Cannot send null values!", request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
 
@@ -87,15 +89,15 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
-				"Error: " + ex.getMessage(), request.getRequestURI()), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
+				ERROR + ex.getMessage(), request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(DateTimeParseException.class)
 	public final ResponseEntity<Object> handleDateTimeParseException(DateTimeParseException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
+		return new ResponseEntity<>(
 				resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
 						"Error: '" + ex.getParsedString() + "' is not a valid format", request.getRequestURI()),
 				HttpStatus.BAD_REQUEST);
@@ -106,24 +108,24 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
 		HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
-		String message = "Error: " + ex.getMessage();
+		String message = ERROR + ex.getMessage();
 		String path = request.getRequestURI();
 
-		Throwable cause = ((TransactionSystemException) ex).getRootCause();
+		Throwable cause = ex.getRootCause();
 		if (cause instanceof ConstraintViolationException) {
 			Set<ConstraintViolation<?>> constraintViolations = ((ConstraintViolationException) cause)
 					.getConstraintViolations();
 			httpStatus = HttpStatus.BAD_REQUEST;
 			// handle Constraints in model
 			for (ConstraintViolation<?> contraints : constraintViolations) {
-				message = "Error: " + contraints.getRootBeanClass().getSimpleName() + " " + contraints.getPropertyPath()
+				message = ERROR + contraints.getRootBeanClass().getSimpleName() + " " + contraints.getPropertyPath()
 						+ " " + contraints.getMessage();
 
 			}
-			return new ResponseEntity<Object>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
+			return new ResponseEntity<>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
 		}
 
-		return new ResponseEntity<Object>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
+		return new ResponseEntity<>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
 
 	}
 
@@ -143,7 +145,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		json.putAll(errors);
 
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<Object>(
+		return new ResponseEntity<>(
 				resource.getResponseBody(HttpStatus.BAD_REQUEST, null, json, request.getContextPath()),
 				HttpStatus.BAD_REQUEST);
 	}
