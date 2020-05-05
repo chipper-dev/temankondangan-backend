@@ -15,8 +15,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -60,57 +60,57 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenPasswordEmpty() {
+	public void shouldThrowBadRequestException_WhenPasswordEmpty() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "", "");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
-				.hasMessageContaining("Error: Password cannot be empty!").isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Password cannot be empty!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenOldPasswordNotMatch() {
+	public void shouldThrowBadRequestException_WhenOldPasswordNotMatch() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_@", "123456_", "123456_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
-				.hasMessageContaining("Error: Old password do not match!").isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Old password do not match!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenOldPasswordSameAsNewPassword() {
+	public void shouldThrowBadRequestException_WhenOldPasswordSameAsNewPassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12345_", "12345_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: New password cannot be the same as old password!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotMatchWithConfirmedPassword() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotMatchWithConfirmedPassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456_", "123457_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Confirmed password do not match!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenNewPasswordLengthNotRight() {
+	public void shouldThrowBadRequestException_WhenNewPasswordLengthNotRight() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12_", "12_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password length must be 6-20 characters!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotHaveSpecialChar() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveSpecialChar() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456", "123456");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password must have at least one special character!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenNewPasswordDoNotHaveDigit() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveDigit() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "ABCDEF_", "ABCDEF_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password must have at least one digit character!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	// Testing for Create Password API
@@ -127,24 +127,24 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenPasswordIsNotNull() {
+	public void shouldThrowBadRequestException_WhenPasswordIsNotNull() {
 		// provider must be google
 		user.setProvider(AuthProvider.google);
 
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
 		assertThatThrownBy(() -> userService.createPassword(1L, wrapper))
-				.hasMessageContaining("Error: Password has been created").isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Password has been created").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenProviderIsNotGoogle() {
+	public void shouldThrowBadRequestException_WhenProviderIsNotGoogle() {
 		// test with other provider that is not google
 		user.setPasswordHashed(null);
 
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
 		assertThatThrownBy(() -> userService.createPassword(1L, wrapper))
 				.hasMessageContaining("Error: Cannot create password without google provider")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	// Testing for Remove User
