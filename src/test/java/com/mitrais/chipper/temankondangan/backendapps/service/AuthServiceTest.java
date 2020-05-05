@@ -1,5 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
@@ -16,13 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.Optional;
-
-import javax.validation.constraints.AssertTrue;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -91,12 +89,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Password and Confirm Password not match!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -108,12 +106,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Email is already exist!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -123,12 +121,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Password cannot empty!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -140,12 +138,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Password cannot empty!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -157,12 +155,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10/10/1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Date not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -174,12 +172,12 @@ public class AuthServiceTest {
 		wrapper.setDob("32-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Date not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -200,12 +198,12 @@ public class AuthServiceTest {
 		wrapper.setDob(dob);
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Age should not under 18!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -217,12 +215,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Email not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -234,12 +232,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Email not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 	@Test
 	public void testRegisteringNewUserWithNoTLDEmailFormat() {
@@ -250,12 +248,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Email not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -267,12 +265,12 @@ public class AuthServiceTest {
 		wrapper.setDob("10-10-1994");
 		wrapper.setFullname("test2");
 		wrapper.setGender(Gender.L);
-		ResponseStatusException e = Assertions.assertThrows(ResponseStatusException.class, () -> {
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
 			authService.save(wrapper);
 		});
 		String expectedMessage = "Error: Password pattern not valid!";
-		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getReason()),
-				expectedMessage + " != " + e.getReason());
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
@@ -283,20 +281,32 @@ public class AuthServiceTest {
 
 	@Test
 	public void testLoginUsingWrongPassword() {
-		boolean result = authService.login("test@example.com", "password1234");
-		Assertions.assertFalse(result);
+		UnauthorizedException e = Assertions.assertThrows(UnauthorizedException.class, () -> {
+			authService.login("test@example.com", "password1234");
+		});
+		String expectedMessage = "Error: Username or password not match";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
 	public void testLoginUsingEmailNotFound() {
-		boolean result = authService.login("not.exist@example.com", "password1234");
-		Assertions.assertFalse(result);
+		UnauthorizedException e = Assertions.assertThrows(UnauthorizedException.class, () -> {
+			authService.login("not.exist@example.com", "password1234");
+		});
+		String expectedMessage = "Error: Username or password not match";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test
 	public void testLoginUsingPasswordNotSet() {
-		boolean result = authService.login("test@example.com",null);
-		Assertions.assertFalse(result);
+		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
+			authService.login("test@example.com",null);
+		});
+		String expectedMessage = "Error: Password cannot be empty";
+		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
+				expectedMessage + " != " + e.getMessage());
 	}
 
 	@Test

@@ -15,9 +15,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
@@ -37,27 +40,23 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: User not found!"));
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Age must be between 18 and 40!");
+			throw new BadRequestException("Error: Age must be between 18 and 40!");
 		}
 
 		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Inputted age is not valid!");
+			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime dateAndTime;
-		try {
-			dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date not valid!");
-		}
+		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
 
 		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Error: Date inputted have to be after today!");
+			throw new BadRequestException("Error: Date inputted have to be after today!");
 		}
 
 		Event event = new Event();
@@ -70,11 +69,7 @@ public class EventServiceImpl implements EventService {
 		event.setMaximumAge(wrapper.getMaximumAge());
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 
-		try {
-			return eventRepository.save(event);
-		} catch (Exception e) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Data sent is not valid!");
-		}
+		return eventRepository.save(event);
 
 	}
 
@@ -87,7 +82,7 @@ public class EventServiceImpl implements EventService {
 		} else if (direction.equalsIgnoreCase("ASC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
 		} else {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Direction error!");
+			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
 		Page<Event> pagedResult = eventRepository.findAll(paging);
@@ -97,5 +92,44 @@ public class EventServiceImpl implements EventService {
 		} else {
 			return new ArrayList<>();
 		}
+	}
+
+	@Override
+	public Event edit(Long userId, EditEventWrapper wrapper) {
+		Event event = eventRepository.findById(wrapper.getEventId())
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
+
+		if (!event.getUser().getUserId().equals(userId)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"Error: Users are not authorized to edit this event");
+		}
+
+		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
+			throw new BadRequestException("Error: Age must be between 18 and 40!");
+		}
+
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+
+		// check dateAndTime valid
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime dateAndTime;
+		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+
+		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new BadRequestException("Error: Date inputted have to be after today!");
+		}
+
+		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
+		event.setDateAndTime(dateAndTime);
+		event.setCompanionGender(wrapper.getCompanionGender());
+		event.setMinimumAge(wrapper.getMinimumAge());
+		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+
+		return eventRepository.save(event);
+
 	}
 }
