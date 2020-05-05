@@ -126,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
         if(!result) {
             throw new UnauthorizedException("Error: Username or password not match");
         }
-        return result;
+        return true;
     }
 
     @Override
