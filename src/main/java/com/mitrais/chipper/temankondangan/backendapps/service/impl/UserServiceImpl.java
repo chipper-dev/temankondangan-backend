@@ -53,12 +53,12 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User findById(Long userId) throws ResourceNotFoundException {
+	public User findById(Long userId) {
 		return userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 	}
 
 	@Override
-	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) throws BadRequestException, ResourceNotFoundException {
+	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) {
 
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
@@ -88,7 +88,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) throws BadRequestException {
+	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) {
 
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
@@ -113,7 +113,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void remove(Long userId) throws BadRequestException {
+	public void remove(Long userId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
 
@@ -122,7 +122,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void forgotPassword(String email) throws BadRequestException, ResourceNotFoundException {
+	public void forgotPassword(String email) {
 		Integer code = generateRandomCode(6);
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void resetPassword(ResetPasswordWrapper wrapper) throws BadRequestException {
+	public void resetPassword(ResetPasswordWrapper wrapper) {
 		passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmPassword());
 
 		VerificationCode verificationCode = verificationRepository.findByCode(wrapper.getVerificationCode())

@@ -35,7 +35,7 @@ public class ProfileServiceImpl implements ProfileService {
 	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	@Override
-	public Profile update(Long userId, ProfileUpdateWrapper wrapper) throws BadRequestException {
+	public Profile update(Long userId, ProfileUpdateWrapper wrapper) {
 
 		byte[] image;
 
@@ -101,7 +101,7 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public ProfileResponseWrapper findByUserId(Long userId) throws BadRequestException {
+	public ProfileResponseWrapper findByUserId(Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 

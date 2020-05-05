@@ -38,7 +38,7 @@ public class OAuthServiceImpl implements OAuthService {
     }
 
     @Override
-    public OauthResponseWrapper getToken(String email, String uid) throws BadRequestException {
+    public OauthResponseWrapper getToken(String email, String uid) {
         try {
             UserRecord userRecord = FirebaseAuth.getInstance().getUser(uid);
             if (userRecord.getEmail().equalsIgnoreCase(email) && userRecord.getUid().equals(uid)) {
