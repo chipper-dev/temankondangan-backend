@@ -36,7 +36,8 @@ public class UserController extends CommonResource {
     @PutMapping("/change-password")
     public ResponseEntity<ResponseBody> changePassword(@RequestBody UserChangePasswordWrapper wrapper,
                                                        HttpServletRequest request) {
-
+    	
+    	LOGGER.info("Change user password");
         String token = getToken(request.getHeader(HEADER_AUTH));
         Long userId = tokenProvider.getUserIdFromToken(token);
         boolean result = userService.changePassword(userId, wrapper);
