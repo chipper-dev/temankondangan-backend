@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +20,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.web.server.ResponseStatusException;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -115,41 +116,40 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenAgeMoreThan40() {
+	public void shouldThrowBadRequestException_WhenAgeMoreThan40() {
 		wrapper.setMaximumAge(41);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Age must be between 18 and 40!")
-				.isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Age must be between 18 and 40!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenAgeLessThan18() {
+	public void shouldThrowBadRequestException_WhenAgeLessThan18() {
 		wrapper.setMinimumAge(17);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Age must be between 18 and 40!")
-				.isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Age must be between 18 and 40!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenMinimumAgeIsMoreThanMaximumAge() {
+	public void shouldThrowBadRequestException_WhenMinimumAgeIsMoreThanMaximumAge() {
 		wrapper.setMinimumAge(25);
 		wrapper.setMaximumAge(20);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Inputted age is not valid!").isInstanceOf(ResponseStatusException.class);
+				.hasMessageContaining("Error: Inputted age is not valid!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenDateIsFormatIsNotValid() {
-		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
-		assertThatThrownBy(() -> eventService.create(1L, wrapper)).hasMessageContaining("Error: Date not valid!").isInstanceOf(ResponseStatusException.class);
+	public void shouldThrowDateTimeParseException_WhenDateIsFormatIsNotValid() {
+		wrapper.setDateAndTime(
+				LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
+		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(DateTimeParseException.class);
 	}
 
 	@Test
-	public void shouldThrowResponseStatusException_WhenDateIsBeforeTodayPlus1() {
+	public void shouldThrowBadRequestException_WhenDateIsBeforeTodayPlus1() {
 		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
-				.isInstanceOf(ResponseStatusException.class);
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	// find all service
