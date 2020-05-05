@@ -12,6 +12,7 @@ import javax.transaction.Transactional;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
@@ -48,7 +49,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Transactional
     public User save(RegisterUserWrapper register) {
         // check email exist
         if (userRepository.existsByEmail(register.getEmail())) {
@@ -115,14 +115,18 @@ public class AuthServiceImpl implements AuthService {
     public boolean login(String email, String password) {
         boolean result;
         User data = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Error: Email not found"));
+                .orElseThrow(() -> new UnauthorizedException("Error: Username or password not match"));
 
         if (password != null) {
             result = passwordEncoder.matches(password, data.getPasswordHashed());
         } else {
             throw new BadRequestException("Error: Password cannot be empty");
         }
-        return result;
+
+        if(!result) {
+            throw new UnauthorizedException("Error: Username or password not match");
+        }
+        return true;
     }
 
     @Override
