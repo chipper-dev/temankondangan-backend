@@ -41,4 +41,7 @@ public class ProfileResponseWrapper {
 
     @ApiModelProperty(notes = "Profile interest")
     private String interest;
+    
+    @ApiModelProperty(notes = "User profile password null or not")
+    private boolean hasPassword;
 }
