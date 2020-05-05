@@ -80,11 +80,11 @@ public class Profile extends Auditable<String> {
 
 	@ApiModelProperty(notes = "Profile about me")
 	@Column(length = 200)
-	@Size(min = 1, max = 200)
+	@Size(max = 200)
 	private String aboutMe;
 
 	@ApiModelProperty(notes = "Profile interest")
 	@Column(length = 200)
-	@Size(min = 1, max = 200)
+	@Size(max = 200)
 	private String interest;
 }

@@ -36,16 +36,18 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	public Profile update(Long userId, ProfileUpdateWrapper wrapper) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
-		byte[] image;
+		byte[] image = null;
 
 		String[] allowedFormatImage = { "jpeg", "png", "jpg" };
 		List<String> allowedFormatImageList = Arrays.asList(allowedFormatImage);
 
 		// if null or if not select anything
-		if (wrapper.getImage() == null || wrapper.getImage().getSize() == 0) {
+		if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
 			image = readBytesFromFile(DEFAULT_IMAGE);
-		} else {
+		} else if (wrapper.getImage() != null) {
 			// throw error if image format is not allowed
 			String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
 			if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
@@ -57,8 +59,6 @@ public class ProfileServiceImpl implements ProfileService {
 				throw new BadRequestException(e.getMessage());
 			}
 		}
-		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
 		profile.setPhotoProfile(image);
 		profile.setAboutMe(wrapper.getAboutMe());
@@ -115,6 +115,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 		return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
 				.dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
-				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).hasPassword(hasPassword).build();
+				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).email(profile.getUser().getEmail())
+				.hasPassword(hasPassword).build();
 	}
 }
