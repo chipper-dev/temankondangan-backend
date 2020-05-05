@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
@@ -107,8 +108,13 @@ public class ProfileServiceImpl implements ProfileService {
 		String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
 				.path(String.valueOf(profile.getProfileId())).toUriString();
 
+		boolean hasPassword = true;
+		if (StringUtils.isEmpty(profile.getUser().getPasswordHashed())) {
+			hasPassword = false;
+		}
+
 		return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
 				.dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
-				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).build();
+				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).hasPassword(hasPassword).build();
 	}
 }
