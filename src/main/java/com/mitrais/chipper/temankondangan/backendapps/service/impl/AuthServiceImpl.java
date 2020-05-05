@@ -115,7 +115,7 @@ public class AuthServiceImpl implements AuthService {
     public boolean login(String email, String password) {
         boolean result;
         User data = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BadRequestException("Error: Email not found"));
+                .orElseThrow(() -> new UnauthorizedException("Error: Username or password not match"));
 
         if (password != null) {
             result = passwordEncoder.matches(password, data.getPasswordHashed());

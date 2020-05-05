@@ -291,10 +291,10 @@ public class AuthServiceTest {
 
 	@Test
 	public void testLoginUsingEmailNotFound() {
-		BadRequestException e = Assertions.assertThrows(BadRequestException.class, () -> {
+		UnauthorizedException e = Assertions.assertThrows(UnauthorizedException.class, () -> {
 			authService.login("not.exist@example.com", "password1234");
 		});
-		String expectedMessage = "Error: Email not found";
+		String expectedMessage = "Error: Username or password not match";
 		Assert.isTrue(expectedMessage.equalsIgnoreCase(e.getMessage()),
 				expectedMessage + " != " + e.getMessage());
 	}
