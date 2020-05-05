@@ -105,24 +105,25 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handleTransactionSystemException(TransactionSystemException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
+		HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+		String message = "Error: " + ex.getMessage();
+		String path = request.getRequestURI();
 
 		Throwable cause = ((TransactionSystemException) ex).getRootCause();
 		if (cause instanceof ConstraintViolationException) {
 			Set<ConstraintViolation<?>> constraintViolations = ((ConstraintViolationException) cause)
 					.getConstraintViolations();
-			// do something here
-
+			httpStatus = HttpStatus.BAD_REQUEST;
+			// handle Constraints in model
 			for (ConstraintViolation<?> contraints : constraintViolations) {
+				message = "Error: " + contraints.getRootBeanClass().getSimpleName() + " " + contraints.getPropertyPath()
+						+ " " + contraints.getMessage();
 
-				// handle Constraints in model
-				return new ResponseEntity<Object>(resource.getResponseBody(
-						HttpStatus.BAD_REQUEST, null, "Error: " + contraints.getRootBeanClass().getSimpleName() + " "
-								+ contraints.getPropertyPath() + " " + contraints.getMessage(),
-						request.getRequestURI()), HttpStatus.BAD_REQUEST);
 			}
+			return new ResponseEntity<Object>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
 		}
-		return new ResponseEntity<Object>(resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null,
-				"Error: " + ex.getMessage(), request.getRequestURI()), HttpStatus.INTERNAL_SERVER_ERROR);
+
+		return new ResponseEntity<Object>(resource.getResponseBody(httpStatus, null, message, path), httpStatus);
 
 	}
 
