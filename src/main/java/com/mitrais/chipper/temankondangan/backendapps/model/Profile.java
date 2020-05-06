@@ -13,17 +13,22 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.PreRemove;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.hibernate.annotations.ResultCheckStyle;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 
 import io.swagger.annotations.ApiModel;
@@ -42,6 +47,8 @@ import lombok.NoArgsConstructor;
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
 @ApiModel(description = "All details about Profile. ")
+@SQLDelete(sql = "UPDATE profile SET data_state = 'DELETED' WHERE profile_id = ?", check = ResultCheckStyle.COUNT)
+@Where(clause = "data_state <> 'DELETED'")
 public class Profile extends Auditable<String> {
 
 	@Id
@@ -87,4 +94,13 @@ public class Profile extends Auditable<String> {
 	@Column(length = 200)
 	@Size(max = 200)
 	private String interest;
+
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	protected DataState dataState;
+
+	@PreRemove
+	public void deleteUser() {
+		this.dataState = DataState.DELETED;
+	}
 }

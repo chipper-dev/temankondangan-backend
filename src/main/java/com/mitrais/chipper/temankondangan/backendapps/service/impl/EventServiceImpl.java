@@ -19,6 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -68,6 +69,7 @@ public class EventServiceImpl implements EventService {
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+		event.setDataState(DataState.ACTIVE);
 
 		return eventRepository.save(event);
 

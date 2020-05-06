@@ -4,6 +4,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
@@ -44,7 +45,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
     @Override
-    public void create(CreateProfileWrapper wrapper) {
+    public Profile create(CreateProfileWrapper wrapper) {
         User user = userRepository.findByEmail(wrapper.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", wrapper.getEmail()));
 
@@ -68,7 +69,8 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setFullName(wrapper.getFullname());
         profile.setDob(dob);
         profile.setGender(wrapper.getGender());
-        profileRepository.save(profile);
+        profile.setDataState(DataState.ACTIVE);
+        return profileRepository.save(profile);
     }
 
     @Override
@@ -84,7 +86,7 @@ public class ProfileServiceImpl implements ProfileService {
         // if null or if not select anything
         if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
             image = readBytesFromFile(DEFAULT_IMAGE);
-        } else if (wrapper.getImage() != null) {
+        } else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
             // throw error if image format is not allowed
             String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
             if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {

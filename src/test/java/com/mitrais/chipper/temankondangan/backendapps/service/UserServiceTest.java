@@ -22,6 +22,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
@@ -31,6 +33,12 @@ public class UserServiceTest {
 
 	@Mock
 	UserRepository userRepository;
+
+	@Mock
+	EventRepository eventRepository;
+
+	@Mock
+	ProfileRepository profileRepository;
 
 	@Mock
 	PasswordEncoder passwordEncoder;
@@ -49,6 +57,10 @@ public class UserServiceTest {
 
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 		Mockito.when(passwordEncoder.matches("12345_", "12345_")).thenReturn(true);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(null);
+		Mockito.when(profileRepository.findById(Mockito.any(Long.class))).thenReturn(null);
+
 	}
 
 //	Testing for Change Password API
