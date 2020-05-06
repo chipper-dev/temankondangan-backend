@@ -84,7 +84,7 @@ public class ProfileServiceImpl implements ProfileService {
         // if null or if not select anything
         if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
             image = readBytesFromFile(DEFAULT_IMAGE);
-        } else if (wrapper.getImage() != null) {
+        } else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
             // throw error if image format is not allowed
             String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
             if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
