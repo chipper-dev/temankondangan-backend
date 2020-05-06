@@ -6,7 +6,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponse
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 
 public interface ProfileService {
-	void create(CreateProfileWrapper wrapper);
+	Profile create(CreateProfileWrapper wrapper);
 	Profile update(Long userId, ProfileUpdateWrapper wrapper);
 	ProfileResponseWrapper findByUserId(Long userId);
 }

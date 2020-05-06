@@ -44,7 +44,7 @@ public class ProfileServiceImpl implements ProfileService {
     private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
     @Override
-    public void create(CreateProfileWrapper wrapper) {
+    public Profile create(CreateProfileWrapper wrapper) {
         User user = userRepository.findByEmail(wrapper.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("User", "email", wrapper.getEmail()));
 
@@ -68,7 +68,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setFullName(wrapper.getFullname());
         profile.setDob(dob);
         profile.setGender(wrapper.getGender());
-        profileRepository.save(profile);
+        return profileRepository.save(profile);
     }
 
     @Override
