@@ -85,7 +85,7 @@ public class ProfileServiceTest {
 	public void updateProfileTestWithImage() {
 		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
 		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "Klaten city",
-				"All about me", "Not interested");
+				"All about me", "Not interested", DataState.ACTIVE);
 		Optional<Profile> profileOptional = Optional.of(profile);
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenReturn(profile);

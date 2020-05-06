@@ -74,6 +74,7 @@ public class EventServiceTest {
 		event.setMinimumAge(18);
 		event.setTitle("title test");
 		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
 
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
 
@@ -87,6 +88,7 @@ public class EventServiceTest {
 		event2.setMinimumAge(18);
 		event2.setTitle("title test 2");
 		event2.setCity("Test City");
+		event2.setDataState(DataState.ACTIVE);
 
 		Event event3 = new Event();
 		event3 = new Event();
@@ -98,6 +100,7 @@ public class EventServiceTest {
 		event3.setMinimumAge(18);
 		event3.setTitle("title test 3");
 		event3.setCity("Test City");
+		event3.setDataState(DataState.ACTIVE);
 
 		List<Event> eventList = new ArrayList<>();
 		eventList.add(event);
