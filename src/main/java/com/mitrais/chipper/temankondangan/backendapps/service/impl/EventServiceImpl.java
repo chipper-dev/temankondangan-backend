@@ -43,9 +43,6 @@ public class EventServiceImpl implements EventService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-//		int maxAge = Integer.parseInt(wrapper.getMaximumAge());
-//		int minAge = Integer.parseInt(wrapper.getMinimumAge());
-		
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
 			throw new BadRequestException("Error: Age must be between 18 and 40!");
 		}

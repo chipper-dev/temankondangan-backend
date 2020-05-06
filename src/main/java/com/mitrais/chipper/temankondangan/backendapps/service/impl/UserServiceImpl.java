@@ -36,9 +36,7 @@ public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
-	private static final String ERROR_PROFILE_NOT_FOUND = "Error: Profile not found!";
-	private static final String ERROR_EVENT_NOT_FOUND = "Error: Event not found!";
-
+	
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
 
