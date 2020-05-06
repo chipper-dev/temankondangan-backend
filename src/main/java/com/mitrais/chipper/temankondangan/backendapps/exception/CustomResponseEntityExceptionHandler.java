@@ -52,6 +52,14 @@ public class CustomResponseEntityExceptionHandler {
 				HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(UnauthorizedException.class)
+	public final ResponseEntity<Object> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {
+		CommonResource resource = new CommonResource();
+		return new ResponseEntity<>(
+				resource.getResponseBody(HttpStatus.UNAUTHORIZED, null, ex.getMessage(), request.getRequestURI()),
+				HttpStatus.UNAUTHORIZED);
+	}
+
 	@ExceptionHandler(ResponseStatusException.class)
 	public final ResponseEntity<Object> handleResponseStatusException(ResponseStatusException ex,
 			HttpServletRequest request) {
