@@ -4,6 +4,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
@@ -68,6 +69,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setFullName(wrapper.getFullname());
         profile.setDob(dob);
         profile.setGender(wrapper.getGender());
+        profile.setDataState(DataState.ACTIVE);
         profileRepository.save(profile);
     }
 

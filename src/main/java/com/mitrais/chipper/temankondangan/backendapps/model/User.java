@@ -74,7 +74,7 @@ public class User extends Auditable<String> {
 
 	@NotNull
 	@Enumerated(EnumType.STRING)
-	private DataState dataState;
+	protected DataState dataState;
 
 	@PreRemove
 	public void deleteUser() {

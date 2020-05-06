@@ -9,42 +9,27 @@ import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 
 import org.springframework.data.mapping.PropertyReferenceException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.google.api.client.http.HttpHeaders;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 
 import net.minidev.json.JSONObject;
 
-@ControllerAdvice
-@RestController
-public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
+@RestControllerAdvice
+public class CustomResponseEntityExceptionHandler {
 
 	private static final String ERROR = "Error: ";
-
-	@ExceptionHandler(Exception.class)
-	public final ResponseEntity<Object> handleAllExceptions(Exception ex, HttpServletRequest request) {
-		HashMap<String, String> hashError = new HashMap<>();
-		hashError.put("Error", ex.getMessage());
-		JSONObject json = new JSONObject();
-		json.putAll(hashError);
-
-		CommonResource resource = new CommonResource();
-		return new ResponseEntity<>(
-				resource.getResponseBody(HttpStatus.INTERNAL_SERVER_ERROR, null, json, request.getRequestURI()),
-				HttpStatus.INTERNAL_SERVER_ERROR);
-	}
 
 	@ExceptionHandler(ResourceNotFoundException.class)
 	public final ResponseEntity<Object> handleUserNotFoundException(ResourceNotFoundException ex,
@@ -55,8 +40,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 		json.putAll(hashError);
 
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<>(
-				resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getRequestURI()),
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.NOT_FOUND, null, json, request.getRequestURI()),
 				HttpStatus.NOT_FOUND);
 	}
 
@@ -89,8 +73,8 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 	public final ResponseEntity<Object> handlePropertyReferenceException(PropertyReferenceException ex,
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
-		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null,
-				ERROR + ex.getMessage(), request.getRequestURI()), HttpStatus.BAD_REQUEST);
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, null, ERROR + ex.getMessage(),
+				request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(DateTimeParseException.class)
@@ -129,8 +113,24 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
 	}
 
-	@Override
-	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
+	@ExceptionHandler(InvalidFormatException.class)
+	public final ResponseEntity<Object> handleInvalidFormatException(InvalidFormatException ex,
+			HttpServletRequest request) {
+		CommonResource resource = new CommonResource();
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"Error: Invalid format values!", request.getRequestURI()), HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(NumberFormatException.class)
+	public final ResponseEntity<Object> handleNumberFormatException(NumberFormatException ex,
+			HttpServletRequest request) {
+		CommonResource resource = new CommonResource();
+		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
+				"Error: Cannot process number format!", request.getRequestURI()), HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public final ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
 
 		final HashMap<String, String> errors = new HashMap<>();

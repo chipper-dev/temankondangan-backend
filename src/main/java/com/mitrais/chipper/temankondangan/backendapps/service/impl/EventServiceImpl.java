@@ -19,6 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -42,6 +43,9 @@ public class EventServiceImpl implements EventService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+//		int maxAge = Integer.parseInt(wrapper.getMaximumAge());
+//		int minAge = Integer.parseInt(wrapper.getMinimumAge());
+		
 		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
 			throw new BadRequestException("Error: Age must be between 18 and 40!");
 		}
@@ -68,6 +72,7 @@ public class EventServiceImpl implements EventService {
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+		event.setDataState(DataState.ACTIVE);
 
 		return eventRepository.save(event);
 

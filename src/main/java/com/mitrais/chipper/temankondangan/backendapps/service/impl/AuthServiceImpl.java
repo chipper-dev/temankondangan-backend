@@ -99,6 +99,7 @@ public class AuthServiceImpl implements AuthService {
         profile.setFullName(register.getFullname());
         profile.setDob(dob);
         profile.setGender(register.getGender());
+        profile.setDataState(DataState.ACTIVE);
         profileRepository.save(profile);
 
         return user;

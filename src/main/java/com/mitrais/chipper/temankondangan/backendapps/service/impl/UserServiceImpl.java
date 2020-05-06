@@ -1,17 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
-import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.regex.Pattern;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,31 +16,47 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.regex.Pattern;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
+import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
+	private static final String ERROR_PROFILE_NOT_FOUND = "Error: Profile not found!";
+	private static final String ERROR_EVENT_NOT_FOUND = "Error: Event not found!";
 
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
 
 	private UserRepository userRepository;
+	private ProfileRepository profileRepository;
+	private EventRepository eventRepository;
 	private PasswordEncoder passwordEncoder;
 	private VerificationCodeRepository verificationRepository;
 	private EmailService emailService;
 	private SimpleMailMessage template;
 
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, EmailService emailService, VerificationCodeRepository verificationRepository, SimpleMailMessage template) {
+	public UserServiceImpl(UserRepository userRepository, ProfileRepository profileRepository,
+			EventRepository eventRepository, PasswordEncoder passwordEncoder, EmailService emailService,
+			VerificationCodeRepository verificationRepository, SimpleMailMessage template) {
 		this.userRepository = userRepository;
+		this.eventRepository = eventRepository;
+		this.profileRepository = profileRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.emailService = emailService;
 		this.verificationRepository = verificationRepository;
@@ -90,8 +101,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper) {
 
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
+		User user = userRepository.findById(userId).orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
 
 		// check if there is password
 		if (!StringUtils.isEmpty(user.getPasswordHashed())) {
@@ -114,9 +124,10 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void remove(Long userId) {
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
+		User user = userRepository.findById(userId).orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
 
+		eventRepository.findByUserId(userId).ifPresent(e -> eventRepository.deleteAll(e));
+		profileRepository.findByUserId(userId).ifPresent(p -> profileRepository.delete(p));
 		userRepository.delete(user);
 
 	}
@@ -127,8 +138,9 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
 
-		if(StringUtils.isEmpty(user.getPasswordHashed()) && user.getProvider().equals(AuthProvider.google))
-			throw new BadRequestException("Error: You have not set password for your Email. Please login using your Gmail account and create password");
+		if (StringUtils.isEmpty(user.getPasswordHashed()) && user.getProvider().equals(AuthProvider.google))
+			throw new BadRequestException(
+					"Error: You have not set password for your Email. Please login using your Gmail account and create password");
 
 		saveCode(user.getEmail(), code);
 		sendEmailJob(user.getEmail(), code);
@@ -139,7 +151,8 @@ public class UserServiceImpl implements UserService {
 		passwordValidation(wrapper.getNewPassword(), wrapper.getConfirmPassword());
 
 		VerificationCode verificationCode = verificationRepository.findByCode(wrapper.getVerificationCode())
-				.orElseThrow(() -> new RuntimeException("Error: Please input correct verification code from your email"));
+				.orElseThrow(
+						() -> new RuntimeException("Error: Please input correct verification code from your email"));
 
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
@@ -157,7 +170,7 @@ public class UserServiceImpl implements UserService {
 			// Delete verification code
 			deleteCode(user.getEmail());
 		} else {
-			//Expired
+			// Expired
 			throw new BadRequestException("Error: Please input correct verification code from your email");
 		}
 	}
@@ -168,18 +181,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private void saveCode(String email, Integer code) {
-		VerificationCode temp = VerificationCode.builder()
-				.code(String.valueOf(code))
-				.email(email)
-				.createdAt(LocalDateTime.now())
-				.build();
+		VerificationCode temp = VerificationCode.builder().code(String.valueOf(code)).email(email)
+				.createdAt(LocalDateTime.now()).build();
 
 		verificationRepository.save(temp);
 	}
 
 	private void deleteCode(String email) {
 		List<VerificationCode> list = verificationRepository.findByEmail(email);
-		if(!list.isEmpty()) {
+		if (!list.isEmpty()) {
 			list.forEach(verificationCode -> {
 				logger.info("Deleting verification code: {}", verificationCode.getCode());
 				verificationRepository.delete(verificationCode);
