@@ -56,12 +56,7 @@ public class OAuthServiceImpl implements OAuthService {
         OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
         Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
 
-        if (!existUser.isPresent()) {
-            responseWrapper.setExist(false);
-        } else {
-            responseWrapper.setExist(true);
-        }
-
+        responseWrapper.setExist(existUser.isPresent());
         responseWrapper.setToken(generateToken(userRecord));
         responseWrapper.setFullName(userRecord.getDisplayName());
 
