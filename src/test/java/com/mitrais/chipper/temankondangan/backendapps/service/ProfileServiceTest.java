@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
@@ -12,6 +13,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.impl.ProfileServic
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -52,11 +54,16 @@ public class ProfileServiceTest {
 		Mockito.when(userRepository.findByEmail(Mockito.anyString())).thenReturn(userOptional);
 	}
 
-	@Test
+//	@Test
 	public void createProfileSuccessfully() {
+		User user = User.builder().email("test@email.com").uid("########").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
+
+		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
+
 		createProfileWrapper = CreateProfileWrapper.builder()
 				.dob("01-01-2000")
 				.email("test@email.com")
+				.uid("########")
 				.fullname("full_name")
 				.gender(Gender.L)
 				.build();
