@@ -56,14 +56,7 @@ public class OAuthServiceImpl implements OAuthService {
         OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
         Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
 
-        if (!existUser.isPresent()) {
-            saveUser(userRecord);
-            responseWrapper.setExist(false);
-        } else {
-            updateUser(existUser.get(), userRecord);
-            responseWrapper.setExist(true);
-        }
-
+        responseWrapper.setExist(existUser.isPresent());
         responseWrapper.setToken(generateToken(userRecord));
         responseWrapper.setFullName(userRecord.getDisplayName());
 
@@ -75,19 +68,5 @@ public class OAuthServiceImpl implements OAuthService {
                 .authenticate(new UsernamePasswordAuthenticationToken(userRecord.getEmail(), userRecord.getUid()));
 
         return tokenProvider.createToken(authentication);
-    }
-
-    private User saveUser(UserRecord userRecord) {
-        User user = User.builder().email(userRecord.getEmail()).uid(passwordEncoder.encode(userRecord.getUid()))
-                .provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
-
-        return userRepository.save(user);
-    }
-
-    private void updateUser(User user, UserRecord userRecord) {
-        if (!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
-            user.setUid(passwordEncoder.encode(userRecord.getUid()));
-            userRepository.save(user);
-        }
     }
 }
