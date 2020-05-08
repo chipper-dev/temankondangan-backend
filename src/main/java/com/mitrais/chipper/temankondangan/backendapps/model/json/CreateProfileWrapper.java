@@ -18,4 +18,5 @@ public class CreateProfileWrapper {
     private String dob;
     private Gender gender;
     private String email;
+    private String uid;
 }
