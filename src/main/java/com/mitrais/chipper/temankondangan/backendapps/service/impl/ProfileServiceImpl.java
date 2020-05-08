@@ -1,9 +1,11 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import com.google.firebase.auth.UserRecord;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
@@ -14,6 +16,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -35,20 +38,19 @@ public class ProfileServiceImpl implements ProfileService {
 
     private final ProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository) {
+    public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.profileRepository = profileRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
     @Override
     public Profile create(CreateProfileWrapper wrapper) {
-        User user = userRepository.findByEmail(wrapper.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "email", wrapper.getEmail()));
-
         // check dob valid
         LocalDate dob;
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
@@ -63,6 +65,8 @@ public class ProfileServiceImpl implements ProfileService {
             throw new BadRequestException("Error: Age should not under 18!");
         }
 
+        User user = saveUser(wrapper.getEmail(), wrapper.getUid());
+
         Profile profile = profileRepository.findByUserId(user.getUserId())
                 .orElse(new Profile());
         profile.setUser(user);
@@ -71,6 +75,13 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setGender(wrapper.getGender());
         profile.setDataState(DataState.ACTIVE);
         return profileRepository.save(profile);
+    }
+
+    private User saveUser(String email, String uid) {
+        User user = User.builder().email(email).uid(passwordEncoder.encode(uid))
+                .provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
+
+        return userRepository.save(user);
     }
 
     @Override
