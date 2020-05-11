@@ -51,6 +51,9 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public Profile create(CreateProfileWrapper wrapper) {
+        User user = userRepository.findByEmail(wrapper.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "email", wrapper.getEmail()));
+
         // check dob valid
         LocalDate dob;
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
@@ -65,8 +68,6 @@ public class ProfileServiceImpl implements ProfileService {
             throw new BadRequestException("Error: Age should not under 18!");
         }
 
-        User user = saveUser(wrapper.getEmail(), wrapper.getUid());
-
         Profile profile = profileRepository.findByUserId(user.getUserId())
                 .orElse(new Profile());
         profile.setUser(user);
@@ -75,13 +76,6 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setGender(wrapper.getGender());
         profile.setDataState(DataState.ACTIVE);
         return profileRepository.save(profile);
-    }
-
-    private User saveUser(String email, String uid) {
-        User user = User.builder().email(email).uid(passwordEncoder.encode(uid))
-                .provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
-
-        return userRepository.save(user);
     }
 
     @Override
