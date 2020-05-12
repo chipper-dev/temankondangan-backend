@@ -46,7 +46,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             "/webjars/**",
             "/register/**",
             "/user/reset-password",
-            "/user/forgot-password"
+            "/user/forgot-password",
+            "/imagefile/download/**"
     };
 
     @Override
