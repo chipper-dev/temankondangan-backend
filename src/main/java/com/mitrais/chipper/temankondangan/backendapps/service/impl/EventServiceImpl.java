@@ -1,11 +1,14 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,7 +16,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -23,6 +25,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
@@ -85,8 +88,8 @@ public class EventServiceImpl implements EventService {
 		event.setUser(user);
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setStartDateAndTime(startDateAndTime);
-		event.setFinishDateAndTime(finishDateAndTime);
+		event.setStartDateTime(startDateAndTime);
+		event.setFinishDateTime(finishDateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
@@ -98,7 +101,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
+	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId) {
 		Pageable paging;
 
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -109,7 +112,16 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
-		Page<Event> pagedResult = eventRepository.findAll(paging);
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new BadRequestException("Profile Not found"));
+		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
+		ArrayList<Gender> gender = new ArrayList<>();
+		gender.add(Gender.B);
+		gender.add(profile.getGender());
+
+		Page<Event> pagedResult = eventRepository
+				.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
+						age, age, gender, LocalDateTime.now(), paging);
 
 		if (pagedResult.hasContent()) {
 			return pagedResult.getContent();
@@ -156,8 +168,8 @@ public class EventServiceImpl implements EventService {
 
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setStartDateAndTime(startDateAndTime);
-		event.setFinishDateAndTime(finishDateAndTime);
+		event.setStartDateTime(startDateAndTime);
+		event.setFinishDateTime(finishDateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
@@ -196,7 +208,7 @@ public class EventServiceImpl implements EventService {
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-				.dateAndTime(event.getStartDateAndTime()).minimumAge(event.getMinimumAge())
+				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
 				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList).build();
 	}
