@@ -1,24 +1,15 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import org.assertj.core.api.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -70,7 +61,10 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
-		wrapper.setDateAndTime(LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setStartDateAndTime(
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setFinishDateAndTime(
+				LocalDateTime.now().plusDays(4).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -81,11 +75,11 @@ public class EventServiceTest {
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
 		event = new Event();
-		event.setEventId(1L);
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
 		event.setCompanionGender(Gender.P);
-		event.setDateAndTime(LocalDateTime.now());
+		event.setStartDateTime(LocalDateTime.now());
+		event.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event.setMaximumAge(25);
 		event.setMinimumAge(18);
 		event.setTitle("title test");
@@ -95,11 +89,12 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
 
 		Event event2 = new Event();
-		event2.setEventId(2L);
+		event2 = new Event();
 		event2.setUser(user);
 		event2.setAdditionalInfo("info test 2");
 		event2.setCompanionGender(Gender.P);
-		event2.setDateAndTime(LocalDateTime.now());
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event2.setMaximumAge(25);
 		event2.setMinimumAge(18);
 		event2.setTitle("title test 2");
@@ -107,11 +102,12 @@ public class EventServiceTest {
 		event2.setDataState(DataState.ACTIVE);
 
 		Event event3 = new Event();
-		event3.setEventId(3L);
+		event3 = new Event();
 		event3.setUser(user);
 		event3.setAdditionalInfo("info test 3");
 		event3.setCompanionGender(Gender.P);
-		event3.setDateAndTime(LocalDateTime.now());
+		event3.setStartDateTime(LocalDateTime.now());
+		event3.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event3.setMaximumAge(25);
 		event3.setMinimumAge(18);
 		event3.setTitle("title test 3");
@@ -125,6 +121,13 @@ public class EventServiceTest {
 
 		pageEvent = new PageImpl<Event>(eventList);
 		pageEvent.getSort();
+
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 	}
 
 	// create event service
@@ -157,35 +160,47 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowDateTimeParseException_WhenDateIsFormatIsNotValid() {
-		wrapper.setDateAndTime(
+	public void shouldThrowDateTimeParseException_WhenDateFormatIsNotValid() {
+		wrapper.setStartDateAndTime(
 				LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(DateTimeParseException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenDateIsBeforeTodayPlus1() {
-		wrapper.setDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+	public void shouldThrowBadRequestException_WhenStartDateIsBeforeTodayPlus1() {
+		wrapper.setStartDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateIsMoreThanFinishDate() {
+		wrapper.setStartDateAndTime(
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setFinishDateAndTime(
+				LocalDateTime.now().plusDays(3).minusHours(2).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Start time must be earlier than finish time!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
 	// find all service
 	@Test
 	public void findAllEventTest_Descending() {
-		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC");
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 
 	@Test
 	public void findAllEventTest_Ascending() {
 		pageEvent.getSort().ascending();
-		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC");
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 

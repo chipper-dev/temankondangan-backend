@@ -48,3 +48,9 @@ ADD COLUMN data_state VARCHAR NOT NULL DEFAULT 'ACTIVE';
 
 ALTER TABLE profile
 ALTER COLUMN data_state DROP DEFAULT;
+
+ALTER TABLE event
+RENAME date_and_time TO start_date_time;
+
+ALTER TABLE event 
+ADD finish_date_time timestamp without time zone NULL;
