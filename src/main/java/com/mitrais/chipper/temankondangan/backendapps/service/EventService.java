@@ -9,12 +9,11 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResp
 
 public interface EventService {
 
-	public Event create(Long userId, CreateEventWrapper wrapper);
+	Event create(Long userId, CreateEventWrapper wrapper);
 
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId);
+	List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId);
 
-	public Event edit(Long userId, EditEventWrapper wrapper);
+	Event edit(Long userId, EditEventWrapper wrapper);
 
-	public EventDetailResponseWrapper findById(Long id);
-
+	EventDetailResponseWrapper findEventDetail(Long id, Long userId);
 }

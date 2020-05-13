@@ -90,7 +90,10 @@ public class EventController extends CommonResource {
 	@GetMapping(value = "/find")
 	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId,
 												HttpServletRequest request) {
-		EventDetailResponseWrapper responseWrapper = eventService.findById(eventId);
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		EventDetailResponseWrapper responseWrapper = eventService.findEventDetail(eventId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
 				responseWrapper, request.getRequestURI()));
 
