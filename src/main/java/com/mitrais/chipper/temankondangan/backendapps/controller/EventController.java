@@ -63,7 +63,9 @@ public class EventController extends CommonResource {
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
 
-		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
 				getContentList(pageNumber, pageSize, events), request.getRequestURI()));
 

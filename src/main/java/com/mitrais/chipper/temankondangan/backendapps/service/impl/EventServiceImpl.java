@@ -1,12 +1,17 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -27,16 +32,20 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
+import javax.persistence.criteria.CriteriaBuilder;
+
 @Service
 public class EventServiceImpl implements EventService {
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
+	private ProfileRepository profileRepository;
 
 	@Autowired
-	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
+	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository, ProfileRepository profileRepository) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
+		this.profileRepository = profileRepository;
 	}
 
 	@Override
@@ -74,8 +83,8 @@ public class EventServiceImpl implements EventService {
 		event.setUser(user);
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setStartDateAndTime(startDateAndTime);
-		event.setFinishDateAndTime(finishDateAndTime);
+		event.setStartDateTime(startDateAndTime);
+		event.setFinishDateTime(finishDateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
@@ -87,7 +96,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
+	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId) {
 		Pageable paging;
 
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -98,7 +107,15 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
-		Page<Event> pagedResult = eventRepository.findAll(paging);
+		Profile profile = profileRepository.findByUserId(userId).orElseThrow(() -> new BadRequestException("Profile Not found"));
+		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
+		ArrayList<Gender> gender = new ArrayList<>();
+		gender.add(Gender.B);
+		gender.add(profile.getGender());
+
+		Page<Event> pagedResult =
+				eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter
+						(age, age, gender,LocalDateTime.now(), paging);
 
 		if (pagedResult.hasContent()) {
 			return pagedResult.getContent();
@@ -145,8 +162,8 @@ public class EventServiceImpl implements EventService {
 
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setStartDateAndTime(startDateAndTime);
-		event.setFinishDateAndTime(finishDateAndTime);
+		event.setStartDateTime(startDateAndTime);
+		event.setFinishDateTime(finishDateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());

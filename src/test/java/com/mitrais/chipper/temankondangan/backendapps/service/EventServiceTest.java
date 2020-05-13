@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -10,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -40,6 +43,9 @@ public class EventServiceTest {
 
 	@Mock
 	EventRepository eventRepository;
+
+	@Mock
+	ProfileRepository profileRepository;
 
 	@InjectMocks
 	EventServiceImpl eventService;
@@ -72,8 +78,8 @@ public class EventServiceTest {
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
 		event.setCompanionGender(Gender.P);
-		event.setStartDateAndTime(LocalDateTime.now());
-		event.setFinishDateAndTime(LocalDateTime.now().plusHours(4));
+		event.setStartDateTime(LocalDateTime.now());
+		event.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event.setMaximumAge(25);
 		event.setMinimumAge(18);
 		event.setTitle("title test");
@@ -87,8 +93,8 @@ public class EventServiceTest {
 		event2.setUser(user);
 		event2.setAdditionalInfo("info test 2");
 		event2.setCompanionGender(Gender.P);
-		event2.setStartDateAndTime(LocalDateTime.now());
-		event2.setFinishDateAndTime(LocalDateTime.now().plusHours(4));
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event2.setMaximumAge(25);
 		event2.setMinimumAge(18);
 		event2.setTitle("title test 2");
@@ -100,8 +106,8 @@ public class EventServiceTest {
 		event3.setUser(user);
 		event3.setAdditionalInfo("info test 3");
 		event3.setCompanionGender(Gender.P);
-		event3.setStartDateAndTime(LocalDateTime.now());
-		event3.setFinishDateAndTime(LocalDateTime.now().plusHours(4));
+		event3.setStartDateTime(LocalDateTime.now());
+		event3.setFinishDateTime(LocalDateTime.now().plusHours(4));
 		event3.setMaximumAge(25);
 		event3.setMinimumAge(18);
 		event3.setTitle("title test 3");
@@ -115,6 +121,13 @@ public class EventServiceTest {
 
 		pageEvent = new PageImpl<Event>(eventList);
 		pageEvent.getSort();
+
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 	}
 
 	// create event service
@@ -176,18 +189,18 @@ public class EventServiceTest {
 	// find all service
 	@Test
 	public void findAllEventTest_Descending() {
-		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC");
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 
 	@Test
 	public void findAllEventTest_Ascending() {
 		pageEvent.getSort().ascending();
-		Mockito.when(eventRepository.findAll(Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC");
+		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 }
