@@ -6,7 +6,6 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -14,16 +13,23 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -32,11 +38,16 @@ public class EventServiceImpl implements EventService {
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
+	private ProfileRepository profileRepository;
+	private ApplicantRepository applicantRepository;
 
 	@Autowired
-	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository) {
+	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
+			ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
+		this.applicantRepository = applicantRepository;
+		this.profileRepository = profileRepository;
 	}
 
 	@Override
@@ -155,4 +166,39 @@ public class EventServiceImpl implements EventService {
 		return eventRepository.save(event);
 
 	}
+
+	@Override
+	public EventDetailResponseWrapper findById(Long id) {
+		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
+		String photoProfileUrl = "";
+
+		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
+
+		User userCreator = userRepository.findById(event.getUser().getUserId())
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+
+		Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
+				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+
+		applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
+			Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
+					.orElseThrow(() -> new ResourceNotFoundException("Profile", "id",
+							applicant.getApplicantUser().getUserId()));
+
+			applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().fullName(profileApplicant.getFullName())
+					.userId(applicant.getApplicantUser().getUserId()).status(applicant.getStatus()).build());
+		});
+
+		if (profileCreator.getPhotoProfile() != null) {
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+		}
+
+		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
+				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
+				.dateAndTime(event.getStartDateAndTime()).minimumAge(event.getMinimumAge())
+				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
+				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList).build();
+	}
+
 }

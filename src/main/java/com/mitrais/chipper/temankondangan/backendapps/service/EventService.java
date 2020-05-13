@@ -5,12 +5,15 @@ import java.util.List;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 
 public interface EventService {
 
-	public Event create(Long userId, CreateEventWrapper wrapper);
+	Event create(Long userId, CreateEventWrapper wrapper);
 
-	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction);
+	List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction);
 
-	public Event edit(Long userId, EditEventWrapper wrapper);
+	Event edit(Long userId, EditEventWrapper wrapper);
+
+	EventDetailResponseWrapper findById(Long id);
 }
