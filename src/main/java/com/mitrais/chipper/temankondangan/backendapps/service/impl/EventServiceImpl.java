@@ -63,7 +63,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		if (!StringUtils.isEmpty(wrapper.getFinishDateAndTime())) {
-			
+
 			finishDateAndTime = LocalDateTime.parse(wrapper.getFinishDateAndTime(), df);
 			if (startDateAndTime.isAfter(finishDateAndTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
@@ -127,16 +127,26 @@ public class EventServiceImpl implements EventService {
 
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime dateAndTime;
-		dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+		LocalDateTime startDateAndTime;
+		LocalDateTime finishDateAndTime = null;
+		startDateAndTime = LocalDateTime.parse(wrapper.getStartDateAndTime(), df);
 
-		if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+		if (startDateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
 			throw new BadRequestException("Error: Date inputted have to be after today!");
+		}
+
+		if (!StringUtils.isEmpty(wrapper.getFinishDateAndTime())) {
+
+			finishDateAndTime = LocalDateTime.parse(wrapper.getFinishDateAndTime(), df);
+			if (startDateAndTime.isAfter(finishDateAndTime)) {
+				throw new BadRequestException("Error: Start time must be earlier than finish time!");
+			}
 		}
 
 		event.setTitle(wrapper.getTitle());
 		event.setCity(wrapper.getCity());
-		event.setStartDateAndTime(dateAndTime);
+		event.setStartDateAndTime(startDateAndTime);
+		event.setFinishDateAndTime(finishDateAndTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(wrapper.getMaximumAge());
