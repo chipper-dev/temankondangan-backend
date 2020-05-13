@@ -16,7 +16,9 @@ public class EditEventWrapper {
     private String title;
     private String city;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-    private String dateAndTime;
+    private String startDateAndTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
+    private String finishDateAndTime;
     private Integer minimumAge;
     private Integer maximumAge;
     private Gender companionGender;
