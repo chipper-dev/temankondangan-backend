@@ -78,12 +78,12 @@ public class Event extends Auditable<String> {
 	@Future
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	@ApiModelProperty(notes = "Event date and time")
-	private LocalDateTime startDateAndTime;
+	private LocalDateTime startDateTime;
 
 	@Future
 	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	@ApiModelProperty(notes = "Event date and time")
-	private LocalDateTime finishDateAndTime;
+	private LocalDateTime finishDateTime;
 	
 	@NotNull
 	@Positive

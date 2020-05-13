@@ -64,7 +64,9 @@ public class EventController extends CommonResource {
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
 
-		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
 				request.getRequestURI()));
 
@@ -100,11 +102,9 @@ public class EventController extends CommonResource {
 	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
-	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId,
-												HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId, HttpServletRequest request) {
 		EventDetailResponseWrapper responseWrapper = eventService.findById(eventId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
-				responseWrapper, request.getRequestURI()));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 
 	}
 
