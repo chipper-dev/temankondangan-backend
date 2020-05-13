@@ -8,6 +8,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.OauthResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.OAuthService;
@@ -27,14 +28,16 @@ public class OAuthServiceImpl implements OAuthService {
     private AuthenticationManager authenticationManager;
     private TokenProvider tokenProvider;
     private UserRepository userRepository;
+    private ProfileRepository profileRepository;
 
     @Autowired
     public OAuthServiceImpl(PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager,
-                            TokenProvider tokenProvider, UserRepository userRepository) {
+                            TokenProvider tokenProvider, UserRepository userRepository, ProfileRepository profileRepository) {
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userRepository = userRepository;
+        this.profileRepository = profileRepository;
     }
 
     @Override
@@ -56,7 +59,14 @@ public class OAuthServiceImpl implements OAuthService {
         OauthResponseWrapper responseWrapper = new OauthResponseWrapper();
         Optional<User> existUser = userRepository.findByEmail(userRecord.getEmail());
 
-        responseWrapper.setExist(existUser.isPresent());
+        if (!existUser.isPresent()) {
+            saveUser(userRecord);
+            responseWrapper.setExist(false);
+        } else {
+            updateUser(existUser.get(), userRecord);
+            responseWrapper.setExist(profileRepository.findByUserId(existUser.get().getUserId()).isPresent());
+        }
+
         responseWrapper.setToken(generateToken(userRecord));
         responseWrapper.setFullName(userRecord.getDisplayName());
 
@@ -68,5 +78,19 @@ public class OAuthServiceImpl implements OAuthService {
                 .authenticate(new UsernamePasswordAuthenticationToken(userRecord.getEmail(), userRecord.getUid()));
 
         return tokenProvider.createToken(authentication);
+    }
+
+    private User saveUser(UserRecord userRecord) {
+        User user = User.builder().email(userRecord.getEmail()).uid(passwordEncoder.encode(userRecord.getUid()))
+                .provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
+
+        return userRepository.save(user);
+    }
+
+    private void updateUser(User user, UserRecord userRecord) {
+        if (!passwordEncoder.matches(userRecord.getUid(), user.getUid())) {
+            user.setUid(passwordEncoder.encode(userRecord.getUid()));
+            userRepository.save(user);
+        }
     }
 }

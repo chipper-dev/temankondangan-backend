@@ -54,16 +54,15 @@ public class ProfileServiceTest {
 		Mockito.when(userRepository.findByEmail(Mockito.anyString())).thenReturn(userOptional);
 	}
 
-//	@Test
+	@Test
 	public void createProfileSuccessfully() {
-		User user = User.builder().email("test@email.com").uid("########").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
+		User user = User.builder().email("test@email.com").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
 
 		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
 
 		createProfileWrapper = CreateProfileWrapper.builder()
 				.dob("01-01-2000")
 				.email("test@email.com")
-				.uid("########")
 				.fullname("full_name")
 				.gender(Gender.L)
 				.build();
