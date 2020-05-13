@@ -155,4 +155,16 @@ public class EventServiceImpl implements EventService {
 		return eventRepository.save(event);
 
 	}
+
+	@Override
+	public List<Event> apply(Long userId, Long eventId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
+
+		
+		return null;
+	}
 }

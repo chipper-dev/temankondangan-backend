@@ -59,3 +59,17 @@ CREATE TABLE public.verification_code (
 	code varchar(255) NULL,
 	CONSTRAINT temp_password_pkey PRIMARY KEY (id)
 );
+
+
+CREATE TABLE public.event_participant
+(
+    event_participant_id bigint NOT NULL,
+    created_by character varying(255),
+    created_date timestamp without time zone,
+    last_modified_by character varying(255),
+    last_modified_date timestamp without time zone,
+    data_state character varying(255) NOT NULL,
+    event_id bigint,
+    user_id bigint,
+    CONSTRAINT event_participant_pkey PRIMARY KEY (event_participant_id)
+);

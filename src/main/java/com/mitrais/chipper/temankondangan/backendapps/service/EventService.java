@@ -13,4 +13,6 @@ public interface EventService {
 	public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction);
 
 	public Event edit(Long userId, EditEventWrapper wrapper);
+
+	public List<Event> apply(Long userId, Long eventId);
 }

@@ -64,8 +64,8 @@ public class EventController extends CommonResource {
 		LOGGER.info("Find all Event");
 
 		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
-				getContentList(pageNumber, pageSize, events), request.getRequestURI()));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
+				request.getRequestURI()));
 
 	}
 
@@ -82,4 +82,16 @@ public class EventController extends CommonResource {
 
 	}
 
+	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping(value = "/apply")
+	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
+		LOGGER.info("A user apply to an event");
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		List<Event> events = eventService.apply(userId, eventId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
+
+	}
 }
