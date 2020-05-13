@@ -11,7 +11,7 @@ public interface EventService {
 
 	Event create(Long userId, CreateEventWrapper wrapper);
 
-	List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction);
+	List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId);
 
 	Event edit(Long userId, EditEventWrapper wrapper);
 

@@ -8,6 +8,12 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -40,7 +46,7 @@ public class EventServiceImpl implements EventService {
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-			ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
+                            ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
@@ -62,18 +68,28 @@ public class EventServiceImpl implements EventService {
 
         // check dateAndTime valid
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-        LocalDateTime dateAndTime;
-        dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+        LocalDateTime startDateAndTime;
+        LocalDateTime finishDateAndTime = null;
+        startDateAndTime = LocalDateTime.parse(wrapper.getStartDateAndTime(), df);
 
-        if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+        if (startDateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
             throw new BadRequestException("Error: Date inputted have to be after today!");
+        }
+
+        if (!StringUtils.isEmpty(wrapper.getFinishDateAndTime())) {
+
+            finishDateAndTime = LocalDateTime.parse(wrapper.getFinishDateAndTime(), df);
+            if (startDateAndTime.isAfter(finishDateAndTime)) {
+                throw new BadRequestException("Error: Start time must be earlier than finish time!");
+            }
         }
 
         Event event = new Event();
         event.setUser(user);
         event.setTitle(wrapper.getTitle());
         event.setCity(wrapper.getCity());
-        event.setDateAndTime(dateAndTime);
+        event.setStartDateTime(startDateAndTime);
+        event.setFinishDateTime(finishDateAndTime);
         event.setCompanionGender(wrapper.getCompanionGender());
         event.setMinimumAge(wrapper.getMinimumAge());
         event.setMaximumAge(wrapper.getMaximumAge());
@@ -85,7 +101,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction) {
+    public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId) {
         Pageable paging;
 
         if (direction.equalsIgnoreCase("DESC")) {
@@ -96,7 +112,16 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
         }
 
-        Page<Event> pagedResult = eventRepository.findAll(paging);
+        Profile profile = profileRepository.findByUserId(userId)
+                .orElseThrow(() -> new BadRequestException("Profile Not found"));
+        Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
+        ArrayList<Gender> gender = new ArrayList<>();
+        gender.add(Gender.B);
+        gender.add(profile.getGender());
+
+        Page<Event> pagedResult = eventRepository
+                .findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
+                        age, age, gender, LocalDateTime.now(), paging);
 
         if (pagedResult.hasContent()) {
             return pagedResult.getContent();
@@ -125,16 +150,26 @@ public class EventServiceImpl implements EventService {
 
         // check dateAndTime valid
         DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-        LocalDateTime dateAndTime;
-        dateAndTime = LocalDateTime.parse(wrapper.getDateAndTime(), df);
+        LocalDateTime startDateAndTime;
+        LocalDateTime finishDateAndTime = null;
+        startDateAndTime = LocalDateTime.parse(wrapper.getStartDateAndTime(), df);
 
-        if (dateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
+        if (startDateAndTime.isBefore(LocalDateTime.now().plusDays(1))) {
             throw new BadRequestException("Error: Date inputted have to be after today!");
+        }
+
+        if (!StringUtils.isEmpty(wrapper.getFinishDateAndTime())) {
+
+            finishDateAndTime = LocalDateTime.parse(wrapper.getFinishDateAndTime(), df);
+            if (startDateAndTime.isAfter(finishDateAndTime)) {
+                throw new BadRequestException("Error: Start time must be earlier than finish time!");
+            }
         }
 
         event.setTitle(wrapper.getTitle());
         event.setCity(wrapper.getCity());
-        event.setDateAndTime(dateAndTime);
+        event.setStartDateTime(startDateAndTime);
+        event.setFinishDateTime(finishDateAndTime);
         event.setCompanionGender(wrapper.getCompanionGender());
         event.setMinimumAge(wrapper.getMinimumAge());
         event.setMaximumAge(wrapper.getMaximumAge());
