@@ -161,7 +161,7 @@ public class EventServiceImpl implements EventService {
         Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
 
-        if(userId.equals(userCreator)) {
+        if(userId.equals(userCreator.getUserId())) {
             applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
                 Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
                         .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", applicant.getApplicantUser().getUserId()));
