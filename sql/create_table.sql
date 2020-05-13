@@ -59,3 +59,14 @@ CREATE TABLE public.verification_code (
 	code varchar(255) NULL,
 	CONSTRAINT temp_password_pkey PRIMARY KEY (id)
 );
+
+CREATE TABLE public.applicants (
+	id int8 NOT NULL,
+	data_state varchar(255) NOT NULL,
+	status varchar(255) NOT NULL,
+	user_id int8 NULL,
+	event_id int8 NULL,
+	CONSTRAINT applicants_pkey PRIMARY KEY (id),
+	CONSTRAINT fkagqbys02vwt92fq9e00u10ou1 FOREIGN KEY (event_id) REFERENCES event(event_id),
+	CONSTRAINT fks48x9ywgx7l6mg1egokmys0gp FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
