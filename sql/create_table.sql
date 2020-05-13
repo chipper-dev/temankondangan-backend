@@ -60,6 +60,7 @@ CREATE TABLE public.verification_code (
 	CONSTRAINT temp_password_pkey PRIMARY KEY (id)
 );
 
+<<<<<<< HEAD
 
 CREATE TABLE public.event_participant
 (
@@ -72,4 +73,15 @@ CREATE TABLE public.event_participant
     event_id bigint,
     user_id bigint,
     CONSTRAINT event_participant_pkey PRIMARY KEY (event_participant_id)
+=======
+CREATE TABLE public.applicants (
+	id int8 NOT NULL,
+	data_state varchar(255) NOT NULL,
+	status varchar(255) NOT NULL,
+	user_id int8 NULL,
+	event_id int8 NULL,
+	CONSTRAINT applicants_pkey PRIMARY KEY (id),
+	CONSTRAINT fkagqbys02vwt92fq9e00u10ou1 FOREIGN KEY (event_id) REFERENCES event(event_id),
+	CONSTRAINT fks48x9ywgx7l6mg1egokmys0gp FOREIGN KEY (user_id) REFERENCES users(user_id)
+>>>>>>> b21eac7428e0a538f32a486bb7696ba5979d1b19
 );

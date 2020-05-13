@@ -21,6 +21,7 @@ CREATE SEQUENCE public.event_id_seq
 	MAXVALUE 9223372036854775807
 	CACHE 1
 	NO CYCLE;
+<<<<<<< HEAD
 	
 CREATE SEQUENCE public.event_participant_id_seq
     INCREMENT 1
@@ -28,4 +29,12 @@ CREATE SEQUENCE public.event_participant_id_seq
     MINVALUE 1
     MAXVALUE 9223372036854775807
     CACHE 1
+=======
+
+CREATE SEQUENCE public.applicant_id_seq
+	INCREMENT BY 1
+	MINVALUE 1
+	MAXVALUE 9223372036854775807
+	CACHE 1
+>>>>>>> b21eac7428e0a538f32a486bb7696ba5979d1b19
 	NO CYCLE;

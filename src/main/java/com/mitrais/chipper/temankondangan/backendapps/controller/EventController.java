@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -82,16 +83,29 @@ public class EventController extends CommonResource {
 
 	}
 
-	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping(value = "/apply")
-	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
-		LOGGER.info("A user apply to an event");
-		String token = getToken(request.getHeader("Authorization"));
-		Long userId = tokenProvider.getUserIdFromToken(token);
+//<<<<<<< HEAD
+//	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
+//	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+//	@GetMapping(value = "/apply")
+//	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
+//		LOGGER.info("A user apply to an event");
+//		String token = getToken(request.getHeader("Authorization"));
+//		Long userId = tokenProvider.getUserIdFromToken(token);
+//
+//		List<Event> events = eventService.apply(userId, eventId);
+//		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
+//
+//	}
 
-		List<Event> events = eventService.apply(userId, eventId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
+	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping(value = "/find")
+	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId,
+												HttpServletRequest request) {
+		EventDetailResponseWrapper responseWrapper = eventService.findById(eventId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
+				responseWrapper, request.getRequestURI()));
 
 	}
+
 }
