@@ -21,9 +21,11 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
@@ -213,16 +215,24 @@ public class EventServiceImpl implements EventService {
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList).build();
 	}
 
-//	@Override
-//	public List<Event> apply(Long userId, Long eventId) {
-//		User user = userRepository.findById(userId)
-//				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-//
-//		Event event = eventRepository.findById(eventId)
-//				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
-//
-//		
-//		return null;
-//	}
+	@Override
+	public void apply(Long userId, Long eventId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
+
+		if (user.getUserId().equals(event.getUser().getUserId())) {
+			throw new BadRequestException("Error: You cannot apply to your own event!");
+		}
+		
+		
+		Applicant applicant = new Applicant();
+		applicant.setApplicantUser(user);
+		applicant.setEvent(event);
+		applicant.setDataState(DataState.ACTIVE);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicantRepository.save(applicant);
+	}
 }

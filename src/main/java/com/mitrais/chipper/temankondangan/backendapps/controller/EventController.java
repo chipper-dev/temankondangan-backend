@@ -85,20 +85,6 @@ public class EventController extends CommonResource {
 
 	}
 
-//<<<<<<< HEAD
-//	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
-//	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-//	@GetMapping(value = "/apply")
-//	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
-//		LOGGER.info("A user apply to an event");
-//		String token = getToken(request.getHeader("Authorization"));
-//		Long userId = tokenProvider.getUserIdFromToken(token);
-//
-//		List<Event> events = eventService.apply(userId, eventId);
-//		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
-//
-//	}
-
 	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
@@ -108,4 +94,16 @@ public class EventController extends CommonResource {
 
 	}
 
+	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping(value = "/apply")
+	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
+		LOGGER.info("A user apply to an event");
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		eventService.apply(userId, eventId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
+
+	}
 }

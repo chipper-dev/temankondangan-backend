@@ -15,8 +15,8 @@ public interface EventService {
 
 	public Event edit(Long userId, EditEventWrapper wrapper);
 
-//	public List<Event> apply(Long userId, Long eventId);
-
 	public EventDetailResponseWrapper findById(Long id);
+
+	public void apply(Long userId, Long eventId);
 
 }
