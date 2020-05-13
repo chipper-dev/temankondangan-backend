@@ -15,5 +15,5 @@ public interface EventService {
 
 	Event edit(Long userId, EditEventWrapper wrapper);
 
-	EventDetailResponseWrapper findById(Long id);
+	EventDetailResponseWrapper findEventDetail(Long id, Long userId);
 }

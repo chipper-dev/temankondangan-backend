@@ -148,7 +148,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public EventDetailResponseWrapper findById(Long id) {
+    public EventDetailResponseWrapper findEventDetail(Long id, Long userId) {
         List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
         String photoProfileUrl = "";
 
@@ -161,18 +161,19 @@ public class EventServiceImpl implements EventService {
         Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
 
+        if(userId.equals(userCreator)) {
+            applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
+                Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
+                        .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", applicant.getApplicantUser().getUserId()));
 
-        applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
-            Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", applicant.getApplicantUser().getUserId()));
-
-            applicantResponseWrapperList.add(
-                    ApplicantResponseWrapper.builder()
-                            .fullName(profileApplicant.getFullName())
-                            .userId(applicant.getApplicantUser().getUserId())
-                            .status(applicant.getStatus()).build()
-            );
-        });
+                applicantResponseWrapperList.add(
+                        ApplicantResponseWrapper.builder()
+                                .fullName(profileApplicant.getFullName())
+                                .userId(applicant.getApplicantUser().getUserId())
+                                .status(applicant.getStatus()).build()
+                );
+            });
+        }
 
         if (profileCreator.getPhotoProfile() != null) {
             photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
