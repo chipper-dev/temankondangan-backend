@@ -1,15 +1,24 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import org.assertj.core.api.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -41,6 +50,12 @@ public class EventServiceTest {
 	@Mock
 	EventRepository eventRepository;
 
+	@Mock
+	ProfileRepository profileRepository;
+
+	@Mock
+	ApplicantRepository applicantRepository;
+
 	@InjectMocks
 	EventServiceImpl eventService;
 
@@ -66,6 +81,7 @@ public class EventServiceTest {
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
 		event = new Event();
+		event.setEventId(1L);
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
 		event.setCompanionGender(Gender.P);
@@ -79,7 +95,7 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
 
 		Event event2 = new Event();
-		event2 = new Event();
+		event2.setEventId(2L);
 		event2.setUser(user);
 		event2.setAdditionalInfo("info test 2");
 		event2.setCompanionGender(Gender.P);
@@ -91,7 +107,7 @@ public class EventServiceTest {
 		event2.setDataState(DataState.ACTIVE);
 
 		Event event3 = new Event();
-		event3 = new Event();
+		event3.setEventId(3L);
 		event3.setUser(user);
 		event3.setAdditionalInfo("info test 3");
 		event3.setCompanionGender(Gender.P);
@@ -171,5 +187,43 @@ public class EventServiceTest {
 
 		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC");
 		assertEquals("title test", events.get(0).getTitle());
+	}
+
+	@Test
+	public void findEventDetailForCreatorTest(){
+		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+
+		Profile profileCreator = Profile.builder()
+				.user(user)
+				.profileId(1L)
+				.fullName("john doe")
+				.build();
+
+		Profile profileApplicant = Profile.builder()
+				.profileId(2L)
+				.user(userApplicant)
+				.fullName("jane doe")
+				.build();
+
+		Applicant applicant = Applicant.builder()
+				.applicantUser(userApplicant)
+				.event(event)
+				.dataState(DataState.ACTIVE)
+				.status(ApplicantStatus.APPLIED)
+				.build();
+
+		Mockito.when(eventRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Arrays.asList(applicant));
+
+		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
+		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId())).thenReturn(Optional.of(profileApplicant));
+
+		EventDetailResponseWrapper actualResult = eventService.findEventDetail(1L, 1L);
+
+		assertEquals("title test", actualResult.getTitle());
+		assertEquals("", actualResult.getPhotoProfileUrl());
+		assertFalse(actualResult.getApplicantList().isEmpty());
+		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
 	}
 }
