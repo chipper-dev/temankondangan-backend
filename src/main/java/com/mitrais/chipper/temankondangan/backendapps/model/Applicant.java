@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
@@ -38,14 +39,23 @@ public class Applicant {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @Where(clause = "data_state <> 'DELETED'")
-    private User user;
+    private User applicantUser;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "event_id")
     @Where(clause = "data_state <> 'DELETED'")
     private Event event;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     private ApplicantStatus status;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    protected DataState dataState;
+
+    @PreRemove
+    public void deleteApplicant() {
+        this.dataState = DataState.DELETED;
+    }
 }
