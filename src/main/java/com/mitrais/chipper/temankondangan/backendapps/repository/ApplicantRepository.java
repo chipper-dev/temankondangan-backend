@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.repository;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,6 +7,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 
 @Repository
 public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
@@ -16,4 +18,6 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
 
     @Query("SELECT a from Applicant a WHERE a.applicantUser.userId = :userId AND a.event.eventId = :eventId")
     Optional<Applicant> findByApplicantUserIdAndEventId(@Param("userId") Long applicantUserId, @Param("eventId") Long eventId);
+
+    Boolean existsByApplicantUserAndEvent(User applicantuser, Event event);
 }

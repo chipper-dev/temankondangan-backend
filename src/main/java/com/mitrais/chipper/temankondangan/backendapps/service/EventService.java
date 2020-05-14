@@ -15,6 +15,8 @@ public interface EventService {
 
 	Event edit(Long userId, EditEventWrapper wrapper);
 
+	void apply(Long userId, Long eventId);
+
 	EventDetailResponseWrapper findEventDetail(Long id, Long userId);
 
 	void cancelEvent(Long userId, Long eventId);
