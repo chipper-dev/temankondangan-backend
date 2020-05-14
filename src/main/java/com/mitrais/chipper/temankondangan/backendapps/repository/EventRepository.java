@@ -22,6 +22,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, PagingAndSo
 	@Query("SELECT a from Event a WHERE a.user.userId = :userId")
 	Optional<List<Event>> findByUserId(@Param("userId") Long userId);
 
-	@Query("SELECT a from Event a WHERE a.minimumAge <= :age AND a.maximumAge >= :age AND a.companionGender in :companionGender AND a.startDateTime AFTER :now")
+	@Query("SELECT a from Event a WHERE a.minimumAge <= :age AND a.maximumAge >= :age AND a.companionGender in :companionGender AND a.startDateTime > :now")
 	List<Event> findAllByRelevantInfo(@Param("age") Integer age, @Param("companionGender") Collection<Gender> companionGender, @Param("now") LocalDateTime now);
 }
