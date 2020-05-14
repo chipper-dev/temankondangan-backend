@@ -41,3 +41,4 @@ app:
     databaseUrl: ${FIREBASE_DATABASE}
     googleCredentials: ${GOOGLE_APPLICATION_CREDENTIALS}
   verificationExpirationMsec: 300000 #5 mins
+  eventCancelationValidMaxMsec: 172800000 #48 hours

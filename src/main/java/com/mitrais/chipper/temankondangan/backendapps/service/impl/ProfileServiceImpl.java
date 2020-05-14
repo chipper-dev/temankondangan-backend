@@ -146,11 +146,14 @@ public class ProfileServiceImpl implements ProfileService {
 
     @Override
     public ProfileResponseWrapper findByUserId(Long userId) {
+        String photoProfileUrl = "";
         Profile profile = profileRepository.findByUserId(userId)
                 .orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
-        String photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-                .path(String.valueOf(profile.getProfileId())).toUriString();
+        if (profile.getPhotoProfile() != null) {
+             photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+                    .path(String.valueOf(profile.getProfileId())).toUriString();
+        }
 
         boolean hasPassword = true;
         if (StringUtils.isEmpty(profile.getUser().getPasswordHashed())) {
