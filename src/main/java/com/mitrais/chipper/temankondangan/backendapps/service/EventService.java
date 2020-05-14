@@ -6,12 +6,14 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
 
 public interface EventService {
 
 	Event create(Long userId, CreateEventWrapper wrapper);
 
-	List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId);
+	public List<EventFindAllListResponseWrapper> findAll(Integer pageNumber, Integer pageSize, String sortBy,
+			String direction, Long userId);
 
 	Event edit(Long userId, EditEventWrapper wrapper);
 

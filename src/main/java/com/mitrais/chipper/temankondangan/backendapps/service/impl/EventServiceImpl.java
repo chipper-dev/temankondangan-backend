@@ -9,38 +9,38 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -55,12 +55,13 @@ public class EventServiceImpl implements EventService {
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-                            ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
+			ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
 	}
+
 
     @Override
     public Event create(Long userId, CreateEventWrapper wrapper) {
@@ -110,34 +111,60 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId) {
-        Pageable paging;
+	public List<EventFindAllListResponseWrapper> findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId) {
+		Pageable paging;
 
-        if (direction.equalsIgnoreCase("DESC")) {
-            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
-        } else if (direction.equalsIgnoreCase("ASC")) {
-            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
-        } else {
-            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
-        }
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+		} else {
+			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+		}
 
-        Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new BadRequestException("Profile Not found"));
-        Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
-        ArrayList<Gender> gender = new ArrayList<>();
-        gender.add(Gender.B);
-        gender.add(profile.getGender());
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new BadRequestException("Profile Not found"));
+		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
+		ArrayList<Gender> gender = new ArrayList<>();
+		gender.add(Gender.B);
+		gender.add(profile.getGender());
 
-        Page<Event> pagedResult = eventRepository
-                .findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
-                        age, age, gender, LocalDateTime.now(), paging);
+		List<Event> events = eventRepository
+				.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
+						age, age, gender, LocalDateTime.now());
 
-        if (pagedResult.hasContent()) {
-            return pagedResult.getContent();
-        } else {
-            return new ArrayList<>();
-        }
-    }
+		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
+		for (Event event : events) {
+			User userCreator = event.getUser();
+			Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
+					.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+			String photoProfileUrl = "";
+
+			if (profileCreator.getPhotoProfile() != null) {
+				photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+						.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+			}
+
+			EventFindAllListResponseWrapper e = EventFindAllListResponseWrapper.builder().eventId(event.getEventId())
+					.creatorFullName(profileCreator.getFullName()).photoProfileUrl(photoProfileUrl)
+					.title(event.getTitle()).city(event.getCity()).startDateTime(event.getStartDateTime())
+					.finishDateTime(event.getFinishDateTime()).minimumAge(event.getMinimumAge())
+					.maximumAge(event.getMaximumAge()).creatorGender(profileCreator.getGender())
+					.companionGender(event.getCompanionGender()).build();
+
+			eventAllResponse.add(e);
+		}
+
+		int start = (int) paging.getOffset();
+		int end = (start + paging.getPageSize()) > eventAllResponse.size() ? eventAllResponse.size() : (start + paging.getPageSize());
+		Page<EventFindAllListResponseWrapper> pagedResult = new PageImpl<EventFindAllListResponseWrapper>(eventAllResponse.subList(start, end), paging, eventAllResponse.size());
+
+		if (pagedResult.hasContent()) {
+			return pagedResult.getContent();
+		} else {
+			return new ArrayList<>();
+		}
+	}
 
     @Override
     public Event edit(Long userId, EditEventWrapper wrapper) {
@@ -221,6 +248,7 @@ public class EventServiceImpl implements EventService {
             photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
                     .path(String.valueOf(profileCreator.getProfileId())).toUriString();
         }
+
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())

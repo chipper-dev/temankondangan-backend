@@ -5,6 +5,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,13 +65,13 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
-
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
-				getContentList(pageNumber, pageSize, events), request.getRequestURI()));
 
+		List<EventFindAllListResponseWrapper> events = eventService.findAll(pageNumber, pageSize, sortBy, direction,
+				userId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
+				request.getRequestURI()));
 	}
 
 	@ApiOperation(value = "Edit Event", response = ResponseEntity.class)
@@ -88,14 +90,12 @@ public class EventController extends CommonResource {
 	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
-	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId,
-												HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId, HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventDetailResponseWrapper responseWrapper = eventService.findEventDetail(eventId, userId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(),
-				responseWrapper, request.getRequestURI()));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 
 	}
 
@@ -120,6 +120,7 @@ public class EventController extends CommonResource {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		eventService.cancelEvent(userId, eventId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
 }
