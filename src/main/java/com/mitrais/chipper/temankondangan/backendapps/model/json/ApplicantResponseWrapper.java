@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ApplicantResponseWrapper {
+    private Long applicantId;
     private Long userId;
     private String fullName;
     private ApplicantStatus status;

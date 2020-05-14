@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -8,6 +9,8 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
@@ -16,6 +19,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantReposi
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -45,6 +49,9 @@ public class EventServiceImpl implements EventService {
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
+
+    @Value("${app.eventCancelationValidMaxMsec}")
+    Long cancelationMax;
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
@@ -202,6 +209,7 @@ public class EventServiceImpl implements EventService {
 
                 applicantResponseWrapperList.add(
                         ApplicantResponseWrapper.builder()
+                                .applicantId(applicant.getId())
                                 .fullName(profileApplicant.getFullName())
                                 .userId(applicant.getApplicantUser().getUserId())
                                 .status(applicant.getStatus()).build()
@@ -244,4 +252,24 @@ public class EventServiceImpl implements EventService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 	}
+
+    @Override
+    public void cancelEvent(Long userApplicantId, Long eventId) {
+        Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId).orElseThrow(()-> new ResourceNotFoundException("Applicant", "eventId", eventId));
+        Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(() -> new ResourceNotFoundException("Event", "id", applicant.getEvent().getEventId()));
+
+        if(isCancelationValid(event.getStartDateTime())) {
+            applicantRepository.delete(applicant);
+        } else {
+            throw new BadRequestException("Error: The event will be started less than 48 hours");
+        }
+
+    }
+
+    private boolean isCancelationValid(LocalDateTime eventDate) {
+        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+        System.out.println(duration.getSeconds() * 1000);
+
+        return duration.getSeconds() * 1000 > cancelationMax;
+    }
 }
