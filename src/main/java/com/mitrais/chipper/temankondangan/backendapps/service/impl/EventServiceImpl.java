@@ -129,9 +129,7 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		List<Event> events = eventRepository
-				.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
-						age, age, gender, LocalDateTime.now());
+		List<Event> events = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now());
 
 		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
 		for (Event event : events) {
