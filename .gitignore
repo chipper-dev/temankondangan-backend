@@ -32,3 +32,4 @@ build/
 
 ### Additional ###
 *.properties
+src/main/resources/serviceAccountKey.json
