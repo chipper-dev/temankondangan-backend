@@ -1,8 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -248,6 +247,7 @@ public class EventServiceTest {
 		assertEquals("title test", actualResult.getTitle());
 		assertEquals("", actualResult.getPhotoProfileUrl());
 		assertFalse(actualResult.getApplicantList().isEmpty());
+		assertTrue(actualResult.getIsCreator());
 		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
 	}
 }
