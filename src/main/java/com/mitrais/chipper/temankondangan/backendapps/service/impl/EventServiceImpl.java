@@ -200,6 +200,7 @@ public class EventServiceImpl implements EventService {
 
                 applicantResponseWrapperList.add(
                         ApplicantResponseWrapper.builder()
+                                .applicantId(applicant.getId())
                                 .fullName(profileApplicant.getFullName())
                                 .userId(applicant.getApplicantUser().getUserId())
                                 .status(applicant.getStatus()).build()
