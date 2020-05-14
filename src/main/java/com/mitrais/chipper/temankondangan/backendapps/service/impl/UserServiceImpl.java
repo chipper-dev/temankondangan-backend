@@ -150,7 +150,7 @@ public class UserServiceImpl implements UserService {
 
 		VerificationCode verificationCode = verificationRepository.findByCode(wrapper.getVerificationCode())
 				.orElseThrow(
-						() -> new RuntimeException("Error: Please input correct verification code from your email"));
+						() -> new BadRequestException("Error: Please input correct verification code from your email"));
 
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
