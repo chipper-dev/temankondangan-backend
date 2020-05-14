@@ -99,4 +99,15 @@ public class EventController extends CommonResource {
 
 	}
 
+	@ApiOperation(value = "User cancel to event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping(value = "/cancel")
+	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
+		LOGGER.info("A user cancel to an event");
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		eventService.cancelEvent(userId, eventId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
+	}
+
 }
