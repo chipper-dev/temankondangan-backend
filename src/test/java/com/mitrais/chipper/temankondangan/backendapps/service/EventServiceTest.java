@@ -2,16 +2,22 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,6 +52,9 @@ public class EventServiceTest {
 
 	@Mock
 	ProfileRepository profileRepository;
+
+	@Mock
+	ApplicantRepository applicantRepository;
 
 	@InjectMocks
 	EventServiceImpl eventService;
@@ -202,5 +211,43 @@ public class EventServiceTest {
 
 		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
+	}
+
+	@Test
+	public void findEventDetailForCreatorTest(){
+		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+
+		Profile profileCreator = Profile.builder()
+				.user(user)
+				.profileId(1L)
+				.fullName("john doe")
+				.build();
+
+		Profile profileApplicant = Profile.builder()
+				.profileId(2L)
+				.user(userApplicant)
+				.fullName("jane doe")
+				.build();
+
+		Applicant applicant = Applicant.builder()
+				.applicantUser(userApplicant)
+				.event(event)
+				.dataState(DataState.ACTIVE)
+				.status(ApplicantStatus.APPLIED)
+				.build();
+
+		Mockito.when(eventRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Arrays.asList(applicant));
+
+		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
+		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId())).thenReturn(Optional.of(profileApplicant));
+
+		EventDetailResponseWrapper actualResult = eventService.findEventDetail(1L, 1L);
+
+		assertEquals("title test", actualResult.getTitle());
+		assertEquals("", actualResult.getPhotoProfileUrl());
+		assertFalse(actualResult.getApplicantList().isEmpty());
+		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
 	}
 }
