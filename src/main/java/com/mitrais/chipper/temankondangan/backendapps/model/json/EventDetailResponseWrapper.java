@@ -37,4 +37,6 @@ public class EventDetailResponseWrapper {
     private String additionalInfo;
 
     private List<ApplicantResponseWrapper> applicantList;
+
+    private Boolean isCreator;
 }
