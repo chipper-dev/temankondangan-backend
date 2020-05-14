@@ -5,6 +5,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +68,8 @@ public class EventController extends CommonResource {
 
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<Event> events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
+		List<EventFindAllListResponseWrapper> events = eventService.findAll(pageNumber, pageSize, sortBy, direction,
+				userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
 				request.getRequestURI()));
 

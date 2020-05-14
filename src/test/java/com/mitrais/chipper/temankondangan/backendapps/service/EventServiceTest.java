@@ -13,12 +13,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -28,15 +22,21 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
 
@@ -63,6 +63,7 @@ public class EventServiceTest {
 	private static Event event;
 	private static User user;
 	private static Page<Event> pageEvent;
+	private static List<Event> eventList;
 
 	@BeforeEach
 	public void init() {
@@ -123,7 +124,7 @@ public class EventServiceTest {
 		event3.setCity("Test City");
 		event3.setDataState(DataState.ACTIVE);
 
-		List<Event> eventList = new ArrayList<>();
+		eventList = new ArrayList<>();
 		eventList.add(event);
 		eventList.add(event2);
 		eventList.add(event3);
@@ -198,18 +199,18 @@ public class EventServiceTest {
 	// find all service
 	@Test
 	public void findAllEventTest_Descending() {
-		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class))).thenReturn(eventList);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "DESC", 1L);
+		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 
 	@Test
 	public void findAllEventTest_Ascending() {
 		pageEvent.getSort().ascending();
-		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Mockito.any(Integer.class), Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class))).thenReturn(eventList);
 
-		List<Event> events = eventService.findAll(1, 1, "test sort key", "ASC", 1L);
+		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 
