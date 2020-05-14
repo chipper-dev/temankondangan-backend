@@ -65,14 +65,13 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
-
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
+
 		List<EventFindAllListResponseWrapper> events = eventService.findAll(pageNumber, pageSize, sortBy, direction,
 				userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
 				request.getRequestURI()));
-
 	}
 
 	@ApiOperation(value = "Edit Event", response = ResponseEntity.class)
@@ -111,5 +110,17 @@ public class EventController extends CommonResource {
 		eventService.apply(userId, eventId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 
+	}
+
+	@ApiOperation(value = "User cancel to event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping(value = "/cancel")
+	public ResponseEntity<ResponseBody> cancelEvent(@RequestParam Long eventId, HttpServletRequest request) {
+		LOGGER.info("A user cancel to an event");
+		String token = getToken(request.getHeader("Authorization"));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		eventService.cancelEvent(userId, eventId);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
 }
