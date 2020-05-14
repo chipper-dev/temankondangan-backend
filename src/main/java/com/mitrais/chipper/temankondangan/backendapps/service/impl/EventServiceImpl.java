@@ -226,8 +226,11 @@ public class EventServiceImpl implements EventService {
 		if (user.getUserId().equals(event.getUser().getUserId())) {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
-		
-		
+
+		if (applicantRepository.existsByApplicantUserAndEvent(user, event)) {
+			throw new BadRequestException("Error: You have applied to this event");
+		}
+
 		Applicant applicant = new Applicant();
 		applicant.setApplicantUser(user);
 		applicant.setEvent(event);
