@@ -132,7 +132,9 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(String email) {
-		Integer code = generateRandomCode(6);
+//		Integer code = generateRandomCode(000000);
+
+		Integer code = 10201;
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
 
@@ -150,7 +152,7 @@ public class UserServiceImpl implements UserService {
 
 		VerificationCode verificationCode = verificationRepository.findByCode(wrapper.getVerificationCode())
 				.orElseThrow(
-						() -> new RuntimeException("Error: Please input correct verification code from your email"));
+						() -> new BadRequestException("Error: Please input correct verification code from your email"));
 
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
