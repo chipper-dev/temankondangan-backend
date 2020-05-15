@@ -176,8 +176,8 @@ public class EventServiceImpl implements EventService {
 					"Error: Users are not authorized to edit this event");
 		}
 
-		if (wrapper.getMaximumAge() > 40 || wrapper.getMinimumAge() < 18) {
-			throw new BadRequestException("Error: Age must be between 18 and 40!");
+		if (wrapper.getMinimumAge() < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
 		}
 
 		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
