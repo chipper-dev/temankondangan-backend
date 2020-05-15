@@ -70,9 +70,9 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
-		wrapper.setStartDateAndTime(
+		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
-		wrapper.setFinishDateAndTime(
+		wrapper.setFinishDateTime(
 				LocalDateTime.now().plusDays(4).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
@@ -163,14 +163,14 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowDateTimeParseException_WhenDateFormatIsNotValid() {
-		wrapper.setStartDateAndTime(
+		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(DateTimeParseException.class);
 	}
 
 	@Test
 	public void shouldThrowBadRequestException_WhenStartDateIsBeforeTodayPlus1() {
-		wrapper.setStartDateAndTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setStartDateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
 				.isInstanceOf(BadRequestException.class);
@@ -178,9 +178,9 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenStartDateIsMoreThanFinishDate() {
-		wrapper.setStartDateAndTime(
+		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
-		wrapper.setFinishDateAndTime(
+		wrapper.setFinishDateTime(
 				LocalDateTime.now().plusDays(3).minusHours(2).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
