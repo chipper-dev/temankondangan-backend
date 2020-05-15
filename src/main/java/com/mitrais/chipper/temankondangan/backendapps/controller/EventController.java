@@ -61,7 +61,7 @@ public class EventController extends CommonResource {
 	@GetMapping(value = "/find-all")
 	public ResponseEntity<ResponseBody> findAll(@RequestParam(defaultValue = "0") Integer pageNumber,
 			@RequestParam(defaultValue = "10") Integer pageSize,
-			@RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
