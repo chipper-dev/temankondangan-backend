@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 public class EventFindAllListResponseWrapper {
 	private Long eventId;
 	private String creatorFullName;
+	private String createdBy;
 	private String photoProfileUrl;
 	private String title;
 	private String city;

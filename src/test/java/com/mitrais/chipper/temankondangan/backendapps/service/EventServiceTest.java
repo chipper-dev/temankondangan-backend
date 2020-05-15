@@ -147,17 +147,10 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenAgeMoreThan40() {
-		wrapper.setMaximumAge(41);
-		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Age must be between 18 and 40!").isInstanceOf(BadRequestException.class);
-	}
-
-	@Test
 	public void shouldThrowBadRequestException_WhenAgeLessThan18() {
 		wrapper.setMinimumAge(17);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Age must be between 18 and 40!").isInstanceOf(BadRequestException.class);
+				.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
@@ -198,7 +191,8 @@ public class EventServiceTest {
 	// find all service
 	@Test
 	public void findAllEventTest_Descending() {
-		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class))).thenReturn(eventList);
+		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+				Mockito.any(LocalDateTime.class))).thenReturn(eventList);
 
 		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
@@ -207,41 +201,31 @@ public class EventServiceTest {
 	@Test
 	public void findAllEventTest_Ascending() {
 		pageEvent.getSort().ascending();
-		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),Mockito.any(LocalDateTime.class))).thenReturn(eventList);
+		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+				Mockito.any(LocalDateTime.class))).thenReturn(eventList);
 
 		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
 		assertEquals("title test", events.get(0).getTitle());
 	}
 
 	@Test
-	public void findEventDetailForCreatorTest(){
+	public void findEventDetailForCreatorTest() {
 		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
 
-		Profile profileCreator = Profile.builder()
-				.user(user)
-				.profileId(1L)
-				.fullName("john doe")
-				.build();
+		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
 
-		Profile profileApplicant = Profile.builder()
-				.profileId(2L)
-				.user(userApplicant)
-				.fullName("jane doe")
-				.build();
+		Profile profileApplicant = Profile.builder().profileId(2L).user(userApplicant).fullName("jane doe").build();
 
-		Applicant applicant = Applicant.builder()
-				.applicantUser(userApplicant)
-				.event(event)
-				.dataState(DataState.ACTIVE)
-				.status(ApplicantStatus.APPLIED)
-				.build();
+		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
+				.status(ApplicantStatus.APPLIED).build();
 
 		Mockito.when(eventRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
 		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Arrays.asList(applicant));
 
 		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
-		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId())).thenReturn(Optional.of(profileApplicant));
+		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
+				.thenReturn(Optional.of(profileApplicant));
 
 		EventDetailResponseWrapper actualResult = eventService.findEventDetail(1L, 1L);
 
