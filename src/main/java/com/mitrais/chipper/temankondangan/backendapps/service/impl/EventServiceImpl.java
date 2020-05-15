@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -129,9 +130,7 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		List<Event> events = eventRepository
-				.findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(
-						age, age, gender, LocalDateTime.now());
+		List<Event> events = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), sortBy, direction);
 
 		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
 		for (Event event : events) {
