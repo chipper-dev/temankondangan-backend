@@ -209,9 +209,17 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventDetailResponseWrapper findEventDetail(Long id, Long userId) {
+	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		String photoProfileUrl = "";
+		Long id;
+
+		// Custo exception as requested by Tester, when input param.
+		try {
+			  id = Long.parseLong(eventIdStr);
+		} catch (NumberFormatException ex) {
+			throw new BadRequestException("Error: Cannot use the text value as parameter, please use the number format value!");
+		}
 
 		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
 

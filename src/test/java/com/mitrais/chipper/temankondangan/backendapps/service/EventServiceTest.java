@@ -231,7 +231,7 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
 				.thenReturn(Optional.of(profileApplicant));
 
-		EventDetailResponseWrapper actualResult = eventService.findEventDetail(1L, 1L);
+		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
 
 		assertEquals("title test", actualResult.getTitle());
 		assertEquals("", actualResult.getPhotoProfileUrl());
