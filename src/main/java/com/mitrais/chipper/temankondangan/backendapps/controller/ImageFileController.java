@@ -22,10 +22,10 @@ public class ImageFileController extends CommonResource {
     @Autowired
     ImageFileService service;
 
-    @GetMapping("/download/{profileId}")
-    public ResponseEntity<Resource> downloadFile(HttpServletRequest request, @PathVariable String profileId) {
+    @GetMapping("/download/{fileName}")
+    public ResponseEntity<Resource> downloadFile(HttpServletRequest request, @PathVariable String fileName) {
         try {
-            Profile dbFile = service.getImage(profileId);
+            Profile dbFile = service.getImageByFilename(fileName);
 
             return ResponseEntity
                     .ok()
