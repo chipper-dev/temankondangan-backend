@@ -92,7 +92,7 @@ public class EventController extends CommonResource {
 	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
-	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId, HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> find(@RequestParam String eventId, HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 

@@ -19,7 +19,7 @@ public interface EventService {
 
 	void apply(Long userId, Long eventId);
 
-	EventDetailResponseWrapper findEventDetail(Long id, Long userId);
+	EventDetailResponseWrapper findEventDetail(String id, Long userId);
 
 	void cancelEvent(Long userId, Long eventId);
 }
