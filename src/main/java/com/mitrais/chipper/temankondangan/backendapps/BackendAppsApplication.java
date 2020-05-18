@@ -16,7 +16,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.common.AuditorAwareI
 @EnableAutoConfiguration
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")
 @EnableConfigurationProperties(AppProperties.class)
-@EnableSpringDataWebSupport
 public class BackendAppsApplication {
 
 	@Bean
