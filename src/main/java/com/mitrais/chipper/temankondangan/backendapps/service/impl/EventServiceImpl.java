@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,6 +35,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrap
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -110,17 +110,8 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<EventFindAllListResponseWrapper> findAll(Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Long userId) {
-		Pageable paging;
-
-		if (direction.equalsIgnoreCase("DESC")) {
-			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
-		} else if (direction.equalsIgnoreCase("ASC")) {
-			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
-		} else {
-			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
-		}
+	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
+			Long userId) {
 
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("Profile Not found"));
@@ -129,10 +120,21 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		List<Event> events = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now());
+		Pageable paging;
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+
+		} else {
+			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+		}
+
+		Page<Event> eventPages = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), paging);
 
 		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
-		for (Event event : events) {
+		eventPages.forEach(event -> {
 			User userCreator = event.getUser();
 			Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
 					.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
@@ -151,19 +153,10 @@ public class EventServiceImpl implements EventService {
 					.creatorGender(profileCreator.getGender()).companionGender(event.getCompanionGender()).build();
 
 			eventAllResponse.add(e);
-		}
+		});
 
-		int start = (int) paging.getOffset();
-		int end = (start + paging.getPageSize()) > eventAllResponse.size() ? eventAllResponse.size()
-				: (start + paging.getPageSize());
-		Page<EventFindAllListResponseWrapper> pagedResult = new PageImpl<EventFindAllListResponseWrapper>(
-				eventAllResponse.subList(start, end), paging, eventAllResponse.size());
-
-		if (pagedResult.hasContent()) {
-			return pagedResult.getContent();
-		} else {
-			return new ArrayList<>();
-		}
+		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
+				.actualSize(eventPages.getTotalElements()).contentList(eventAllResponse).build();
 	}
 
 	@Override
@@ -216,9 +209,17 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventDetailResponseWrapper findEventDetail(Long id, Long userId) {
+	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		String photoProfileUrl = "";
+		Long id;
+
+		// Custo exception as requested by Tester, when input param.
+		try {
+			  id = Long.parseLong(eventIdStr);
+		} catch (NumberFormatException ex) {
+			throw new BadRequestException("Error: Cannot use the text value as parameter, please use the number format value!");
+		}
 
 		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
 

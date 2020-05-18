@@ -1,7 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrap
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -70,10 +69,8 @@ public class EventController extends CommonResource {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		List<EventFindAllListResponseWrapper> events = eventService.findAll(pageNumber, pageSize, sortBy, direction,
-				userId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), getContentList(pageNumber, pageSize, events),
-				request.getRequestURI()));
+		EventFindAllResponseWrapper events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
 	@ApiOperation(value = "Edit Event", response = ResponseEntity.class)
@@ -92,7 +89,7 @@ public class EventController extends CommonResource {
 	@ApiOperation(value = "Find Event Detail", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
-	public ResponseEntity<ResponseBody> find(@RequestParam Long eventId, HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> find(@RequestParam String eventId, HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
