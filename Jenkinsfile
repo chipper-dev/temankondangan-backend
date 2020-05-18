@@ -16,16 +16,16 @@ node{
     }
     stage('Build Source Code') {
     withCredentials([
-        usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
-        string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
-        usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
+        usernamePassword(credentialsId: 'team6-dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+        string(credentialsId: 'team6-firebase-database', variable: 'firebaseDb'),
+        usernamePassword(credentialsId: 'team6-emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
         ]) {
-            sh "${mvnCMD} clean package -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json -Dspring.mail.username=$env.emailUser -Dspring.mail.password=$env.emailPassword"
+            sh "${mvnCMD} clean verify -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json -Dspring.mail.username=$env.emailUser -Dspring.mail.password=$env.emailPassword"
         }
     }
     stage('SonarQube analysis') {
-        withSonarQubeEnv('sonarqube') {
-            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.6.0.1398:sonar'
+        withSonarQubeEnv('team6-sonarqube') {
+            sh 'mvn org.sonarsource.scanner.maven:sonar-maven-plugin:3.7.0.1746:sonar'
         }
 
         sleep 10
@@ -40,18 +40,18 @@ node{
         app = docker.build(image)
     }
     stage('Push Image') {
-        withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+        withCredentials([usernamePassword(credentialsId: 'team6-dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
                   sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
                   sh "docker push $image"
         }
     }
     stage('Remove Existing Docker Image & Run Application') {
         withCredentials([
-            usernamePassword(credentialsId: 'dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
-            string(credentialsId: 'token-secret', variable: 'tokenSecret'),
-            string(credentialsId: 'firebase-database', variable: 'firebaseDb'),
-            usernamePassword(credentialsId: 'emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser'),
-            sshUserPrivateKey(credentialsId: 'chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
+            usernamePassword(credentialsId: 'team6-dbAuth', passwordVariable: 'dbAuthPassword', usernameVariable: 'dbAuthUser'),
+            string(credentialsId: 'team6-token-secret', variable: 'tokenSecret'),
+            string(credentialsId: 'team6-firebase-database', variable: 'firebaseDb'),
+            usernamePassword(credentialsId: 'team6-emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser'),
+            sshUserPrivateKey(credentialsId: 'team6-chippermitrais', keyFileVariable: 'sshkey', usernameVariable: 'sshuname')
             ]) {
                 remote.user = env.sshuname
                 remote.identityFile = env.sshkey
