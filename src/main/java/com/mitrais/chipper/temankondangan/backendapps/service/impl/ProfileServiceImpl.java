@@ -1,11 +1,9 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.google.firebase.auth.UserRecord;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
@@ -84,6 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
         byte[] image = null;
+        String fileName = "";
 
         String[] allowedFormatImage = {"jpeg", "png", "jpg"};
         List<String> allowedFormatImageList = Arrays.asList(allowedFormatImage);
@@ -91,6 +90,7 @@ public class ProfileServiceImpl implements ProfileService {
         // if null or if not select anything
         if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
             image = readBytesFromFile(DEFAULT_IMAGE);
+            fileName = DEFAULT_IMAGE.split("/")[1];
         } else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
             // throw error if image format is not allowed
             String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
@@ -99,12 +99,14 @@ public class ProfileServiceImpl implements ProfileService {
             }
             try {
                 image = wrapper.getImage().getBytes();
+                fileName = wrapper.getImage().getOriginalFilename().replaceAll("\\s+", "-");
             } catch (IOException e) {
                 throw new BadRequestException(e.getMessage());
             }
         }
 
         profile.setPhotoProfile(image);
+        profile.setPhotoProfileFilename(fileName);
         profile.setAboutMe(wrapper.getAboutMe());
         profile.setCity(wrapper.getCity());
         profile.setInterest(wrapper.getInterest());
@@ -152,7 +154,7 @@ public class ProfileServiceImpl implements ProfileService {
 
         if (profile.getPhotoProfile() != null) {
              photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-                    .path(String.valueOf(profile.getProfileId())).toUriString();
+                    .path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
         }
 
         boolean hasPassword = true;

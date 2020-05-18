@@ -142,7 +142,7 @@ public class EventServiceImpl implements EventService {
 
 			if (profileCreator.getPhotoProfile() != null) {
 				photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-						.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+						.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
 			}
 
 			EventFindAllListResponseWrapper e = EventFindAllListResponseWrapper.builder().eventId(event.getEventId())
@@ -243,7 +243,7 @@ public class EventServiceImpl implements EventService {
 
 		if (profileCreator.getPhotoProfile() != null) {
 			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+					.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
 		}
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
