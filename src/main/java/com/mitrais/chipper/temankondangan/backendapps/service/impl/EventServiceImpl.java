@@ -13,7 +13,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -36,6 +35,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrap
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -110,9 +110,9 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<EventFindAllListResponseWrapper> findAll(Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Long userId) {
-		
+	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
+			Long userId) {
+
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("Profile Not found"));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
@@ -132,7 +132,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		Page<Event> eventPages = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), paging);
-		
+
 		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
 		eventPages.forEach(event -> {
 			User userCreator = event.getUser();
@@ -154,19 +154,9 @@ public class EventServiceImpl implements EventService {
 
 			eventAllResponse.add(e);
 		});
-		
 
-		int start = (int) paging.getOffset();
-		int end = (start + paging.getPageSize()) > eventAllResponse.size() ? eventAllResponse.size()
-				: (start + paging.getPageSize());
-		Page<EventFindAllListResponseWrapper> pagedResult = new PageImpl<EventFindAllListResponseWrapper>(
-				eventAllResponse.subList(start, end), paging, eventAllResponse.size());
-
-		if (pagedResult.hasContent()) {
-			return pagedResult.getContent();
-		} else {
-			return new ArrayList<>();
-		}
+		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
+				.actualSize(eventPages.getTotalElements()).contentList(eventAllResponse).build();
 	}
 
 	@Override

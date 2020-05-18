@@ -25,6 +25,4 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	Page<Event> findAllByRelevantInfo(@Param("age") Integer age,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("now") LocalDateTime now,
 			Pageable paging);
-
-	Page<Event> findAllByMinimumAgeLessThanEqualAndMaximumAgeGreaterThanEqualAndCompanionGenderInAndStartDateTimeAfter(Integer minimumAge, Integer MaximumAge, Date StartDateTime)
 }

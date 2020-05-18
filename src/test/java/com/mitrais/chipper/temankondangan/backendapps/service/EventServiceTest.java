@@ -1,7 +1,9 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +23,7 @@ import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
@@ -32,7 +35,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -192,21 +195,21 @@ public class EventServiceTest {
 	@Test
 	public void findAllEventTest_Descending() {
 
-//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-//				Mockito.any(LocalDateTime.class))).thenReturn(eventList);
+		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
-		assertEquals("title test", events.get(0).getTitle());
+		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
+		assertEquals("title test", events.getContentList().get(0).getTitle());
 	}
 
 	@Test
 	public void findAllEventTest_Ascending() {
 		pageEvent.getSort().ascending();
-//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-//				Mockito.any(LocalDateTime.class))).thenReturn(eventList);
+		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
-		List<EventFindAllListResponseWrapper> events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
-		assertEquals("title test", events.get(0).getTitle());
+		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
+		assertEquals("title test", events.getContentList().get(0).getTitle());
 	}
 
 	@Test
