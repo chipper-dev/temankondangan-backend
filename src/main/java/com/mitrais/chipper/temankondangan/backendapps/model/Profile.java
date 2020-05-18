@@ -82,6 +82,9 @@ public class Profile extends Auditable<String> {
 	@ApiModelProperty(notes = "Profile photo profile data byte")
 	private byte[] photoProfile;
 
+	@ApiModelProperty(notes = "Profile photo filename")
+	private String photoProfileFilename;
+
 	@ApiModelProperty(notes = "Profile city")
 	private String city;
 
