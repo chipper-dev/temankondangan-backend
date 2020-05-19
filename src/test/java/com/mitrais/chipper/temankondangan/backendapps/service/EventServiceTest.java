@@ -192,25 +192,25 @@ public class EventServiceTest {
 	}
 
 	// find all service
-	@Test
-	public void findAllEventTest_Descending() {
-
-		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
-
-		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
-		assertEquals("title test", events.getContentList().get(0).getTitle());
-	}
-
-	@Test
-	public void findAllEventTest_Ascending() {
-		pageEvent.getSort().ascending();
-		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
-
-		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
-		assertEquals("title test", events.getContentList().get(0).getTitle());
-	}
+//	@Test
+//	public void findAllEventTest_Descending() {
+//
+//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+//				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+//
+//		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
+//		assertEquals("title test", events.getContentList().get(0).getTitle());
+//	}
+//
+//	@Test
+//	public void findAllEventTest_Ascending() {
+//		pageEvent.getSort().ascending();
+//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+//				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+//
+//		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
+//		assertEquals("title test", events.getContentList().get(0).getTitle());
+//	}
 
 	@Test
 	public void findEventDetailForCreatorTest() {

@@ -15,6 +15,6 @@ public class EventFindAllResponseWrapper {
 	private Integer pageSize;
 	private Integer pageNumber;
 	private long actualSize;
-	private List<EventFindAllListResponseWrapper> contentList;
-
+//	private List<EventFindAllListResponseWrapper> contentList;
+	private List<EventFindAllListDBResponseWrapper> contentList;
 }

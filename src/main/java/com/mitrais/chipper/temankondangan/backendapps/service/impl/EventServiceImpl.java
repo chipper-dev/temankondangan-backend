@@ -34,7 +34,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantRespon
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -131,32 +131,25 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
-		Page<Event> eventPages = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), paging);
-
-		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
-		eventPages.forEach(event -> {
-			User userCreator = event.getUser();
-			Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
-					.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
+				LocalDateTime.now(), paging);
+		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
+		eventWrapperPages.forEach(eventWrap -> {
 			String photoProfileUrl = "";
 
-			if (profileCreator.getPhotoProfile() != null) {
-				photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-						.path(String.valueOf(profileCreator.getProfileId())).toUriString();
-			}
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(eventWrap.getProfileId())).toUriString();
 
-			EventFindAllListResponseWrapper e = EventFindAllListResponseWrapper.builder().eventId(event.getEventId())
-					.creatorFullName(profileCreator.getFullName()).createdBy(event.getCreatedBy())
-					.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-					.startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
-					.minimumAge(event.getMinimumAge()).maximumAge(event.getMaximumAge())
-					.creatorGender(profileCreator.getGender()).companionGender(event.getCompanionGender()).build();
+			eventWrap.setPhotoProfileUrl(photoProfileUrl);
+			// make PhotoProfileUrlRaw so that it won't make the response dirty and too long
+//			eventWrap.setPhotoProfileUrlRaw(null);
 
-			eventAllResponse.add(e);
+			eventAllDBResponse.add(eventWrap);
 		});
 
 		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
-				.actualSize(eventPages.getTotalElements()).contentList(eventAllResponse).build();
+				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
+
 	}
 
 	@Override
