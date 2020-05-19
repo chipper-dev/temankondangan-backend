@@ -21,10 +21,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
+import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -37,6 +40,9 @@ public class ProfileServiceTest {
 
 	@Mock
 	ProfileRepository profileRepository;
+
+	@Mock
+	ImageFileService iamgeService;
 
 	@InjectMocks
 	ProfileServiceImpl profileService;
@@ -58,7 +64,11 @@ public class ProfileServiceTest {
 	public void createProfileSuccessfully() {
 		User user = User.builder().email("test@email.com").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
 
+		File file = new File(DEFAULT_IMAGE);
+		byte[] bytesArray = new byte[(int) file.length()];
+
 		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
+		Mockito.when(iamgeService.readBytesFromFile(Mockito.anyString())).thenReturn(bytesArray);
 
 		createProfileWrapper = CreateProfileWrapper.builder()
 				.dob("01-01-2000")
