@@ -23,6 +23,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -162,4 +163,24 @@ public class ProfileServiceImpl implements ProfileService {
 				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).email(profile.getUser().getEmail())
 				.hasPassword(hasPassword).build();
 	}
+
+	@Override
+	public ProfileCreatorResponseWrapper findProfileCreator(Long userId) {
+		String photoProfileUrl = "";
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
+
+		Period period = Period.between(profile.getDob(), LocalDate.now());
+		String age = String.valueOf(period.getYears());
+
+		if (profile.getPhotoProfile() != null) {
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
+		}
+
+		return ProfileCreatorResponseWrapper.builder().fullName(profile.getFullName()).age(age)
+				.gender(profile.getGender()).aboutMe(profile.getAboutMe()).interest(profile.getInterest())
+				.photoProfileUrl(photoProfileUrl).build();
+	}
+
 }

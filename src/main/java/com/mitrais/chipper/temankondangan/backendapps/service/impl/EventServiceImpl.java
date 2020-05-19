@@ -141,9 +141,6 @@ public class EventServiceImpl implements EventService {
 					.path(String.valueOf(eventWrap.getProfileId())).toUriString();
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl);
-			// make PhotoProfileUrlRaw so that it won't make the response dirty and too long
-//			eventWrap.setPhotoProfileUrlRaw(null);
-
 			eventAllDBResponse.add(eventWrap);
 		});
 
@@ -202,9 +199,18 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventDetailResponseWrapper findEventDetail(Long id, Long userId) {
+	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		String photoProfileUrl = "";
+		Long id;
+
+		// Custo exception as requested by Tester, when input param.
+		try {
+			id = Long.parseLong(eventIdStr);
+		} catch (NumberFormatException ex) {
+			throw new BadRequestException(
+					"Error: Cannot use the text value as parameter, please use the number format value!");
+		}
 
 		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
 
@@ -228,7 +234,7 @@ public class EventServiceImpl implements EventService {
 
 		if (profileCreator.getPhotoProfile() != null) {
 			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+					.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
 		}
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
