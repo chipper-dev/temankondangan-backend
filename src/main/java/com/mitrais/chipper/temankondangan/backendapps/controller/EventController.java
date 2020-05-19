@@ -52,7 +52,7 @@ public class EventController extends CommonResource {
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		Event result = eventService.create(userId, wrapper);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, request.getRequestURI()));
 
 	}
 
