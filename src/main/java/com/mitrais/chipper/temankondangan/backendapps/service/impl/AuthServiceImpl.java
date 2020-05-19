@@ -104,6 +104,7 @@ public class AuthServiceImpl implements AuthService {
 		user = userRepository.save(user);
 
 		byte[] image = readBytesFromFile(DEFAULT_IMAGE);
+		String fileName = DEFAULT_IMAGE.split("/")[1];
 
 		Profile profile = new Profile();
 		profile.setUser(user);
@@ -111,6 +112,7 @@ public class AuthServiceImpl implements AuthService {
 		profile.setDob(dob);
 		profile.setGender(register.getGender());
 		profile.setPhotoProfile(image);
+		profile.setPhotoProfileFilename(fileName);
 		profile.setDataState(DataState.ACTIVE);
 		profileRepository.save(profile);
 

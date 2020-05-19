@@ -65,6 +65,7 @@ public class ProfileServiceImpl implements ProfileService {
 		}
 
 		byte[] image = readBytesFromFile(DEFAULT_IMAGE);
+		String fileName = DEFAULT_IMAGE.split("/")[1];
 
 		Profile profile = profileRepository.findByUserId(user.getUserId()).orElse(new Profile());
 		profile.setUser(user);
@@ -72,6 +73,7 @@ public class ProfileServiceImpl implements ProfileService {
 		profile.setDob(dob);
 		profile.setGender(wrapper.getGender());
 		profile.setPhotoProfile(image);
+		profile.setPhotoProfileFilename(fileName);
 		profile.setDataState(DataState.ACTIVE);
 		return profileRepository.save(profile);
 	}
@@ -82,6 +84,7 @@ public class ProfileServiceImpl implements ProfileService {
 				.orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
 		byte[] image = null;
+		String fileName = "";
 
 		String[] allowedFormatImage = { "jpeg", "png", "jpg" };
 		List<String> allowedFormatImageList = Arrays.asList(allowedFormatImage);
@@ -89,6 +92,7 @@ public class ProfileServiceImpl implements ProfileService {
 		// if null or if not select anything
 		if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
 			image = readBytesFromFile(DEFAULT_IMAGE);
+			fileName = DEFAULT_IMAGE.split("/")[1];
 		} else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
 			// throw error if image format is not allowed
 			String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
@@ -97,12 +101,14 @@ public class ProfileServiceImpl implements ProfileService {
 			}
 			try {
 				image = wrapper.getImage().getBytes();
+				fileName = wrapper.getImage().getOriginalFilename().replaceAll("\\s+", "-");
 			} catch (IOException e) {
 				throw new BadRequestException(e.getMessage());
 			}
 		}
 
 		profile.setPhotoProfile(image);
+		profile.setPhotoProfileFilename(fileName);
 		profile.setAboutMe(wrapper.getAboutMe());
 		profile.setCity(wrapper.getCity());
 		profile.setInterest(wrapper.getInterest());
