@@ -35,8 +35,8 @@ spring:
 app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
-    tokenExpirationMsec: 864000000 #10 days
-#    tokenExpirationMsec: 300000 #5 mins
+#    tokenExpirationMsec: 864000000 #10 days
+    tokenExpirationMsec: 300000 #5 mins
   firebase:
     databaseUrl: ${FIREBASE_DATABASE}
     googleCredentials: ${GOOGLE_APPLICATION_CREDENTIALS}
