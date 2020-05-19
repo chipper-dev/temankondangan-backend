@@ -91,6 +91,15 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
+			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
+				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			}
+
+		}
+
+		int maxAge = wrapper.getMaximumAge();
+		if (maxAge >= 40) {
+			maxAge = 150;
 		}
 
 		Event event = new Event();
@@ -183,6 +192,15 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
+			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
+				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			}
+
+		}
+
+		int maxAge = wrapper.getMaximumAge();
+		if (maxAge >= 40) {
+			maxAge = 150;
 		}
 
 		event.setTitle(wrapper.getTitle());
