@@ -129,6 +129,9 @@ public class ProfileServiceImpl implements ProfileService {
 
 			// read file into bytes[]
 			fileInputStream = new FileInputStream(file);
+			if (!(fileInputStream.read(bytesArray) > 0)) {
+				throw new BadRequestException("Error image file!");
+			}
 			fileInputStream.read(bytesArray);
 
 		} catch (IOException e) {
