@@ -18,10 +18,15 @@ public class ImageFileServiceImpl implements ImageFileService {
 		this.profileRepository = profileRepository;
 	}
 
-	public Profile getImage(String profileIdStr) throws FileNotFoundException {
+	public Profile getImageById(String profileIdStr) throws FileNotFoundException {
 		Long profileId = Long.parseLong(profileIdStr);
 
 		return profileRepository.findById(profileId)
 				.orElseThrow(() -> new FileNotFoundException("File not found with id " + profileId));
+	}
+
+	public Profile getImageByFilename(String fileName) throws FileNotFoundException {
+		return profileRepository.findByPhotoProfileFilename(fileName)
+				.orElseThrow(() -> new FileNotFoundException("File not found with filename: " + fileName));
 	}
 }

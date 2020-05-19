@@ -34,7 +34,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantRespon
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -131,32 +131,22 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
 		}
 
-		Page<Event> eventPages = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), paging);
-
-		List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
-		eventPages.forEach(event -> {
-			User userCreator = event.getUser();
-			Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
-					.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
+				LocalDateTime.now(), paging);
+		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
+		eventWrapperPages.forEach(eventWrap -> {
 			String photoProfileUrl = "";
 
-			if (profileCreator.getPhotoProfile() != null) {
-				photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-						.path(String.valueOf(profileCreator.getProfileId())).toUriString();
-			}
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(eventWrap.getProfileId())).toUriString();
 
-			EventFindAllListResponseWrapper e = EventFindAllListResponseWrapper.builder().eventId(event.getEventId())
-					.creatorFullName(profileCreator.getFullName()).createdBy(event.getCreatedBy())
-					.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-					.startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
-					.minimumAge(event.getMinimumAge()).maximumAge(event.getMaximumAge())
-					.creatorGender(profileCreator.getGender()).companionGender(event.getCompanionGender()).build();
-
-			eventAllResponse.add(e);
+			eventWrap.setPhotoProfileUrl(photoProfileUrl);
+			eventAllDBResponse.add(eventWrap);
 		});
 
 		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
-				.actualSize(eventPages.getTotalElements()).contentList(eventAllResponse).build();
+				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
+
 	}
 
 	@Override
@@ -212,13 +202,15 @@ public class EventServiceImpl implements EventService {
 	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		String photoProfileUrl = "";
+		boolean isApplied = false;
 		Long id;
 
-		// Custo exception as requested by Tester, when input param.
+		// Custom exception as requested by Tester, when input param.
 		try {
-			  id = Long.parseLong(eventIdStr);
+			id = Long.parseLong(eventIdStr);
 		} catch (NumberFormatException ex) {
-			throw new BadRequestException("Error: Cannot use the text value as parameter, please use the number format value!");
+			throw new BadRequestException(
+					"Error: Cannot use the text value as parameter, please use the number format value!");
 		}
 
 		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
@@ -239,11 +231,15 @@ public class EventServiceImpl implements EventService {
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
 						.status(applicant.getStatus()).build());
 			});
+		} else {
+			User userApplicant = userRepository.findById(userId)
+					.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
 		}
 
 		if (profileCreator.getPhotoProfile() != null) {
 			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profileCreator.getProfileId())).toUriString();
+					.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
 		}
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
@@ -251,7 +247,7 @@ public class EventServiceImpl implements EventService {
 				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
 				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList)
-				.isCreator(userId.equals(userCreator.getUserId())).build();
+				.isCreator(userId.equals(userCreator.getUserId())).isApplied(isApplied).build();
 	}
 
 	@Override
@@ -299,4 +295,5 @@ public class EventServiceImpl implements EventService {
 
 		return duration.getSeconds() * 1000 > cancelationMax;
 	}
+
 }
