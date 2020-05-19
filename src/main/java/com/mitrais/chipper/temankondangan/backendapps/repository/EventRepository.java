@@ -27,10 +27,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "e.title, e.city , e.startDateTime, e.finishDateTime,"
 			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender) from Event e "
 			+ "JOIN User u ON e.user.userId = u.userId " + "JOIN Profile p ON u.userId = p.user.userId "
-			+ "WHERE e.minimumAge <= :age AND e.maximumAge >= :age "
-			+ "AND e.companionGender in :companionGender AND e.startDateTime > :now")
+			+ "WHERE ((e.minimumAge <= :age AND e.maximumAge >= :age "
+			+ "AND e.companionGender in :companionGender) "
+			+ "OR (u.userId = :userId)) "
+			+ "AND e.startDateTime > :now")
 	Page<EventFindAllListDBResponseWrapper> findAllByRelevantInfo(@Param("age") Integer age,
-			@Param("companionGender") Collection<Gender> companionGender, @Param("now") LocalDateTime now,
+			@Param("companionGender") Collection<Gender> companionGender,@Param("userId") Long userId, @Param("now") LocalDateTime now,
 			Pageable paging);
 
 }
