@@ -5,6 +5,7 @@ import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -58,6 +59,14 @@ public class ProfileController extends CommonResource {
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "Get Profile Creator", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping("/find-creator/{userId}")
+	public ResponseEntity<ResponseBody> findProfileCreator(HttpServletRequest request, @PathVariable Long userId) {
+    	ProfileCreatorResponseWrapper responseWrapper = profileService.findProfileCreator(userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 	}
 
