@@ -34,7 +34,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantRespon
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -45,271 +45,255 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 @Service
 public class EventServiceImpl implements EventService {
 
-    private EventRepository eventRepository;
-    private UserRepository userRepository;
-    private ProfileRepository profileRepository;
-    private ApplicantRepository applicantRepository;
+	private EventRepository eventRepository;
+	private UserRepository userRepository;
+	private ProfileRepository profileRepository;
+	private ApplicantRepository applicantRepository;
 
-    @Value("${app.eventCancelationValidMaxMsec}")
-    Long cancelationMax;
+	@Value("${app.eventCancelationValidMaxMsec}")
+	Long cancelationMax;
 
-    @Autowired
-    public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-                            ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
-        this.eventRepository = eventRepository;
-        this.userRepository = userRepository;
-        this.applicantRepository = applicantRepository;
-        this.profileRepository = profileRepository;
-    }
+	@Autowired
+	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
+			ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
+		this.eventRepository = eventRepository;
+		this.userRepository = userRepository;
+		this.applicantRepository = applicantRepository;
+		this.profileRepository = profileRepository;
+	}
 
-    @Override
-    public Event create(Long userId, CreateEventWrapper wrapper) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+	@Override
+	public Event create(Long userId, CreateEventWrapper wrapper) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        if (wrapper.getMinimumAge() < 18) {
-            throw new BadRequestException("Error: Minimum age must be 18!");
-        }
+		if (wrapper.getMinimumAge() < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
 
-        if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-            throw new BadRequestException("Error: Inputted age is not valid!");
-        }
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
 
-        // check dateAndTime valid
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-        LocalDateTime startDateTime;
-        LocalDateTime finishDateTime = null;
-        startDateTime = LocalDateTime.parse(wrapper.getStartDateTime(), df);
+		// check dateAndTime valid
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime startDateTime;
+		LocalDateTime finishDateTime = null;
+		startDateTime = LocalDateTime.parse(wrapper.getStartDateTime(), df);
 
-        if (startDateTime.isBefore(LocalDateTime.now().plusDays(1))) {
-            throw new BadRequestException("Error: Date inputted have to be after today!");
-        }
+		if (startDateTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new BadRequestException("Error: Date inputted have to be after today!");
+		}
 
-        if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
+		if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
 
-            finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
-            if (startDateTime.isAfter(finishDateTime)) {
-                throw new BadRequestException("Error: Start time must be earlier than finish time!");
-            }
-        }
+			finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
+			if (startDateTime.isAfter(finishDateTime)) {
+				throw new BadRequestException("Error: Start time must be earlier than finish time!");
+			}
+		}
 
-        Event event = new Event();
-        event.setUser(user);
-        event.setTitle(wrapper.getTitle());
-        event.setCity(wrapper.getCity());
-        event.setStartDateTime(startDateTime);
-        event.setFinishDateTime(finishDateTime);
-        event.setCompanionGender(wrapper.getCompanionGender());
-        event.setMinimumAge(wrapper.getMinimumAge());
-        event.setMaximumAge(wrapper.getMaximumAge());
-        event.setAdditionalInfo(wrapper.getAdditionalInfo());
-        event.setDataState(DataState.ACTIVE);
+		Event event = new Event();
+		event.setUser(user);
+		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
+		event.setStartDateTime(startDateTime);
+		event.setFinishDateTime(finishDateTime);
+		event.setCompanionGender(wrapper.getCompanionGender());
+		event.setMinimumAge(wrapper.getMinimumAge());
+		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+		event.setDataState(DataState.ACTIVE);
 
-        return eventRepository.save(event);
+		return eventRepository.save(event);
 
-    }
+	}
 
-    @Override
-    public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
-                                               Long userId) {
+	@Override
+	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
+			Long userId) {
 
-        Profile profile = profileRepository.findByUserId(userId)
-                .orElseThrow(() -> new BadRequestException("Profile Not found"));
-        Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
-        ArrayList<Gender> gender = new ArrayList<>();
-        gender.add(Gender.B);
-        gender.add(profile.getGender());
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new BadRequestException("Profile Not found"));
+		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
+		ArrayList<Gender> gender = new ArrayList<>();
+		gender.add(Gender.B);
+		gender.add(profile.getGender());
 
-        Pageable paging;
-        if (direction.equalsIgnoreCase("DESC")) {
-            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+		Pageable paging;
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
 
-        } else if (direction.equalsIgnoreCase("ASC")) {
-            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
 
-        } else {
-            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
-        }
+		} else {
+			throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+		}
 
-        Page<Event> eventPages = eventRepository.findAllByRelevantInfo(age, gender, LocalDateTime.now(), paging);
+		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
+				LocalDateTime.now(), paging);
+		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
+		eventWrapperPages.forEach(eventWrap -> {
+			String photoProfileUrl = "";
 
-        List<EventFindAllListResponseWrapper> eventAllResponse = new ArrayList<EventFindAllListResponseWrapper>();
-        eventPages.forEach(event -> {
-            User userCreator = event.getUser();
-            Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
-            String photoProfileUrl = "";
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(eventWrap.getProfileId())).toUriString();
 
-            if (profileCreator.getPhotoProfile() != null) {
-                photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-                        .path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
-            }
+			eventWrap.setPhotoProfileUrl(photoProfileUrl);
+			eventAllDBResponse.add(eventWrap);
+		});
 
-            EventFindAllListResponseWrapper e = EventFindAllListResponseWrapper.builder().eventId(event.getEventId())
-                    .creatorFullName(profileCreator.getFullName()).createdBy(event.getCreatedBy())
-                    .photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-                    .startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
-                    .minimumAge(event.getMinimumAge()).maximumAge(event.getMaximumAge())
-                    .creatorGender(profileCreator.getGender()).companionGender(event.getCompanionGender()).build();
+		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
+				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 
-            eventAllResponse.add(e);
-        });
+	}
 
-        return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
-                .actualSize(eventPages.getTotalElements()).contentList(eventAllResponse).build();
-    }
+	@Override
+	public Event edit(Long userId, EditEventWrapper wrapper) {
+		Event event = eventRepository.findById(wrapper.getEventId())
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
 
-    @Override
-    public Event edit(Long userId, EditEventWrapper wrapper) {
-        Event event = eventRepository.findById(wrapper.getEventId())
-                .orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
+		if (!event.getUser().getUserId().equals(userId)) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+					"Error: Users are not authorized to edit this event");
+		}
 
-        if (!event.getUser().getUserId().equals(userId)) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                    "Error: Users are not authorized to edit this event");
-        }
+		if (wrapper.getMinimumAge() < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
 
-        if (wrapper.getMinimumAge() < 18) {
-            throw new BadRequestException("Error: Minimum age must be 18!");
-        }
+		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
 
-        if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-            throw new BadRequestException("Error: Inputted age is not valid!");
-        }
+		// check dateAndTime valid
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime startDateTime;
+		LocalDateTime finishDateTime = null;
+		startDateTime = LocalDateTime.parse(wrapper.getStartDateTime(), df);
 
-        // check dateAndTime valid
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-        LocalDateTime startDateTime;
-        LocalDateTime finishDateTime = null;
-        startDateTime = LocalDateTime.parse(wrapper.getStartDateTime(), df);
+		if (startDateTime.isBefore(LocalDateTime.now().plusDays(1))) {
+			throw new BadRequestException("Error: Date inputted have to be after today!");
+		}
 
-        if (startDateTime.isBefore(LocalDateTime.now().plusDays(1))) {
-            throw new BadRequestException("Error: Date inputted have to be after today!");
-        }
+		if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
 
-        if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
+			finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
+			if (startDateTime.isAfter(finishDateTime)) {
+				throw new BadRequestException("Error: Start time must be earlier than finish time!");
+			}
+		}
 
-            finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
-            if (startDateTime.isAfter(finishDateTime)) {
-                throw new BadRequestException("Error: Start time must be earlier than finish time!");
-            }
-        }
+		event.setTitle(wrapper.getTitle());
+		event.setCity(wrapper.getCity());
+		event.setStartDateTime(startDateTime);
+		event.setFinishDateTime(finishDateTime);
+		event.setCompanionGender(wrapper.getCompanionGender());
+		event.setMinimumAge(wrapper.getMinimumAge());
+		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 
-        event.setTitle(wrapper.getTitle());
-        event.setCity(wrapper.getCity());
-        event.setStartDateTime(startDateTime);
-        event.setFinishDateTime(finishDateTime);
-        event.setCompanionGender(wrapper.getCompanionGender());
-        event.setMinimumAge(wrapper.getMinimumAge());
-        event.setMaximumAge(wrapper.getMaximumAge());
-        event.setAdditionalInfo(wrapper.getAdditionalInfo());
+		return eventRepository.save(event);
 
-        return eventRepository.save(event);
+	}
 
-    }
+	@Override
+	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
+		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
+		String photoProfileUrl = "";
+		boolean isApplied = false;
+		Long id;
 
-    @Override
-    public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
-        List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
-        String photoProfileUrl = "";
-        boolean isApplied = false;
-        Long id;
+		// Custom exception as requested by Tester, when input param.
+		try {
+			id = Long.parseLong(eventIdStr);
+		} catch (NumberFormatException ex) {
+			throw new BadRequestException(
+					"Error: Cannot use the text value as parameter, please use the number format value!");
+		}
 
-        // Custom exception as requested by Tester, when input param.
-        try {
-            id = Long.parseLong(eventIdStr);
-        } catch (NumberFormatException ex) {
-            throw new BadRequestException("Error: Cannot use the text value as parameter, please use the number format value!");
-        }
+		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
 
-        Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
+		User userCreator = userRepository.findById(event.getUser().getUserId())
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
 
-        User userCreator = userRepository.findById(event.getUser().getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+		Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
+				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
 
-        Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+		if (userId.equals(userCreator.getUserId())) {
+			applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
+				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
+						.orElseThrow(() -> new ResourceNotFoundException("Profile", "id",
+								applicant.getApplicantUser().getUserId()));
 
-        if (userId.equals(userCreator.getUserId())) {
-            applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
-                Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
-                        .orElseThrow(() -> new ResourceNotFoundException("Profile", "id",
-                                applicant.getApplicantUser().getUserId()));
+				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
+						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
+						.status(applicant.getStatus()).build());
+			});
+		} else {
+			User userApplicant = userRepository.findById(userId)
+					.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
+		}
 
-                applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
-                        .fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
-                        .status(applicant.getStatus()).build());
-            });
-        } else {
-            User userApplicant = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
-            isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
-        }
+		if (profileCreator.getPhotoProfile() != null) {
+			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+					.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
+		}
 
-        if (profileCreator.getPhotoProfile() != null) {
-            photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-                    .path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
-        }
+		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
+				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
+				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
+				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
+				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList)
+				.isCreator(userId.equals(userCreator.getUserId())).isApplied(isApplied).build();
+	}
 
-        return EventDetailResponseWrapper.builder()
-				.eventId(event.getEventId())
-				.creatorUserId(userCreator.getUserId())
-                .photoProfileUrl(photoProfileUrl)
-				.title(event.getTitle())
-				.city(event.getCity())
-                .dateAndTime(event.getStartDateTime())
-				.minimumAge(event.getMinimumAge())
-                .maximumAge(event.getMaximumAge())
-				.companionGender(event.getCompanionGender())
-                .additionalInfo(event.getAdditionalInfo())
-				.applicantList(applicantResponseWrapperList)
-                .isCreator(userId.equals(userCreator.getUserId()))
-                .isApplied(isApplied)
-                .build();
-    }
+	@Override
+	public void apply(Long userId, Long eventId) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-    @Override
-    public void apply(Long userId, Long eventId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
 
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
+		if (user.getUserId().equals(event.getUser().getUserId())) {
+			throw new BadRequestException("Error: You cannot apply to your own event!");
+		}
 
-        if (user.getUserId().equals(event.getUser().getUserId())) {
-            throw new BadRequestException("Error: You cannot apply to your own event!");
-        }
+		if (applicantRepository.existsByApplicantUserAndEvent(user, event)) {
+			throw new BadRequestException("Error: You have applied to this event");
+		}
 
-        if (applicantRepository.existsByApplicantUserAndEvent(user, event)) {
-            throw new BadRequestException("Error: You have applied to this event");
-        }
+		Applicant applicant = new Applicant();
+		applicant.setApplicantUser(user);
+		applicant.setEvent(event);
+		applicant.setDataState(DataState.ACTIVE);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicantRepository.save(applicant);
+	}
 
-        Applicant applicant = new Applicant();
-        applicant.setApplicantUser(user);
-        applicant.setEvent(event);
-        applicant.setDataState(DataState.ACTIVE);
-        applicant.setStatus(ApplicantStatus.APPLIED);
-        applicantRepository.save(applicant);
-    }
+	@Override
+	public void cancelEvent(Long userApplicantId, Long eventId) {
+		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId)
+				.orElseThrow(() -> new ResourceNotFoundException("Applicant", "eventId", eventId));
+		Event event = eventRepository.findById(applicant.getEvent().getEventId())
+				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", applicant.getEvent().getEventId()));
 
-    @Override
-    public void cancelEvent(Long userApplicantId, Long eventId) {
-        Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId)
-                .orElseThrow(() -> new ResourceNotFoundException("Applicant", "eventId", eventId));
-        Event event = eventRepository.findById(applicant.getEvent().getEventId())
-                .orElseThrow(() -> new ResourceNotFoundException("Event", "id", applicant.getEvent().getEventId()));
+		if (isCancelationValid(event.getStartDateTime())) {
+			applicantRepository.delete(applicant);
+		} else {
+			throw new BadRequestException("Error: The event will be started less than 48 hours");
+		}
 
-        if (isCancelationValid(event.getStartDateTime())) {
-            applicantRepository.delete(applicant);
-        } else {
-            throw new BadRequestException("Error: The event will be started less than 48 hours");
-        }
+	}
 
-    }
+	private boolean isCancelationValid(LocalDateTime eventDate) {
+		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+		System.out.println(duration.getSeconds() * 1000);
 
-    private boolean isCancelationValid(LocalDateTime eventDate) {
-        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
-        System.out.println(duration.getSeconds() * 1000);
+		return duration.getSeconds() * 1000 > cancelationMax;
+	}
 
-        return duration.getSeconds() * 1000 > cancelationMax;
-    }
 }
