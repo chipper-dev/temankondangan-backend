@@ -163,6 +163,10 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(wrapper.getEventId())
 				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
 
+		if (!isCancelationValid(event.getStartDateTime())) {
+			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+		}
+
 		if (!event.getUser().getUserId().equals(userId)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
 					"Error: Users are not authorized to edit this event");
@@ -302,7 +306,7 @@ public class EventServiceImpl implements EventService {
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
-			throw new BadRequestException("Error: The event will be started less than 48 hours");
+			throw new BadRequestException("Error: The event will be started in less than 24 hours");
 		}
 
 	}
