@@ -1,22 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.time.LocalDate;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.util.Arrays;
-import java.util.List;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
-
+import com.mitrais.chipper.temankondangan.backendapps.common.Constants;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -28,21 +12,40 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponse
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
+import java.util.Arrays;
+import java.util.List;
+
+import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
-	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
+
 
 	private final ProfileRepository profileRepository;
 	private final UserRepository userRepository;
+	ImageFileService imageService;
 
 	@Autowired
-	public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository) {
+	public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository, ImageFileService imageService) {
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;
+		this.imageService = imageService;
 	}
 
 	@Override
@@ -64,7 +67,7 @@ public class ProfileServiceImpl implements ProfileService {
 			throw new BadRequestException("Error: Age should not under 18!");
 		}
 
-		byte[] image = readBytesFromFile(DEFAULT_IMAGE);
+		byte[] image = imageService.readBytesFromFile(DEFAULT_IMAGE);
 		String fileName = DEFAULT_IMAGE.split("/")[1];
 
 		Profile profile = profileRepository.findByUserId(user.getUserId()).orElse(new Profile());
@@ -91,7 +94,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 		// if null or if not select anything
 		if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
-			image = readBytesFromFile(DEFAULT_IMAGE);
+			image = imageService.readBytesFromFile(DEFAULT_IMAGE);
 			fileName = DEFAULT_IMAGE.split("/")[1];
 		} else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
 			// throw error if image format is not allowed
@@ -114,37 +117,6 @@ public class ProfileServiceImpl implements ProfileService {
 		profile.setInterest(wrapper.getInterest());
 
 		return profileRepository.save(profile);
-
-	}
-
-	private static byte[] readBytesFromFile(String filePath) {
-
-		FileInputStream fileInputStream = null;
-		byte[] bytesArray = null;
-
-		try {
-
-			File file = new File(filePath);
-			bytesArray = new byte[(int) file.length()];
-
-			// read file into bytes[]
-			fileInputStream = new FileInputStream(file);
-			fileInputStream.read(bytesArray);
-
-		} catch (IOException e) {
-			throw new BadRequestException("Error image file!");
-		} finally {
-			if (fileInputStream != null) {
-				try {
-					fileInputStream.close();
-				} catch (IOException e) {
-					LOGGER.error("readBytesFromFile", e);
-				}
-			}
-
-		}
-
-		return bytesArray;
 
 	}
 

@@ -13,6 +13,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCod
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,24 +31,27 @@ import java.time.format.ResolverStyle;
 import java.util.Date;
 import java.util.regex.Pattern;
 
+import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
-	private static final String DEFAULT_IMAGE = "image/defaultprofile.jpg";
 
 	PasswordEncoder passwordEncoder;
 	UserRepository userRepository;
 	ProfileRepository profileRepository;
 	SimpleMailMessage template;
+	ImageFileService imageService;
 
 	@Autowired
 	public AuthServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
 			ProfileRepository profileRepository, EmailService emailService, SimpleMailMessage template,
-			VerificationCodeRepository verificationCodeRepository) {
+			VerificationCodeRepository verificationCodeRepository, ImageFileService imageService) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;
+		this.imageService = imageService;
 	}
 
 	@Override
@@ -103,7 +107,7 @@ public class AuthServiceImpl implements AuthService {
 		user.setDataState(DataState.ACTIVE);
 		user = userRepository.save(user);
 
-		byte[] image = readBytesFromFile(DEFAULT_IMAGE);
+		byte[] image = imageService.readBytesFromFile(DEFAULT_IMAGE);
 		String fileName = DEFAULT_IMAGE.split("/")[1];
 
 		Profile profile = new Profile();
@@ -145,36 +149,5 @@ public class AuthServiceImpl implements AuthService {
 		userRepository.save(data);
 
 		return true;
-	}
-
-	private static byte[] readBytesFromFile(String filePath) {
-
-		FileInputStream fileInputStream = null;
-		byte[] bytesArray = null;
-
-		try {
-
-			File file = new File(filePath);
-			bytesArray = new byte[(int) file.length()];
-
-			// read file into bytes[]
-			fileInputStream = new FileInputStream(file);
-			fileInputStream.read(bytesArray);
-
-		} catch (IOException e) {
-			throw new BadRequestException("Error image file!");
-		} finally {
-			if (fileInputStream != null) {
-				try {
-					fileInputStream.close();
-				} catch (IOException e) {
-					LOGGER.error("readBytesFromFile", e);
-				}
-			}
-
-		}
-
-		return bytesArray;
-
 	}
 }
