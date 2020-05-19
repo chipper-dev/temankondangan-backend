@@ -186,7 +186,7 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+				Mockito.any(Long.class), Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
 
 		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test 2", events.getContentList().get(0).getTitle());

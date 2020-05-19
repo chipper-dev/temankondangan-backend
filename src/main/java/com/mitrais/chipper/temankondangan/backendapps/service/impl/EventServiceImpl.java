@@ -141,7 +141,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
-				LocalDateTime.now(), paging);
+				userId, LocalDateTime.now(), paging);
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
 		eventWrapperPages.forEach(eventWrap -> {
 			String photoProfileUrl = "";
