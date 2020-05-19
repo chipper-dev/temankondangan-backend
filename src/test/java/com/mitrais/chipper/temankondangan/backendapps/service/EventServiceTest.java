@@ -35,6 +35,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
@@ -64,8 +65,8 @@ public class EventServiceTest {
 	private static CreateEventWrapper wrapper;
 	private static Event event;
 	private static User user;
-	private static Page<Event> pageEvent;
-	private static List<Event> eventList;
+	private static Page<EventFindAllListDBResponseWrapper> pageEvent;
+	private static List<EventFindAllListDBResponseWrapper> eventList;
 
 	@BeforeEach
 	public void init() {
@@ -86,6 +87,11 @@ public class EventServiceTest {
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 
+	}
+
+	// create event service
+	@Test
+	public void createEventTest() {
 		event = new Event();
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
@@ -99,52 +105,6 @@ public class EventServiceTest {
 		event.setDataState(DataState.ACTIVE);
 
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
-
-		Event event2 = new Event();
-		event2 = new Event();
-		event2.setUser(user);
-		event2.setAdditionalInfo("info test 2");
-		event2.setCompanionGender(Gender.P);
-		event2.setStartDateTime(LocalDateTime.now());
-		event2.setFinishDateTime(LocalDateTime.now().plusHours(4));
-		event2.setMaximumAge(25);
-		event2.setMinimumAge(18);
-		event2.setTitle("title test 2");
-		event2.setCity("Test City");
-		event2.setDataState(DataState.ACTIVE);
-
-		Event event3 = new Event();
-		event3 = new Event();
-		event3.setUser(user);
-		event3.setAdditionalInfo("info test 3");
-		event3.setCompanionGender(Gender.P);
-		event3.setStartDateTime(LocalDateTime.now());
-		event3.setFinishDateTime(LocalDateTime.now().plusHours(4));
-		event3.setMaximumAge(25);
-		event3.setMinimumAge(18);
-		event3.setTitle("title test 3");
-		event3.setCity("Test City");
-		event3.setDataState(DataState.ACTIVE);
-
-		eventList = new ArrayList<>();
-		eventList.add(event);
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<Event>(eventList);
-		pageEvent.getSort();
-
-		Profile profile1 = new Profile();
-		profile1.setGender(Gender.P);
-		profile1.setDob(LocalDate.now().minusYears(19));
-
-		Optional<Profile> profileOptional = Optional.of(profile1);
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
-	}
-
-	// create event service
-	@Test
-	public void createEventTest() {
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(event.getTitle(), result.getTitle());
 	}
@@ -192,25 +152,45 @@ public class EventServiceTest {
 	}
 
 	// find all service
-//	@Test
-//	public void findAllEventTest_Descending() {
-//
-//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-//				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
-//
-//		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
-//		assertEquals("title test", events.getContentList().get(0).getTitle());
-//	}
-//
-//	@Test
-//	public void findAllEventTest_Ascending() {
-//		pageEvent.getSort().ascending();
-//		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-//				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
-//
-//		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "ASC", 1L);
-//		assertEquals("title test", events.getContentList().get(0).getTitle());
-//	}
+	@Test
+	public void findAllEventTest() {
+
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
+		event2.setCompanionGender(Gender.P);
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now().plusHours(4));
+		event2.setMaximumAge(25);
+		event2.setMinimumAge(18);
+		event2.setTitle("title test 2");
+		event2.setCity("Test City");
+		
+		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
+		event3.setCompanionGender(Gender.P);
+		event3.setStartDateTime(LocalDateTime.now());
+		event3.setFinishDateTime(LocalDateTime.now().plusHours(4));
+		event3.setMaximumAge(25);
+		event3.setMinimumAge(18);
+		event3.setTitle("title test 3");
+		event3.setCity("Test City");
+		
+		eventList = new ArrayList<>();
+		eventList.add(event2);
+		eventList.add(event3);
+
+		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
+		
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
+		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
+				Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+
+		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
+		assertEquals("title test 2", events.getContentList().get(0).getTitle());
+	}
 
 	@Test
 	public void findEventDetailForCreatorTest() {

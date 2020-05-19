@@ -28,12 +28,11 @@ public class EventFindAllListDBResponseWrapper {
 	private Integer maximumAge;
 	private Gender creatorGender;
 	private Gender companionGender;
-	private byte[] photoProfileByte;
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String photoProfileUrl, String title, String city, LocalDateTime startDateTime,
 			LocalDateTime finishDateTime, Integer minimumAge, Integer maximumAge, Gender creatorGender,
-			Gender companionGender, byte[] photoProfileByte) {
+			Gender companionGender) {
 		super();
 		this.eventId = eventId;
 		this.profileId = profileId;
@@ -48,12 +47,11 @@ public class EventFindAllListDBResponseWrapper {
 		this.maximumAge = maximumAge;
 		this.creatorGender = creatorGender;
 		this.companionGender = companionGender;
-		this.photoProfileByte = photoProfileByte;
 	}
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String title, String city, LocalDateTime startDateTime, LocalDateTime finishDateTime, Integer minimumAge,
-			Integer maximumAge, Gender creatorGender, Gender companionGender, byte[] photoProfileByte) {
+			Integer maximumAge, Gender creatorGender, Gender companionGender) {
 		super();
 		this.eventId = eventId;
 		this.profileId = profileId;
@@ -68,6 +66,5 @@ public class EventFindAllListDBResponseWrapper {
 		this.maximumAge = maximumAge;
 		this.creatorGender = creatorGender;
 		this.companionGender = companionGender;
-		this.photoProfileByte = photoProfileByte;
 	}
 }

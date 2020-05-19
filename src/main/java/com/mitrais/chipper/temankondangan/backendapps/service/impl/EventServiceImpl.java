@@ -202,9 +202,10 @@ public class EventServiceImpl implements EventService {
 	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		String photoProfileUrl = "";
+		boolean isApplied = false;
 		Long id;
 
-		// Custo exception as requested by Tester, when input param.
+		// Custom exception as requested by Tester, when input param.
 		try {
 			id = Long.parseLong(eventIdStr);
 		} catch (NumberFormatException ex) {
@@ -230,6 +231,10 @@ public class EventServiceImpl implements EventService {
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
 						.status(applicant.getStatus()).build());
 			});
+		} else {
+			User userApplicant = userRepository.findById(userId)
+					.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
 		}
 
 		if (profileCreator.getPhotoProfile() != null) {
@@ -242,7 +247,7 @@ public class EventServiceImpl implements EventService {
 				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
 				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList)
-				.isCreator(userId.equals(userCreator.getUserId())).build();
+				.isCreator(userId.equals(userCreator.getUserId())).isApplied(isApplied).build();
 	}
 
 	@Override
@@ -290,4 +295,5 @@ public class EventServiceImpl implements EventService {
 
 		return duration.getSeconds() * 1000 > cancelationMax;
 	}
+
 }

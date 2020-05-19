@@ -39,4 +39,6 @@ public class EventDetailResponseWrapper {
     private List<ApplicantResponseWrapper> applicantList;
 
     private Boolean isCreator;
+
+    private Boolean isApplied;
 }
