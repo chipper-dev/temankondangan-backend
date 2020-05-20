@@ -110,7 +110,7 @@ public class EventServiceImpl implements EventService {
 		event.setFinishDateTime(finishDateTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
-		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setMaximumAge(maxAge);
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		event.setDataState(DataState.ACTIVE);
 
@@ -217,7 +217,7 @@ public class EventServiceImpl implements EventService {
 		event.setFinishDateTime(finishDateTime);
 		event.setCompanionGender(wrapper.getCompanionGender());
 		event.setMinimumAge(wrapper.getMinimumAge());
-		event.setMaximumAge(wrapper.getMaximumAge());
+		event.setMaximumAge(maxAge);
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 
 		return eventRepository.save(event);
