@@ -58,7 +58,7 @@ public class ImageFileServiceImpl implements ImageFileService {
     @Override
     public String getImageUrl(Profile profile) {
         String photoProfileUrl = "";
-        if (profile.getPhotoProfile() != null && profile.getPhotoProfileFilename().isEmpty()) {
+        if (profile.getPhotoProfile() != null && !profile.getPhotoProfileFilename().isEmpty()) {
             photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
                     .path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
         }
