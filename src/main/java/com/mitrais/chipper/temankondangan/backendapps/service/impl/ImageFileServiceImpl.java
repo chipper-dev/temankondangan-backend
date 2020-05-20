@@ -4,6 +4,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class ImageFileServiceImpl implements ImageFileService {
     @Override
     public String getImageUrl(Profile profile) {
         String photoProfileUrl = "";
-        if (profile.getPhotoProfile() != null && !profile.getPhotoProfileFilename().isEmpty()) {
+        if (profile.getPhotoProfile() != null && StringUtils.isNotEmpty(profile.getPhotoProfileFilename())) {
             photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
                     .path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
         }
