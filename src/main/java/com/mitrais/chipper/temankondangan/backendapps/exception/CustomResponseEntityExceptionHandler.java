@@ -134,7 +134,8 @@ public class CustomResponseEntityExceptionHandler {
 			HttpServletRequest request) {
 		CommonResource resource = new CommonResource();
 		return new ResponseEntity<>(resource.getResponseBody(HttpStatus.BAD_REQUEST, ex.getMessage(),
-				"Error: Cannot process number format!", request.getRequestURI()), HttpStatus.BAD_REQUEST);
+				"Error: Cannot use the text value as parameter, please use the number format value!",
+				request.getRequestURI()), HttpStatus.BAD_REQUEST);
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)

@@ -129,6 +129,10 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
 			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());

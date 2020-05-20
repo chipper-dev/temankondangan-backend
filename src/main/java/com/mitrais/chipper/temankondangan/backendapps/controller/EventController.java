@@ -43,12 +43,14 @@ public class EventController extends CommonResource {
 	@Autowired
 	private TokenProvider tokenProvider;
 
+	private static final String AUTH_STRING = "Authorization";
+
 	@ApiOperation(value = "Create Event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PostMapping("/create")
 	public ResponseEntity<ResponseBody> create(@RequestBody CreateEventWrapper wrapper, HttpServletRequest request) {
 		LOGGER.info("Create an event");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		Event result = eventService.create(userId, wrapper);
@@ -66,7 +68,7 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventFindAllResponseWrapper events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
@@ -78,7 +80,7 @@ public class EventController extends CommonResource {
 	@PostMapping("/edit")
 	public ResponseEntity<ResponseBody> edit(@RequestBody EditEventWrapper wrapper, HttpServletRequest request) {
 		LOGGER.info("Edit an event");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		Event result = eventService.edit(userId, wrapper);
@@ -90,7 +92,7 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
 	public ResponseEntity<ResponseBody> find(@RequestParam String eventId, HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventDetailResponseWrapper responseWrapper = eventService.findEventDetail(eventId, userId);
@@ -103,7 +105,7 @@ public class EventController extends CommonResource {
 	@PostMapping(value = "/apply")
 	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
 		LOGGER.info("A user apply to an event");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		eventService.apply(userId, eventId);
@@ -117,7 +119,7 @@ public class EventController extends CommonResource {
 	@PostMapping(value = "/cancel")
 	public ResponseEntity<ResponseBody> cancelEvent(@RequestParam Long eventId, HttpServletRequest request) {
 		LOGGER.info("A user cancel to an event");
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		eventService.cancelEvent(userId, eventId);
 		return ResponseEntity.ok(
