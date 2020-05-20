@@ -266,7 +266,8 @@ public class EventServiceImpl implements EventService {
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
+				.startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
+				.minimumAge(event.getMinimumAge())
 				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList)
 				.isCreator(userId.equals(userCreator.getUserId())).isApplied(isApplied).build();
