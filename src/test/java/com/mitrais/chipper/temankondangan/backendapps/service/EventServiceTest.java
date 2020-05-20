@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -62,6 +63,9 @@ public class EventServiceTest {
 
 	@Mock
 	ApplicantRepository applicantRepository;
+
+	@Mock
+	ImageFileServiceImpl imageFileService;
 
 	@InjectMocks
 	EventServiceImpl eventService;
@@ -208,11 +212,12 @@ public class EventServiceTest {
 
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
+		Mockito.when(imageFileService.getImageUrl(profile1)).thenReturn("");
 		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
 				Mockito.any(Long.class), Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
 				.thenReturn(pageEvent);
 
-		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
+		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "createdDate", "DESC", 1L);
 		assertEquals("title test 2", events.getContentList().get(0).getTitle());
 	}
 
@@ -243,6 +248,8 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
 		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
 				.thenReturn(Optional.of(profileApplicant));
+
+		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn(Mockito.anyString());
 
 		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
 
