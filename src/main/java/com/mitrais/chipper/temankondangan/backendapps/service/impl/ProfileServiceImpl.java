@@ -127,7 +127,7 @@ public class ProfileServiceImpl implements ProfileService {
 
 		if (profile.getPhotoProfile() != null) {
 			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profile.getProfileId())).toUriString();
+					.path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
 		}
 
 		boolean hasPassword = true;
