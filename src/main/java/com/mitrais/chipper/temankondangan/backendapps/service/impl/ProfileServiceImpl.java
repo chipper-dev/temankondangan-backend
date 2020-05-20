@@ -121,14 +121,10 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	public ProfileResponseWrapper findByUserId(Long userId) {
-		String photoProfileUrl = "";
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
-		if (profile.getPhotoProfile() != null) {
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
-		}
+		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		boolean hasPassword = true;
 		if (StringUtils.isEmpty(profile.getUser().getPasswordHashed())) {
@@ -143,17 +139,13 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	public ProfileCreatorResponseWrapper findProfileCreator(Long userId) {
-		String photoProfileUrl = "";
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
 		Period period = Period.between(profile.getDob(), LocalDate.now());
 		String age = String.valueOf(period.getYears());
 
-		if (profile.getPhotoProfile() != null) {
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
-		}
+		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		return ProfileCreatorResponseWrapper.builder().fullName(profile.getFullName()).age(age)
 				.gender(profile.getGender()).aboutMe(profile.getAboutMe()).interest(profile.getInterest())

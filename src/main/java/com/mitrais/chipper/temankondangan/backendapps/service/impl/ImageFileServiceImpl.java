@@ -4,11 +4,11 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
-import lombok.extern.java.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,7 +16,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 @Service
-@Log
 public class ImageFileServiceImpl implements ImageFileService {
     public static final Logger LOGGER = LoggerFactory.getLogger(ImageFileServiceImpl.class);
 
@@ -54,5 +53,15 @@ public class ImageFileServiceImpl implements ImageFileService {
         }
 
         return bytesArray;
+    }
+
+    @Override
+    public String getImageUrl(Profile profile) {
+        String photoProfileUrl = "";
+        if (profile.getPhotoProfile() != null && profile.getPhotoProfileFilename().isEmpty()) {
+            photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
+                    .path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
+        }
+        return photoProfileUrl;
     }
 }

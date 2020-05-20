@@ -8,4 +8,5 @@ public interface ImageFileService {
     Profile getImageById(String profileId) throws FileNotFoundException;
     Profile getImageByFilename(String fileName) throws FileNotFoundException;
     byte[] readBytesFromFile(String defaultImage);
+    String getImageUrl(Profile profile);
 }
