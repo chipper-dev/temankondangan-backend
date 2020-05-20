@@ -43,7 +43,7 @@ public class ImageFileServiceImpl implements ImageFileService {
         File file = new File(filePath);
         byte[] bytesArray = new byte[(int) file.length()];
 
-        try (FileInputStream fileInputStream = new FileInputStream(file);) {
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
             if (fileInputStream.read(bytesArray) < 0) {
 				throw new BadRequestException("Error image file!");
             }
