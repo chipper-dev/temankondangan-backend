@@ -8,6 +8,6 @@ import springfox.documentation.annotations.ApiIgnore;
 @Controller
 public class HomeController {
     @GetMapping("/")
-    String index() { return "redirect:/swagger-ui.html"; }
+    public String index() { return "redirect:/swagger-ui.html"; }
 
 }

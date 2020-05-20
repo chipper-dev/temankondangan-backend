@@ -25,8 +25,6 @@ import java.time.format.ResolverStyle;
 import java.util.Date;
 import java.util.regex.Pattern;
 
-import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
-
 @Service
 public class AuthServiceImpl implements AuthService {
 
@@ -100,16 +98,11 @@ public class AuthServiceImpl implements AuthService {
 		user.setDataState(DataState.ACTIVE);
 		user = userRepository.save(user);
 
-		byte[] image = imageService.readBytesFromFile(DEFAULT_IMAGE);
-		String fileName = DEFAULT_IMAGE.split("/")[1];
-
 		Profile profile = new Profile();
 		profile.setUser(user);
 		profile.setFullName(register.getFullname());
 		profile.setDob(dob);
 		profile.setGender(register.getGender());
-		profile.setPhotoProfile(image);
-		profile.setPhotoProfileFilename(fileName);
 		profile.setDataState(DataState.ACTIVE);
 		profileRepository.save(profile);
 

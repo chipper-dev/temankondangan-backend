@@ -7,12 +7,12 @@ public class ContentList {
     private int pageSize;
     private int pageNumber;
     private int actualSize;
-    private List contents;
+    private List<?> contents;
     
     public ContentList() {
     }
     
-    public ContentList(int pageSize, int pageNumber, int actualSize, List list) {
+    public ContentList(int pageSize, int pageNumber, int actualSize, List<?> list) {
 	this.pageSize = pageSize;
 	this.pageNumber = pageNumber;
 	this.actualSize = actualSize;
@@ -43,11 +43,11 @@ public class ContentList {
 	this.actualSize = actualSize;
     }
     
-    public List getContentList() {
+    public List<?> getContentList() {
 	return contents;
     }
     
-    public void setContentList(List list) {
+    public void setContentList(List<?> list) {
 	this.contents = list;
     }
     

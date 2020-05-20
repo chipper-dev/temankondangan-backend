@@ -21,6 +21,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFound
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
@@ -70,7 +71,7 @@ public class UserServiceImpl implements UserService {
 	public boolean changePassword(Long userId, UserChangePasswordWrapper wrapper) {
 
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		// check if old password field empty
 		if (StringUtils.isEmpty(wrapper.getOldPassword())) {
@@ -122,7 +123,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void remove(Long userId) {
-		User user = userRepository.findById(userId).orElseThrow(() -> new BadRequestException(ERROR_USER_NOT_FOUND));
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		eventRepository.findByUserId(userId).ifPresent(e -> eventRepository.deleteAll(e));
 		profileRepository.findByUserId(userId).ifPresent(p -> profileRepository.delete(p));
@@ -160,7 +162,7 @@ public class UserServiceImpl implements UserService {
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
 			User user = userRepository.findByEmail(verificationCode.getEmail())
-					.orElseThrow(() -> new ResourceNotFoundException("User", "email", verificationCode.getEmail()));
+					.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "email", verificationCode.getEmail()));
 
 			// check the new password can't be same with old password
 			if (passwordEncoder.matches(wrapper.getNewPassword(), user.getPasswordHashed()))

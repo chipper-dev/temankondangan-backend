@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -66,16 +65,11 @@ public class ProfileServiceImpl implements ProfileService {
 			throw new BadRequestException("Error: Age should not under 18!");
 		}
 
-		byte[] image = imageService.readBytesFromFile(DEFAULT_IMAGE);
-		String fileName = DEFAULT_IMAGE.split("/")[1];
-
 		Profile profile = profileRepository.findByUserId(user.getUserId()).orElse(new Profile());
 		profile.setUser(user);
 		profile.setFullName(wrapper.getFullname());
 		profile.setDob(dob);
 		profile.setGender(wrapper.getGender());
-		profile.setPhotoProfile(image);
-		profile.setPhotoProfileFilename(fileName);
 		profile.setDataState(DataState.ACTIVE);
 		return profileRepository.save(profile);
 	}
@@ -121,14 +115,10 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	public ProfileResponseWrapper findByUserId(Long userId) {
-		String photoProfileUrl = "";
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
-		if (profile.getPhotoProfile() != null) {
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profile.getProfileId())).toUriString();
-		}
+		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		boolean hasPassword = true;
 		if (StringUtils.isEmpty(profile.getUser().getPasswordHashed())) {
@@ -143,17 +133,13 @@ public class ProfileServiceImpl implements ProfileService {
 
 	@Override
 	public ProfileCreatorResponseWrapper findProfileCreator(Long userId) {
-		String photoProfileUrl = "";
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
 		Period period = Period.between(profile.getDob(), LocalDate.now());
 		String age = String.valueOf(period.getYears());
 
-		if (profile.getPhotoProfile() != null) {
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profile.getPhotoProfileFilename())).toUriString();
-		}
+		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		return ProfileCreatorResponseWrapper.builder().fullName(profile.getFullName()).age(age)
 				.gender(profile.getGender()).aboutMe(profile.getAboutMe()).interest(profile.getInterest())
