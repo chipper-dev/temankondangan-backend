@@ -9,10 +9,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RegisterUserWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.AuthService;
-import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
-
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +18,6 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -46,8 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
 	@Autowired
 	public AuthServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-			ProfileRepository profileRepository, EmailService emailService, SimpleMailMessage template,
-			VerificationCodeRepository verificationCodeRepository, ImageFileService imageService) {
+			ProfileRepository profileRepository, ImageFileService imageService) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;

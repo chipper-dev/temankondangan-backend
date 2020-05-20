@@ -91,6 +91,15 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
+			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
+				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			}
+
+		}
+
+		int maxAge = wrapper.getMaximumAge();
+		if (maxAge >= 40) {
+			maxAge = 150;
 		}
 
 		Event event = new Event();
@@ -114,7 +123,7 @@ public class EventServiceImpl implements EventService {
 			Long userId) {
 
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new BadRequestException("Profile Not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
 		gender.add(Gender.B);
@@ -132,7 +141,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
-				LocalDateTime.now(), paging);
+				userId, LocalDateTime.now(), paging);
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
 		eventWrapperPages.forEach(eventWrap -> {
 			String photoProfileUrl = "";
@@ -153,6 +162,10 @@ public class EventServiceImpl implements EventService {
 	public Event edit(Long userId, EditEventWrapper wrapper) {
 		Event event = eventRepository.findById(wrapper.getEventId())
 				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
+
+		if (!isCancelationValid(event.getStartDateTime())) {
+			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+		}
 
 		if (!event.getUser().getUserId().equals(userId)) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,
@@ -183,6 +196,15 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
+			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
+				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			}
+
+		}
+
+		int maxAge = wrapper.getMaximumAge();
+		if (maxAge >= 40) {
+			maxAge = 150;
 		}
 
 		event.setTitle(wrapper.getTitle());
@@ -244,7 +266,8 @@ public class EventServiceImpl implements EventService {
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
-				.dateAndTime(event.getStartDateTime()).minimumAge(event.getMinimumAge())
+				.startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
+				.minimumAge(event.getMinimumAge())
 				.maximumAge(event.getMaximumAge()).companionGender(event.getCompanionGender())
 				.additionalInfo(event.getAdditionalInfo()).applicantList(applicantResponseWrapperList)
 				.isCreator(userId.equals(userCreator.getUserId())).isApplied(isApplied).build();
@@ -284,7 +307,7 @@ public class EventServiceImpl implements EventService {
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
-			throw new BadRequestException("Error: The event will be started less than 48 hours");
+			throw new BadRequestException("Error: The event will be started in less than 24 hours");
 		}
 
 	}

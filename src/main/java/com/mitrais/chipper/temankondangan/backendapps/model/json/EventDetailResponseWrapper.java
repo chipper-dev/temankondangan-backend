@@ -26,7 +26,9 @@ public class EventDetailResponseWrapper {
     private String city;
 
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
-    private LocalDateTime dateAndTime;
+    private LocalDateTime startDateTime;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
+    private LocalDateTime finishDateTime;
 
     private Integer minimumAge;
 
