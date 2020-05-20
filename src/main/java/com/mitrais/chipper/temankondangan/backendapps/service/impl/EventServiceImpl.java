@@ -9,6 +9,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,17 +51,19 @@ public class EventServiceImpl implements EventService {
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
+	private ImageFileService imageFileService;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-			ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
+			ApplicantRepository applicantRepository, ProfileRepository profileRepository, ImageFileService imageFileService) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
+		this.imageFileService = imageFileService;
 	}
 
 	@Override
@@ -149,10 +152,7 @@ public class EventServiceImpl implements EventService {
 				userId, LocalDateTime.now(), paging);
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
-			String photoProfileUrl = "";
-
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(eventWrap.getProfileId())).toUriString();
+			String photoProfileUrl = imageFileService.getImageUrl(profile);
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl);
 			eventAllDBResponse.add(eventWrap);
@@ -228,7 +228,6 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
-		String photoProfileUrl = "";
 		boolean isApplied = false;
 		Long id;
 
@@ -264,10 +263,7 @@ public class EventServiceImpl implements EventService {
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
 		}
 
-		if (profileCreator.getPhotoProfile() != null) {
-			photoProfileUrl = ServletUriComponentsBuilder.fromCurrentContextPath().path("/imagefile/download/")
-					.path(String.valueOf(profileCreator.getPhotoProfileFilename())).toUriString();
-		}
+		String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
 
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
