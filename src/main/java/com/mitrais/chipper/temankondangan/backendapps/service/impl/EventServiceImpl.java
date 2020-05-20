@@ -123,7 +123,7 @@ public class EventServiceImpl implements EventService {
 			Long userId) {
 
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new BadRequestException("Profile Not found"));
+				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
 		gender.add(Gender.B);

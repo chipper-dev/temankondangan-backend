@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.doAnswer;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -20,12 +21,15 @@ import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -77,7 +81,7 @@ public class EventServiceTest {
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setFinishDateTime(
-				LocalDateTime.now().plusDays(4).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -97,8 +101,8 @@ public class EventServiceTest {
 		event.setAdditionalInfo("info test");
 		event.setCompanionGender(Gender.P);
 		event.setStartDateTime(LocalDateTime.now());
-		event.setFinishDateTime(LocalDateTime.now().plusHours(4));
-		event.setMaximumAge(25);
+		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
 		event.setMinimumAge(18);
 		event.setTitle("title test");
 		event.setCity("Test City");
@@ -107,6 +111,13 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(event.getTitle(), result.getTitle());
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreateEvent() {
+
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
 	@Test
@@ -144,10 +155,22 @@ public class EventServiceTest {
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setFinishDateTime(
-				LocalDateTime.now().plusDays(3).minusHours(2).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+				LocalDateTime.now().plusDays(3).minusHours(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Start time must be earlier than finish time!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateIsNotTheSameWithFinishDate() {
+		wrapper.setStartDateTime(
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setFinishDateTime(
+				LocalDateTime.now().plusDays(4).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+
+		assertThatThrownBy(() -> eventService.create(1L, wrapper))
+				.hasMessageContaining("Error: Start date and finish date must be the same day!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
@@ -158,27 +181,27 @@ public class EventServiceTest {
 		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
 		event2.setCompanionGender(Gender.P);
 		event2.setStartDateTime(LocalDateTime.now());
-		event2.setFinishDateTime(LocalDateTime.now().plusHours(4));
+		event2.setFinishDateTime(LocalDateTime.now().plusHours(1));
 		event2.setMaximumAge(25);
 		event2.setMinimumAge(18);
 		event2.setTitle("title test 2");
 		event2.setCity("Test City");
-		
+
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setCompanionGender(Gender.P);
 		event3.setStartDateTime(LocalDateTime.now());
-		event3.setFinishDateTime(LocalDateTime.now().plusHours(4));
+		event3.setFinishDateTime(LocalDateTime.now().plusHours(1));
 		event3.setMaximumAge(25);
 		event3.setMinimumAge(18);
 		event3.setTitle("title test 3");
 		event3.setCity("Test City");
-		
+
 		eventList = new ArrayList<>();
 		eventList.add(event2);
 		eventList.add(event3);
 
 		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		
+
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
 		profile1.setDob(LocalDate.now().minusYears(19));
@@ -186,12 +209,22 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
 		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-				Mockito.any(Long.class), Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class))).thenReturn(pageEvent);
+				Mockito.any(Long.class), Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+				.thenReturn(pageEvent);
 
 		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "test sort key", "DESC", 1L);
 		assertEquals("title test 2", events.getContentList().get(0).getTitle());
 	}
 
+	@Test
+	public void shouldThrowBadRequestException_WhenProfileNotFoundInFindAllEvent() {
+
+		Mockito.when(profileRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.findAll(0, 1, "test sort key", "DESC", 1L))
+				.isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	// find Event Detail
 	@Test
 	public void findEventDetailForCreatorTest() {
 		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
@@ -218,5 +251,70 @@ public class EventServiceTest {
 		assertFalse(actualResult.getApplicantList().isEmpty());
 		assertTrue(actualResult.getIsCreator());
 		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
+	}
+
+	// apply service
+	@Test
+	public void applyEventTest() {
+		User user2 = new User();
+		user2.setUserId(2L);
+		event.setUser(user2);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(
+				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				.thenReturn(false);
+
+		Answer<Applicant> answer = new Answer<Applicant>() {
+	        public Applicant answer(InvocationOnMock invocation) throws Throwable {
+	        	user2.setUserId(3L);
+	            Applicant applicant = invocation.getArgument(0, Applicant.class);
+				applicant.setId(1L);
+				applicant.setApplicantUser(user2);
+				applicant.setEvent(event);
+
+				return applicant;
+	        }
+	    };
+	    
+		doAnswer(answer).when(applicantRepository).save(Mockito.any(Applicant.class));
+		eventService.apply(1L, 1L);
+		assertEquals(3L, user2.getUserId());
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCreatorUserIdEqualToApplicantUserId() {
+		event = new Event();
+		event.setUser(user);
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: You cannot apply to your own event!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenApplicantHasAppliedToEvent() {
+		User user2 = new User();
+		user2.setUserId(2L);
+		event.setUser(user2);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(
+				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				.thenReturn(true);
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: You have applied to this event").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInApplyEvent() {
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInApplyEvent() {
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
 }
