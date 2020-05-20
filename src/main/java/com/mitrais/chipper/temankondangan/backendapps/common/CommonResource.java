@@ -69,7 +69,7 @@ public class CommonResource {
 	 * @param contents   {@link List} contents
 	 * @return {@link ContentList}
 	 */
-	protected ContentList getContentList(Integer pageNumber, Integer pageSize, List contents) {
+	protected ContentList getContentList(Integer pageNumber, Integer pageSize, List<?> contents) {
 		ContentList contentList = new ContentList();
 		contentList.setPageNumber(pageNumber);
 		contentList.setPageSize(pageSize);

@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -66,16 +65,11 @@ public class ProfileServiceImpl implements ProfileService {
 			throw new BadRequestException("Error: Age should not under 18!");
 		}
 
-		byte[] image = imageService.readBytesFromFile(DEFAULT_IMAGE);
-		String fileName = DEFAULT_IMAGE.split("/")[1];
-
 		Profile profile = profileRepository.findByUserId(user.getUserId()).orElse(new Profile());
 		profile.setUser(user);
 		profile.setFullName(wrapper.getFullname());
 		profile.setDob(dob);
 		profile.setGender(wrapper.getGender());
-		profile.setPhotoProfile(image);
-		profile.setPhotoProfileFilename(fileName);
 		profile.setDataState(DataState.ACTIVE);
 		return profileRepository.save(profile);
 	}

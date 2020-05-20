@@ -20,7 +20,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
@@ -30,6 +29,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
@@ -68,7 +68,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		if (wrapper.getMinimumAge() < 18) {
 			throw new BadRequestException("Error: Minimum age must be 18!");
@@ -126,7 +126,7 @@ public class EventServiceImpl implements EventService {
 			Long userId) {
 
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
 		gender.add(Gender.B);
@@ -149,7 +149,7 @@ public class EventServiceImpl implements EventService {
 
 		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllByRelevantInfo(age, gender,
 				userId, LocalDateTime.now(), paging);
-		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<EventFindAllListDBResponseWrapper>();
+		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
 			String photoProfileUrl = imageFileService.getImageUrl(profile);
 
@@ -165,7 +165,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public Event edit(Long userId, EditEventWrapper wrapper) {
 		Event event = eventRepository.findById(wrapper.getEventId())
-				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", wrapper.getEventId()));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", wrapper.getEventId()));
 
 		if (!isCancelationValid(event.getStartDateTime())) {
 			throw new BadRequestException("Error: The event will be started in less than 24 hours");
@@ -238,18 +238,18 @@ public class EventServiceImpl implements EventService {
 					"Error: Cannot use the text value as parameter, please use the number format value!");
 		}
 
-		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Event", "id", id));
+		Event event = eventRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", id));
 
 		User userCreator = userRepository.findById(event.getUser().getUserId())
-				.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 
 		Profile profileCreator = profileRepository.findByUserId(userCreator.getUserId())
-				.orElseThrow(() -> new ResourceNotFoundException("Profile", "id", userCreator.getUserId()));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId()));
 
 		if (userId.equals(userCreator.getUserId())) {
 			applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
-						.orElseThrow(() -> new ResourceNotFoundException("Profile", "id",
+						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
 
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
@@ -258,7 +258,7 @@ public class EventServiceImpl implements EventService {
 			});
 		} else {
 			User userApplicant = userRepository.findById(userId)
-					.orElseThrow(() -> new ResourceNotFoundException("User", "id", event.getUser().getUserId()));
+					.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
 		}
 
@@ -276,16 +276,16 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public void apply(Long userId, Long eventId) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		Event event = eventRepository.findById(eventId)
-				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", eventId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
 		if (user.getUserId().equals(event.getUser().getUserId())) {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
 
-		if (applicantRepository.existsByApplicantUserAndEvent(user, event)) {
+		if (Boolean.TRUE.equals(applicantRepository.existsByApplicantUserAndEvent(user, event))) {
 			throw new BadRequestException("Error: You have applied to this event");
 		}
 
@@ -300,9 +300,9 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
 		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId)
-				.orElseThrow(() -> new ResourceNotFoundException("Applicant", "eventId", eventId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "eventId", eventId));
 		Event event = eventRepository.findById(applicant.getEvent().getEventId())
-				.orElseThrow(() -> new ResourceNotFoundException("Event", "id", applicant.getEvent().getEventId()));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
