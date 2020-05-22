@@ -19,6 +19,8 @@ public class EventDetailResponseWrapper {
 
     private Long creatorUserId;
 
+    private String fullName;
+
     private String photoProfileUrl;
 
     private String title;
