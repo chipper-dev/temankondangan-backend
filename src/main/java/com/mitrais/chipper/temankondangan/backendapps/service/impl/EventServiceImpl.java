@@ -270,6 +270,7 @@ public class EventServiceImpl implements EventService {
         String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
 
         return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
+                .fullName(profileCreator.getFullName())
                 .photoProfileUrl(photoProfileUrl).title(event.getTitle()).city(event.getCity())
                 .startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
                 .minimumAge(event.getMinimumAge())
