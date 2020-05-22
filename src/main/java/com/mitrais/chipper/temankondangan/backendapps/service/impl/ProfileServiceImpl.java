@@ -27,20 +27,18 @@ import java.time.format.ResolverStyle;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
-
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(ProfileServiceImpl.class);
-
 
 	private final ProfileRepository profileRepository;
 	private final UserRepository userRepository;
 	ImageFileService imageService;
 
 	@Autowired
-	public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository, ImageFileService imageService) {
+	public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository,
+			ImageFileService imageService) {
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;
 		this.imageService = imageService;
@@ -79,17 +77,12 @@ public class ProfileServiceImpl implements ProfileService {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("Error: User not found!"));
 
-		byte[] image = null;
-		String fileName = "";
-
 		String[] allowedFormatImage = { "jpeg", "png", "jpg" };
 		List<String> allowedFormatImageList = Arrays.asList(allowedFormatImage);
 
-		// if null or if not select anything
-		if (wrapper.getImage() == null && profile.getPhotoProfile() == null) {
-			image = imageService.readBytesFromFile(DEFAULT_IMAGE);
-			fileName = DEFAULT_IMAGE.split("/")[1];
-		} else if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
+		if (wrapper.getImage() != null && !StringUtils.isEmpty(wrapper.getImage().getOriginalFilename())) {
+			byte[] image = null;
+			String fileName = "";
 			// throw error if image format is not allowed
 			String[] imageFormat = wrapper.getImage().getOriginalFilename().split("\\.");
 			if (!allowedFormatImageList.contains(imageFormat[imageFormat.length - 1])) {
@@ -101,10 +94,10 @@ public class ProfileServiceImpl implements ProfileService {
 			} catch (IOException e) {
 				throw new BadRequestException(e.getMessage());
 			}
+			profile.setPhotoProfile(image);
+			profile.setPhotoProfileFilename(fileName);
 		}
 
-		profile.setPhotoProfile(image);
-		profile.setPhotoProfileFilename(fileName);
 		profile.setAboutMe(wrapper.getAboutMe());
 		profile.setCity(wrapper.getCity());
 		profile.setInterest(wrapper.getInterest());
