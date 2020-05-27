@@ -60,7 +60,11 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Find all event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "") })
+	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = ""),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
+					+ "Error: Can only input ASC or DESC for direction!"),
+			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/find-all")
 	public ResponseEntity<ResponseBody> findAll(@RequestParam(defaultValue = "0") Integer pageNumber,
 			@RequestParam(defaultValue = "10") Integer pageSize,
