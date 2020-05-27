@@ -106,6 +106,12 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "User apply to event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully applied to the event"),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+			@ApiResponse(code = 400, message = "Error: This event has finished already\t\n "
+					+ "Error: You cannot apply to your own event! \t\n "
+					+ "Error: You have applied to this event"),
+			@ApiResponse(code = 404, message = "User not found with id") })
 	@PostMapping(value = "/apply")
 	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
 		LOGGER.info("A user apply to an event");
