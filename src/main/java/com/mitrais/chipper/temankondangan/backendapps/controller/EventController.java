@@ -135,4 +135,5 @@ public class EventController extends CommonResource {
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
+
 }

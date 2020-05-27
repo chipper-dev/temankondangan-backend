@@ -291,7 +291,7 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenEventHasFinishedAlready() {
+	public void shouldThrowBadRequestException_WhenUserApplyAfterEventHasFinishedAlready() {
 		User user2 = new User();
 		user2.setUserId(2L);
 		event.setUser(user2);
@@ -342,4 +342,5 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
+	
 }
