@@ -295,6 +295,10 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Error: You have applied to this event");
         }
 
+        if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+        	throw new BadRequestException("Error: This event has finished already");
+        }
+        
         Applicant applicant = new Applicant();
         applicant.setApplicantUser(user);
         applicant.setEvent(event);
