@@ -55,9 +55,9 @@ public class ApplicantServiceTest {
 
 	}
 
-	// accept applicant
+	// accept applicant service
 	@Test
-	public void applyEventTest() {
+	public void acceptApplicantTest() {
 		event.setFinishDateTime(LocalDateTime.now().plusHours(3));
 		applicant.setEvent(event);
 
@@ -113,4 +113,127 @@ public class ApplicantServiceTest {
 				.hasMessageContaining("Error: You cannot accept rejected applicant")
 				.isInstanceOf(BadRequestException.class);
 	}
+
+	// cancel accepted applicant service
+	@Test
+	public void cancelAcceptedTest() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(26));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.ACCEPTED);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		Answer<Applicant> answer = new Answer<Applicant>() {
+			public Applicant answer(InvocationOnMock invocation) throws Throwable {
+				applicant.setStatus(ApplicantStatus.APPLIED);
+				return applicant;
+			}
+		};
+
+		doAnswer(answer).when(applicantRepository).save(Mockito.any(Applicant.class));
+		applicantService.cancelAccepted(1L);
+		assertEquals(ApplicantStatus.APPLIED, applicant.getStatus());
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenApplicantNotFoundInCancelAcceptedApplicant() {
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> applicantService.cancelAccepted(1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInCancelAcceptedApplicant() {
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> applicantService.cancelAccepted(1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenUserCancelAcceptedApplicantAfterEventHasFinishedAlready() {
+		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
+		applicant.setEvent(event);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.cancelAccepted(1L))
+				.hasMessageContaining("Error: This event has finished already").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelAcceptedApplicant24HoursBeforeEventStarted() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(23));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(26));
+		applicant.setEvent(event);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.cancelAccepted(1L))
+				.hasMessageContaining("Error: You cannot cancel the accepted applicant 24 hours before event started")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelAcceptedApplicantDoNotHaveAcceptedStatus() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(26));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.REJECTED);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.cancelAccepted(1L))
+				.hasMessageContaining("Error: You cannot cancel non accepted applicant")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	// reject applied applicant service
+	@Test
+	public void rejectAppliedApplicantTest() {
+		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		Answer<Applicant> answer = new Answer<Applicant>() {
+			public Applicant answer(InvocationOnMock invocation) throws Throwable {
+				applicant.setStatus(ApplicantStatus.REJECTED);
+				return applicant;
+			}
+		};
+
+		doAnswer(answer).when(applicantRepository).save(Mockito.any(Applicant.class));
+		applicantService.rejectApplicant(1L);
+		assertEquals(ApplicantStatus.REJECTED, applicant.getStatus());
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenApplicantNotFoundInRejectApplicant() {
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> applicantService.rejectApplicant(1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInRejectApplicant() {
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> applicantService.rejectApplicant(1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenUserRejectApplicantAfterEventHasFinishedAlready() {
+		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
+		applicant.setEvent(event);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.rejectApplicant(1L))
+				.hasMessageContaining("Error: This event has finished already").isInstanceOf(BadRequestException.class);
+	}
+
 }
