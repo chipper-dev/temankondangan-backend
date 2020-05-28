@@ -10,8 +10,8 @@ public interface EventService {
 
 	Event create(Long userId, CreateEventWrapper wrapper);
 
-	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Long userId);
+	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
+			Long userId);
 
 	public EventFindAllResponseWrapper findMyEvent(Integer pageNumber, Integer pageSize, String sortBy,
 											   String direction, Long userId, boolean current);
@@ -23,4 +23,5 @@ public interface EventService {
 	EventDetailResponseWrapper findEventDetail(String id, Long userId);
 
 	void cancelEvent(Long userId, Long eventId);
+
 }

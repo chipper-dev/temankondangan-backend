@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +42,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
