@@ -63,4 +63,22 @@ public class ApplicantController extends CommonResource {
 				getResponseBody(HttpStatus.OK.value(), "Successfully cancel the accepted applicant", request.getRequestURI()));
 
 	}
+	
+
+	@ApiOperation(value = "User reject the applicant who applied to their event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully reject the applied applicant"),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+//			@ApiResponse(code = 400, message = " Error: You cannot cancel the accepted applicant 24 hours before event started \t\n "
+//					+ "Error: You cannot cancel non accepted applicant"),
+			@ApiResponse(code = 404, message = "Applicant not found with id") })
+	@PostMapping(value = "/reject")
+	public ResponseEntity<ResponseBody> rejectAppliedApplicant(@RequestParam Long applicantId, HttpServletRequest request) {
+		LOGGER.info("User cancel the accepted applicant in their event");
+		
+		applicantService.rejectApplicant(applicantId);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), "Successfully reject the applied applicant", request.getRequestURI()));
+
+	}
 }

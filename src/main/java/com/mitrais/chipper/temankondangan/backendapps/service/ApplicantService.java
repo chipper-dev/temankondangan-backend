@@ -5,4 +5,6 @@ public interface ApplicantService {
 	public void accept(Long applicantId);
 
 	public void cancelAccepted(Long applicantId);
+
+	public void rejectApplicant(Long applicantId);
 }
