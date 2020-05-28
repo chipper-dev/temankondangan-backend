@@ -41,7 +41,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender) from Event e "
 			+ "JOIN User u ON e.user.userId = u.userId " + "JOIN Profile p ON u.userId = p.user.userId "
 			+ "WHERE u.userId = :userId "
-			+ "AND ((e.startDateTime > :now AND :current = 1) OR ((e.startDateTime <= :now AND :current = 0))")
+			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
 	Page<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,
 														   @Param("current") int current, Pageable paging);
 

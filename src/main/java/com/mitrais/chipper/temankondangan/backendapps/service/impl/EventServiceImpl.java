@@ -47,11 +47,11 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 @Service
 public class EventServiceImpl implements EventService {
 
-    private final EventRepository eventRepository;
-    private final UserRepository userRepository;
-    private final ProfileRepository profileRepository;
-    private final ApplicantRepository applicantRepository;
-    private final ImageFileService imageFileService;
+    private EventRepository eventRepository;
+    private UserRepository userRepository;
+    private ProfileRepository profileRepository;
+    private ApplicantRepository applicantRepository;
+    private ImageFileService imageFileService;
 
     @Value("${app.eventCancelationValidMaxMsec}")
     Long cancelationMax;
