@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +33,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -316,6 +311,29 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Error: The event will be started in less than 24 hours");
         }
 
+    }
+
+    @Override
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1)
+                .forEach(event -> {
+                    AppliedEventWrapper wrapper = new AppliedEventWrapper();
+                    wrapper.setTitle(event.getTitle());
+                    wrapper.setCity(event.getCity());
+                    wrapper.setStartDateTime(event.getStartDateTime());
+                    wrapper.setFinishDateTime(event.getFinishDateTime());
+
+                    profileRepository.findByUserId(event.getUser().getUserId())
+                            .ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+
+                    applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                            .ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+
+                    resultList.add(wrapper);
+                });
+
+        return resultList;
     }
 
     private boolean isCancelationValid(LocalDateTime eventDate) {

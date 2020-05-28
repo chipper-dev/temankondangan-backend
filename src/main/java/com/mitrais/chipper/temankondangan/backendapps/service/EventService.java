@@ -1,10 +1,9 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+
+import java.util.List;
 
 public interface EventService {
 
@@ -20,4 +19,6 @@ public interface EventService {
 	EventDetailResponseWrapper findEventDetail(String id, Long userId);
 
 	void cancelEvent(Long userId, Long eventId);
+
+	List<AppliedEventWrapper> findActiveAppliedEvent(Long userId);
 }
