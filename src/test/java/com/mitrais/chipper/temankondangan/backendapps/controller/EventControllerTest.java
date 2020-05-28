@@ -109,4 +109,31 @@ public class EventControllerTest {
                 .andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
                 .andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
     }
+
+    @Test
+    public void findPastAppliedEventTest() throws Exception {
+        AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder()
+                .photoProfileUrl("image.jpg")
+                .title("Lorem Ipsum")
+                .startDateTime(LocalDateTime.now().minusDays(1))
+                .finishDateTime(LocalDateTime.now().minusDays(1).plusHours(1))
+                .city("Sim City")
+                .status(ApplicantStatus.APPLIED)
+                .build();
+
+        List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
+
+        Mockito.when(eventService.findPastAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
+
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-past")
+                .header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON);
+
+        mvc.perform(requestBuilder)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
+                .andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
+    }
 }

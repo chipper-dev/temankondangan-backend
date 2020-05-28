@@ -4,7 +4,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -383,10 +386,56 @@ public class EventServiceTest {
         Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(2L, 1L)).thenReturn(Optional.of(applicant));
 
         List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "createdDate", "DESC");
-        resultList.isEmpty();
 
         assertFalse(resultList.isEmpty());
 		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
 		assertEquals(resultList.get(0).getTitle(), "title test");
+    }
+
+    @Test
+    public void findPastAppliedEventTest() {
+        event = new Event();
+        event.setEventId(1L);
+        event.setUser(user);
+        event.setAdditionalInfo("info test");
+        event.setCompanionGender(Gender.P);
+        event.setStartDateTime(LocalDateTime.now().minusDays(1));
+        event.setFinishDateTime(LocalDateTime.now().minusDays(1).plusHours(1));
+        event.setMaximumAge(40);
+        event.setMinimumAge(18);
+        event.setTitle("title test");
+        event.setCity("Test City");
+        event.setDataState(DataState.ACTIVE);
+
+        List<Event> eventList = new ArrayList<>();
+        eventList.add(event);
+
+        User user2 = new User();
+        user2.setUserId(2L);
+
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setProfileId(1L);
+        profile.setFullName("John Doe");
+        profile.setPhotoProfileFilename("image.jpg");
+
+        Applicant applicant = new Applicant();
+        applicant.setId(1L);
+        applicant.setApplicantUser(user2);
+        applicant.setEvent(event);
+        applicant.setStatus(ApplicantStatus.APPLIED);
+
+        Sort sort = Sort.by("createdDate").descending();
+
+        Mockito.when(imageFileService.getImageUrl(profile)).thenReturn(profile.getPhotoProfileFilename());
+        Mockito.when(eventRepository.findAppliedEvent(2L, DataState.ACTIVE, LocalDateTime.now(), 0, sort)).thenReturn(eventList);
+        Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
+        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(2L, 1L)).thenReturn(Optional.of(applicant));
+
+        List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC");
+
+        assertFalse(resultList.isEmpty());
+        assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+        assertEquals(resultList.get(0).getTitle(), "title test");
     }
 }

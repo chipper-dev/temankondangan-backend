@@ -191,4 +191,17 @@ public class EventController extends CommonResource {
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
+
+	@ApiOperation(value = "User find the Past Applied Event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping(value = "/my-applied-event-past")
+	public ResponseEntity<ResponseBody> findPastAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+															   HttpServletRequest request) {
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
+	}
 }

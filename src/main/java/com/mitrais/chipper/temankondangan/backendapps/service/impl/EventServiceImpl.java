@@ -394,6 +394,41 @@ public class EventServiceImpl implements EventService {
         return resultList;
     }
 
+    @Override
+    public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
+
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort)
+                .forEach(event -> {
+                    System.out.println(event);
+
+                    AppliedEventWrapper wrapper = new AppliedEventWrapper();
+                    wrapper.setTitle(event.getTitle());
+                    wrapper.setCity(event.getCity());
+                    wrapper.setStartDateTime(event.getStartDateTime());
+                    wrapper.setFinishDateTime(event.getFinishDateTime());
+
+                    profileRepository.findByUserId(event.getUser().getUserId())
+                            .ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+
+                    applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                            .ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+
+                    resultList.add(wrapper);
+                });
+
+        return resultList;
+    }
+
     private boolean isCancelationValid(LocalDateTime eventDate) {
         Duration duration = Duration.between(LocalDateTime.now(), eventDate);
 
