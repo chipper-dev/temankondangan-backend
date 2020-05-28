@@ -39,6 +39,10 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -263,6 +267,7 @@ public class EventServiceTest {
 		User user2 = new User();
 		user2.setUserId(2L);
 		event.setUser(user2);
+		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
 
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
@@ -270,20 +275,37 @@ public class EventServiceTest {
 				.thenReturn(false);
 
 		Answer<Applicant> answer = new Answer<Applicant>() {
-	        public Applicant answer(InvocationOnMock invocation) throws Throwable {
-	        	user2.setUserId(3L);
-	            Applicant applicant = invocation.getArgument(0, Applicant.class);
+			public Applicant answer(InvocationOnMock invocation) throws Throwable {
+				user2.setUserId(3L);
+				Applicant applicant = invocation.getArgument(0, Applicant.class);
 				applicant.setId(1L);
 				applicant.setApplicantUser(user2);
 				applicant.setEvent(event);
 
 				return applicant;
-	        }
-	    };
-	    
+			}
+		};
+
 		doAnswer(answer).when(applicantRepository).save(Mockito.any(Applicant.class));
 		eventService.apply(1L, 1L);
 		assertEquals(3L, user2.getUserId());
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenUserApplyAfterEventHasFinishedAlready() {
+		User user2 = new User();
+		user2.setUserId(2L);
+		event.setUser(user2);
+		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(
+				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				.thenReturn(false);
+
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: This event has finished already")
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test

@@ -33,6 +33,12 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -149,9 +155,9 @@ public class EventServiceImpl implements EventService {
         eventWrapperPages.forEach(eventWrap -> {
             AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
             profileRepository.findById(eventWrap.getProfileId())
-                    .ifPresent(profileCreator -> {
-                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator));
-                    });
+                    .ifPresent(profileCreator ->
+                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
 
             eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
             eventAllDBResponse.add(eventWrap);
@@ -160,6 +166,45 @@ public class EventServiceImpl implements EventService {
         return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
                 .actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 
+    }
+
+    @Override
+    public EventFindAllResponseWrapper findMyEvent(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId, boolean current) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
+
+        if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+            throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+        }
+
+        Pageable paging;
+        if (direction.equalsIgnoreCase("DESC")) {
+            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllMyEvent(
+                user.getUserId(), LocalDateTime.now(), current? 1 : 0,  paging);
+
+        List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
+        eventWrapperPages.forEach(eventWrap -> {
+            AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
+            profileRepository.findById(eventWrap.getProfileId())
+                    .ifPresent(profileCreator ->
+                            photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
+
+            eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+            eventAllDBResponse.add(eventWrap);
+        });
+
+        return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
+                .actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
     }
 
     @Override
@@ -288,6 +333,10 @@ public class EventServiceImpl implements EventService {
 
         if (Boolean.TRUE.equals(applicantRepository.existsByApplicantUserAndEvent(user, event))) {
             throw new BadRequestException("Error: You have applied to this event");
+        }
+
+        if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+        	throw new BadRequestException("Error: This event has finished already");
         }
 
         Applicant applicant = new Applicant();

@@ -9,8 +9,11 @@ public interface EventService {
 
 	Event create(Long userId, CreateEventWrapper wrapper);
 
-	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Long userId);
+	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
+			Long userId);
+
+	public EventFindAllResponseWrapper findMyEvent(Integer pageNumber, Integer pageSize, String sortBy,
+											   String direction, Long userId, boolean current);
 
 	Event edit(Long userId, EditEventWrapper wrapper);
 
