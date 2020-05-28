@@ -96,9 +96,9 @@ public class EventControllerTest {
 
         List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
 
-        Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong())).thenReturn(wrapperList);
+        Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
 
-        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/applied/active")
+        RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-current")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON);
 

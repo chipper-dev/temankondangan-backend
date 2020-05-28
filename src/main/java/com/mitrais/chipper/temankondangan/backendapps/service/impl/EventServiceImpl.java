@@ -363,9 +363,19 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId) {
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
         List<AppliedEventWrapper> resultList = new ArrayList<>();
-        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1)
+
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort)
                 .forEach(event -> {
                     AppliedEventWrapper wrapper = new AppliedEventWrapper();
                     wrapper.setTitle(event.getTitle());
@@ -387,7 +397,6 @@ public class EventServiceImpl implements EventService {
 
     private boolean isCancelationValid(LocalDateTime eventDate) {
         Duration duration = Duration.between(LocalDateTime.now(), eventDate);
-        System.out.println(duration.getSeconds() * 1000);
 
         return duration.getSeconds() * 1000 > cancelationMax;
     }

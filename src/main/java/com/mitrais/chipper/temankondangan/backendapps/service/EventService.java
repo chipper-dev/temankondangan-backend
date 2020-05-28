@@ -23,5 +23,5 @@ public interface EventService {
 
 	void cancelEvent(Long userId, Long eventId);
 
-	List<AppliedEventWrapper> findActiveAppliedEvent(Long userId);
+	List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction);
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -56,6 +57,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
             "AND a.dataState = 'ACTIVE' " +
             "AND e.dataState = :dataStateEvent " +
             "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
-    List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState, @Param("now") LocalDateTime now, @Param("current") Integer current);
+    List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState, @Param("now") LocalDateTime now, @Param("current") Integer current, Sort sort);
 
 }

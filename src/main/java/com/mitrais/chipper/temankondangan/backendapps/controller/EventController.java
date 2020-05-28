@@ -175,11 +175,13 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "User find the Current Applied Event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping(value = "/applied/active")
-	public ResponseEntity<ResponseBody> findActiveAppliedEvent(HttpServletRequest request) {
+	@GetMapping(value = "/my-applied-event-current")
+	public ResponseEntity<ResponseBody> findActiveAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+															   HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId);
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
