@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -30,6 +26,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+
+import java.util.List;
 
 @Api(value = "Event Management System")
 @RestController
@@ -126,14 +124,14 @@ public class EventController extends CommonResource {
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
 
-	@ApiOperation(value = "User cancel to event", response = ResponseEntity.class)
+	@ApiOperation(value = "User find the Current Applied Event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/applied/active")
 	public ResponseEntity<ResponseBody> findActiveAppliedEvent(HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId);
 		return ResponseEntity.ok(
-				getResponseBody(HttpStatus.OK.value(), "", request.getRequestURI()));
+				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 }
