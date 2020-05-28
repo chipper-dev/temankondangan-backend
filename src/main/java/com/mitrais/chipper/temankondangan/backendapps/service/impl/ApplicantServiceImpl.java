@@ -46,7 +46,24 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicantRepository.save(applicant);
 	}
 
-	public void reject(Long applicantId) {
+	@Override
+	public void cancelAccepted(Long applicantId) {
+		Applicant applicant = applicantRepository.findById(applicantId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "id", applicantId));
+		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
+
+		if (LocalDateTime.now().isAfter(event.getStartDateTime().minusDays(1))) {
+			throw new BadRequestException("Error: You cannot cancel the accepted applicant 24 hours before event started");
+		}
+
+		if (applicant.getStatus() != null && !applicant.getStatus().equals(ApplicantStatus.ACCEPTED)) {
+			throw new BadRequestException("Error: You cannot cancel non accepted applicant");
+		}
+
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicantRepository.save(applicant);
 
 	}
+
 }
