@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,10 +39,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -323,5 +320,49 @@ public class EventServiceTest {
 	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInApplyEvent() {
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void findActiveAppliedEventTest(){
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(1));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		List<Event> eventList = new ArrayList<>();
+		eventList.add(event);
+
+		User user2 = new User();
+		user2.setUserId(2L);
+
+		Profile profile = new Profile();
+		profile.setUser(user);
+		profile.setProfileId(1L);
+		profile.setFullName("John Doe");
+		profile.setPhotoProfileFilename("image.jpg");
+
+		Applicant applicant = new Applicant();
+		applicant.setId(1L);
+		applicant.setApplicantUser(user2);
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+
+		Mockito.when(imageFileService.getImageUrl(profile)).thenReturn(profile.getPhotoProfileFilename());
+		Mockito.when(eventRepository.findAppliedEvent(2L, DataState.ACTIVE, LocalDateTime.now(), 1)).thenReturn(eventList);
+		Mockito.when(profileRepository.findByUserId(Mockito.anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(Mockito.anyLong(), Mockito.anyLong())).thenReturn(Optional.of(applicant));
+
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L);
+		assertTrue(resultList.size() > 0);
+		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+		assertEquals(resultList.get(0).getTitle(), "title test");
 	}
 }
