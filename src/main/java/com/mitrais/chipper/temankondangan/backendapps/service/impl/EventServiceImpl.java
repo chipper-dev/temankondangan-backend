@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,7 +44,6 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -336,7 +337,7 @@ public class EventServiceImpl implements EventService {
         if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
         	throw new BadRequestException("Error: This event has finished already");
         }
-        
+
         Applicant applicant = new Applicant();
         applicant.setApplicantUser(user);
         applicant.setEvent(event);
@@ -360,9 +361,41 @@ public class EventServiceImpl implements EventService {
 
     }
 
+    @Override
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
+
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort)
+                .forEach(event -> {
+                    AppliedEventWrapper wrapper = new AppliedEventWrapper();
+                    wrapper.setTitle(event.getTitle());
+                    wrapper.setCity(event.getCity());
+                    wrapper.setStartDateTime(event.getStartDateTime());
+                    wrapper.setFinishDateTime(event.getFinishDateTime());
+
+                    profileRepository.findByUserId(event.getUser().getUserId())
+                            .ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+
+                    applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                            .ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+
+                    resultList.add(wrapper);
+                });
+
+        return resultList;
+    }
+
     private boolean isCancelationValid(LocalDateTime eventDate) {
         Duration duration = Duration.between(LocalDateTime.now(), eventDate);
-        System.out.println(duration.getSeconds() * 1000);
 
         return duration.getSeconds() * 1000 > cancelationMax;
     }
