@@ -48,11 +48,13 @@ public class ApplicantServiceTest {
 		event = new Event();
 		event.setEventId(1L);
 		event.setDataState(DataState.ACTIVE);
+		event.setStartDateTime(null);
+		event.setFinishDateTime(null);
 
 		applicant = new Applicant();
 		applicant.setId(1L);
 		applicant.setDataState(DataState.ACTIVE);
-
+		applicant.setEvent(null);
 	}
 
 	// accept applicant service

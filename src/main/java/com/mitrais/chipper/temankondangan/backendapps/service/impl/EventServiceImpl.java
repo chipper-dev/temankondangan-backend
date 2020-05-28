@@ -273,6 +273,7 @@ public class EventServiceImpl implements EventService {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		boolean isApplied = false;
 		Long id;
+		ApplicantStatus applicantStatus = null;
 
 		// Custom exception as requested by Tester, when input param.
 		try {
@@ -305,6 +306,9 @@ public class EventServiceImpl implements EventService {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
+			Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userId, id)
+					.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "user id and event id", userId + " and " + id));
+			applicantStatus = applicant.getStatus();
 		}
 
 		String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
@@ -315,7 +319,7 @@ public class EventServiceImpl implements EventService {
 				.minimumAge(event.getMinimumAge()).maximumAge(event.getMaximumAge())
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
-				.isApplied(isApplied).build();
+				.isApplied(isApplied).applicantStatus(applicantStatus).build();
 	}
 
 	@Override
