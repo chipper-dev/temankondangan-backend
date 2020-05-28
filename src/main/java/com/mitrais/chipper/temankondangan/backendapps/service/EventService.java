@@ -13,6 +13,9 @@ public interface EventService {
 	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy,
 			String direction, Long userId);
 
+	public EventFindAllResponseWrapper findMyEvent(Integer pageNumber, Integer pageSize, String sortBy,
+											   String direction, Long userId, boolean current);
+
 	Event edit(Long userId, EditEventWrapper wrapper);
 
 	void apply(Long userId, Long eventId);

@@ -154,9 +154,9 @@ public class EventServiceImpl implements EventService {
         eventWrapperPages.forEach(eventWrap -> {
             AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
             profileRepository.findById(eventWrap.getProfileId())
-                    .ifPresent(profileCreator -> {
-                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator));
-                    });
+                    .ifPresent(profileCreator ->
+                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
 
             eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
             eventAllDBResponse.add(eventWrap);
@@ -165,6 +165,45 @@ public class EventServiceImpl implements EventService {
         return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
                 .actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 
+    }
+
+    @Override
+    public EventFindAllResponseWrapper findMyEvent(Integer pageNumber, Integer pageSize, String sortBy, String direction, Long userId, boolean current) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
+
+        if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+            throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+        }
+
+        Pageable paging;
+        if (direction.equalsIgnoreCase("DESC")) {
+            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
+
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllMyEvent(
+                user.getUserId(), LocalDateTime.now(), current? 1 : 0,  paging);
+
+        List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
+        eventWrapperPages.forEach(eventWrap -> {
+            AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
+            profileRepository.findById(eventWrap.getProfileId())
+                    .ifPresent(profileCreator ->
+                            photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
+
+            eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+            eventAllDBResponse.add(eventWrap);
+        });
+
+        return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
+                .actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
     }
 
     @Override
