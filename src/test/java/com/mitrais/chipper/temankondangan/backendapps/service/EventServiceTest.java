@@ -4,10 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.verify;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -268,7 +265,8 @@ public class EventServiceTest {
         User user2 = new User();
         user2.setUserId(2L);
         event.setUser(user2);
-        event.setFinishDateTime(LocalDateTime.now().plusHours(1));
+        event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+        event.setStartDateTime(LocalDateTime.now().plusHours(1));
 
         Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
         Mockito.when(
