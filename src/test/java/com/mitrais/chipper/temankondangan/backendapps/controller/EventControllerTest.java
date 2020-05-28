@@ -1,8 +1,16 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,14 +26,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -45,6 +58,9 @@ public class EventControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean
+    EventServiceImpl eventService;
 
     @Autowired
     public EventControllerTest(WebApplicationContext context, AuthenticationManager authenticationManager, TokenProvider tokenProvider, PasswordEncoder passwordEncoder) {
@@ -75,11 +91,28 @@ public class EventControllerTest {
 
     @Test
     public void findCurrentAppliedEventTest() throws Exception {
+        AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder()
+                .photoProfileUrl("image.jpg")
+                .title("Lorem Ipsum")
+                .startDateTime(LocalDateTime.now().plusDays(1))
+                .finishDateTime(LocalDateTime.now().plusDays(1).plusHours(1))
+                .city("Sim City")
+                .status(ApplicantStatus.APPLIED)
+                .build();
+
+        List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
+
+        Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong())).thenReturn(wrapperList);
+
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/applied/active")
                 .header("Authorization", "Bearer " + token)
                 .contentType(MediaType.APPLICATION_JSON);
 
         mvc.perform(requestBuilder)
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isNotEmpty())
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
+                .andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
     }
 }
