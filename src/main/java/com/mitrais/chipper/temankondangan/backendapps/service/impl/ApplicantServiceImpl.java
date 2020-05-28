@@ -54,7 +54,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
 		if (LocalDateTime.now().isAfter(event.getStartDateTime().minusDays(1))) {
-			throw new BadRequestException("Error: You cannot cancel accepted applicant 24 hours before event started");
+			throw new BadRequestException("Error: You cannot cancel the accepted applicant 24 hours before event started");
 		}
 
 		if (applicant.getStatus() != null && !applicant.getStatus().equals(ApplicantStatus.ACCEPTED)) {

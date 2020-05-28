@@ -157,7 +157,7 @@ public class ApplicantServiceTest {
 			Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
 
 			assertThatThrownBy(() -> applicantService.cancelAccepted(1L))
-					.hasMessageContaining("Error: You cannot cancel accepted applicant 24 hours before event started").isInstanceOf(BadRequestException.class);
+					.hasMessageContaining("Error: You cannot cancel the accepted applicant 24 hours before event started").isInstanceOf(BadRequestException.class);
 		}
 
 		@Test
