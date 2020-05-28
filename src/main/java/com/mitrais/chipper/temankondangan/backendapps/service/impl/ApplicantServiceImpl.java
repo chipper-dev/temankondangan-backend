@@ -17,7 +17,8 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
 
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
-
+	private static final String ERROR_EVENT_HAS_FINISHED = "Error: This event has finished already";
+	
 	private EventRepository eventRepository;
 	private ApplicantRepository applicantRepository;
 
@@ -35,7 +36,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
 		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
-			throw new BadRequestException("Error: This event has finished already");
+			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
 
 		if (applicant.getStatus() != null && applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
@@ -53,6 +54,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
+		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
+		}
+
 		if (LocalDateTime.now().isAfter(event.getStartDateTime().minusDays(1))) {
 			throw new BadRequestException("Error: You cannot cancel the accepted applicant 24 hours before event started");
 		}
@@ -64,6 +69,22 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
+	}
+
+	@Override
+	public void rejectApplicant(Long applicantId) {
+		Applicant applicant = applicantRepository.findById(applicantId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "id", applicantId));
+		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
+
+		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
+		}
+		
+		applicant.setStatus(ApplicantStatus.REJECTED);
+		applicantRepository.save(applicant);
+		
 	}
 
 }
