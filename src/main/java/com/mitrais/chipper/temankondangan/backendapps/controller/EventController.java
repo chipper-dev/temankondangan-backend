@@ -31,6 +31,8 @@ import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+import java.util.List;
+
 @Api(value = "Event Management System")
 @RestController
 @Validated
@@ -60,7 +62,7 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Find all event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = ""),
+	@ApiResponses(value = { @ApiResponse(response = EventFindAllResponseWrapper.class, code = 200, message = ""),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
 					+ "Error: Can only input ASC or DESC for direction!"),
@@ -138,10 +140,13 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Find My Event (Current)", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "") })
+	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
+					+ "Error: Can only input ASC or DESC for direction!"),
+			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/my-event-current")
-	public ResponseEntity<ResponseBody> findMyEventCurrent(@RequestParam(defaultValue = "0") Integer pageNumber,
-												@RequestParam(defaultValue = "10") Integer pageSize,
+	public ResponseEntity<ResponseBody> findMyEventCurrent(
 												@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
 												@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 												HttpServletRequest request) {
@@ -149,16 +154,19 @@ public class EventController extends CommonResource {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		EventFindAllResponseWrapper events = eventService.findMyEvent(pageNumber, pageSize, sortBy, direction, userId, true);
+		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(sortBy, direction, userId, true);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
 	@ApiOperation(value = "Find My Event (Past)", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "") })
+	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
+					+ "Error: Can only input ASC or DESC for direction!"),
+			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/my-event-past")
-	public ResponseEntity<ResponseBody> findMyEventPast(@RequestParam(defaultValue = "0") Integer pageNumber,
-													   @RequestParam(defaultValue = "10") Integer pageSize,
+	public ResponseEntity<ResponseBody> findMyEventPast(
 													   @ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
 													   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 													   HttpServletRequest request) {
@@ -166,7 +174,7 @@ public class EventController extends CommonResource {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		EventFindAllResponseWrapper events = eventService.findMyEvent(pageNumber, pageSize, sortBy, direction, userId, false);
+		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(sortBy, direction, userId, false);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 }

@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -46,7 +47,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
 			+ "WHERE u.userId = :userId "
 			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
-	Page<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,
-														   @Param("current") int current, Pageable paging);
+	List<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,
+														   @Param("current") int current, Sort sort);
 
 }
