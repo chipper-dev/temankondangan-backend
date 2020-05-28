@@ -40,8 +40,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("SELECT new com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper"
 			+ "(e.eventId, p.profileId, p.fullName, e.createdBy,"
 			+ "e.title, e.city , e.startDateTime, e.finishDateTime,"
-			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender) from Event e "
-			+ "JOIN User u ON e.user.userId = u.userId " + "JOIN Profile p ON u.userId = p.user.userId "
+			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender, a.status) from Event e "
+			+ "JOIN User u ON e.user.userId = u.userId " 
+			+ "JOIN Profile p ON u.userId = p.user.userId "
+			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
 			+ "WHERE u.userId = :userId "
 			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
 	Page<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,

@@ -35,7 +35,7 @@ public class ApplicantController extends CommonResource {
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully accept the event applicant"),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: This event has finished already\t\n "
-					+ "Error: You cannot accept rejected applicant \t\n "),
+					+ "Error: You cannot accept rejected applicant"),
 			@ApiResponse(code = 404, message = "Applicant not found with id") })
 	@PostMapping(value = "/accept")
 	public ResponseEntity<ResponseBody> acceptEventApplicant(@RequestParam Long applicantId, HttpServletRequest request) {
@@ -44,6 +44,23 @@ public class ApplicantController extends CommonResource {
 		applicantService.accept(applicantId);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "Successfully accept the event applicant", request.getRequestURI()));
+
+	}
+	
+	@ApiOperation(value = "User cancel the accepted applicant in their event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully cancel the accepted applicant"),
+			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
+			@ApiResponse(code = 400, message = " Error: You cannot cancel accepted applicant 24 hours before event started \t\n "
+					+ "Error: You cannot cancel non accepted applicant"),
+			@ApiResponse(code = 404, message = "Applicant not found with id") })
+	@PostMapping(value = "/cancel-accepted")
+	public ResponseEntity<ResponseBody> cancelAcceptedApplicant(@RequestParam Long applicantId, HttpServletRequest request) {
+		LOGGER.info("User cancel the accepted applicant in their event");
+		
+		applicantService.cancelAccepted(applicantId);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), "Successfully cancel the accepted applicant", request.getRequestURI()));
 
 	}
 }
