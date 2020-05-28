@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -43,6 +42,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -154,9 +154,9 @@ public class EventServiceImpl implements EventService {
         eventWrapperPages.forEach(eventWrap -> {
             AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
             profileRepository.findById(eventWrap.getProfileId())
-                    .ifPresent(profileCreator -> {
-                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator));
-                    });
+                    .ifPresent(profileCreator ->
+                        photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
 
             eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
             eventAllDBResponse.add(eventWrap);
@@ -165,6 +165,44 @@ public class EventServiceImpl implements EventService {
         return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
                 .actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 
+    }
+
+    @Override
+    public List<EventFindAllListDBResponseWrapper> findMyEvent(String sortBy, String direction, Long userId, boolean current) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
+
+        if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+            throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+        }
+
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+
+        } else {
+            throw new BadRequestException("Error: Can only input ASC or DESC for direction!");
+        }
+
+        List<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.findAllMyEvent(
+                user.getUserId(), LocalDateTime.now(), current? 1 : 0,  sort);
+
+        List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
+        eventWrapperPages.forEach(eventWrap -> {
+            AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
+            profileRepository.findById(eventWrap.getProfileId())
+                    .ifPresent(profileCreator ->
+                            photoProfileUrl.set(imageFileService.getImageUrl(profileCreator))
+                    );
+
+            eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+            eventAllDBResponse.add(eventWrap);
+        });
+
+        return eventAllDBResponse;
     }
 
     @Override
@@ -295,6 +333,10 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Error: You have applied to this event");
         }
 
+        if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+        	throw new BadRequestException("Error: This event has finished already");
+        }
+        
         Applicant applicant = new Applicant();
         applicant.setApplicantUser(user);
         applicant.setEvent(event);
