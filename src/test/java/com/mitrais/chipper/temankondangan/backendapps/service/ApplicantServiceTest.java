@@ -48,16 +48,19 @@ public class ApplicantServiceTest {
 		event = new Event();
 		event.setEventId(1L);
 		event.setDataState(DataState.ACTIVE);
+		event.setStartDateTime(null);
+		event.setFinishDateTime(null);
 
 		applicant = new Applicant();
 		applicant.setId(1L);
 		applicant.setDataState(DataState.ACTIVE);
-
+		applicant.setEvent(null);
 	}
 
 	// accept applicant service
 	@Test
 	public void acceptApplicantTest() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(1));
 		event.setFinishDateTime(LocalDateTime.now().plusHours(3));
 		applicant.setEvent(event);
 
@@ -102,7 +105,8 @@ public class ApplicantServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenUserAcceptApplicantWhoHasBeenRejected() {
-		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event.setStartDateTime(LocalDateTime.now().plusHours(2));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(3));
 		applicant.setEvent(event);
 		applicant.setStatus(ApplicantStatus.REJECTED);
 
@@ -193,6 +197,7 @@ public class ApplicantServiceTest {
 	// reject applied applicant service
 	@Test
 	public void rejectAppliedApplicantTest() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(26));
 		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
 		applicant.setEvent(event);
 		applicant.setStatus(ApplicantStatus.APPLIED);

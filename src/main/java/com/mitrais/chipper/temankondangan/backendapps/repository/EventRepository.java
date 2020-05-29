@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -27,7 +28,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "(e.eventId, p.profileId, p.fullName, e.createdBy, "
 			+ "e.title, e.city , e.startDateTime, e.finishDateTime, "
 			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender, a.status) from Event e "
-			+ "JOIN User u ON e.user.userId = u.userId " 
+			+ "JOIN User u ON e.user.userId = u.userId "
 			+ "JOIN Profile p ON u.userId = p.user.userId "
 			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
 			+ "WHERE ((e.minimumAge <= :age AND e.maximumAge >= :age "
@@ -49,5 +50,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
 	List<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,
 														   @Param("current") int current, Sort sort);
+
+    @Query("SELECT e FROM Event e " +
+            "JOIN Applicant a ON a.event.eventId = e.eventId " +
+            "WHERE a.applicantUser.userId = :userId " +
+            "AND a.dataState = 'ACTIVE' " +
+            "AND e.dataState = :dataStateEvent " +
+            "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
+    List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState, @Param("now") LocalDateTime now, @Param("current") Integer current, Sort sort);
 
 }

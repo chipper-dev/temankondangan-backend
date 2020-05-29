@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -176,5 +177,31 @@ public class EventController extends CommonResource {
 
 		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(sortBy, direction, userId, false);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "User find the Current Applied Event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping(value = "/my-applied-event-current")
+	public ResponseEntity<ResponseBody> findActiveAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+															   HttpServletRequest request) {
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "User find the Past Applied Event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping(value = "/my-applied-event-past")
+	public ResponseEntity<ResponseBody> findPastAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+															   HttpServletRequest request) {
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 }

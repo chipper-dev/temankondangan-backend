@@ -15,7 +15,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -28,6 +27,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
@@ -38,6 +38,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
@@ -47,6 +48,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -73,11 +75,22 @@ public class EventServiceTest {
 	private static CreateEventWrapper wrapper;
 	private static Event event;
 	private static User user;
+	private static Profile profile;
 	private static Page<EventFindAllListDBResponseWrapper> pageEvent;
 	private static List<EventFindAllListDBResponseWrapper> eventList;
-
+		
 	@BeforeEach
 	public void init() {
+
+		user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+		Optional<User> userOptional = Optional.of(user);
+		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+
+	}
+
+	// create event service
+	@Test
+	public void createEventTest() {
 
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
@@ -91,15 +104,6 @@ public class EventServiceTest {
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
 
-		user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
-		Optional<User> userOptional = Optional.of(user);
-		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
-
-	}
-
-	// create event service
-	@Test
-	public void createEventTest() {
 		event = new Event();
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
@@ -119,20 +123,22 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreateEvent() {
-
+		wrapper = new CreateEventWrapper();
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
 	@Test
 	public void shouldThrowBadRequestException_WhenAgeLessThan18() {
+		wrapper = new CreateEventWrapper();
 		wrapper.setMinimumAge(17);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenMinimumAgeIsMoreThanMaximumAge() {
+	public void shouldThrowBadRequestException_WhenMinimumAgeIsMoreThanMaximumAgeInCreateEvent() {
+		wrapper = new CreateEventWrapper();
 		wrapper.setMinimumAge(25);
 		wrapper.setMaximumAge(20);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
@@ -140,14 +146,22 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowDateTimeParseException_WhenDateFormatIsNotValid() {
+	public void shouldThrowDateTimeParseException_WhenDateFormatIsNotValidInCreateEvent() {
+		wrapper = new CreateEventWrapper();
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
+		
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(DateTimeParseException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateIsBeforeTodayPlus1() {
+	public void shouldThrowBadRequestException_WhenStartDateIsBeforeTodayPlus1InCreateEvent() {
+		wrapper = new CreateEventWrapper();
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
+		
 		wrapper.setStartDateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
@@ -155,7 +169,10 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateIsMoreThanFinishDate() {
+	public void shouldThrowBadRequestException_WhenStartDateIsMoreThanFinishDateInCreateEvent() {
+		wrapper = new CreateEventWrapper();
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setFinishDateTime(
@@ -167,7 +184,10 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateIsNotTheSameWithFinishDate() {
+	public void shouldThrowBadRequestException_WhenStartDateIsNotTheSameWithFinishDateInCreateEvent() {
+		wrapper = new CreateEventWrapper();
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		wrapper.setFinishDateTime(
@@ -266,12 +286,21 @@ public class EventServiceTest {
 		User user2 = new User();
 		user2.setUserId(2L);
 		event.setUser(user2);
-		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
-
+		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setCompanionGender(Gender.B);
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		profile.setGender(Gender.L);
+		
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
 				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
 				.thenReturn(false);
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
+		
 
 		Answer<Applicant> answer = new Answer<Applicant>() {
 			public Applicant answer(InvocationOnMock invocation) throws Throwable {
@@ -289,28 +318,78 @@ public class EventServiceTest {
 		eventService.apply(1L, 1L);
 		assertEquals(3L, user2.getUserId());
 	}
-
+	
 	@Test
-	public void shouldThrowBadRequestException_WhenUserApplyAfterEventHasFinishedAlready() {
+	public void shouldThrowBadRequestException_WhenUserAgeDoesNotMeetApplyAgeRequirement() {
 		User user2 = new User();
 		user2.setUserId(2L);
 		event.setUser(user2);
-		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
-
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1));
+		event.setMaximumAge(20);
+		event.setMinimumAge(18);
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
 				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
 				.thenReturn(false);
 
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
-				.hasMessageContaining("Error: This event has finished already")
-				.isInstanceOf(BadRequestException.class);
+				.hasMessageContaining("Error: Your age does not meet the requirement").isInstanceOf(BadRequestException.class);
+	}
+	
+	@Test
+	public void shouldThrowBadRequestException_WhenUserGenderDoesNotMeetApplyGenderRequirement() {
+		User user2 = new User();
+		user2.setUserId(2L);
+		event.setUser(user2);
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setCompanionGender(Gender.L);
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		profile.setGender(Gender.P);
+		
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(
+				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				.thenReturn(false);
+
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: Your gender does not meet the requirement").isInstanceOf(BadRequestException.class);
+	}
+	
+	@Test
+	public void shouldThrowBadRequestException_WhenUserApplyAfterEventHasFinishedAlready() {
+		User user2 = new User();
+		user2.setUserId(2L);
+		event.setUser(user2);
+		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(
+				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				.thenReturn(false);
+
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: This event has finished already").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
 	public void shouldThrowBadRequestException_WhenCreatorUserIdEqualToApplicantUserId() {
 		event = new Event();
 		event.setUser(user);
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
 				.hasMessageContaining("Error: You cannot apply to your own event!")
@@ -322,7 +401,10 @@ public class EventServiceTest {
 		User user2 = new User();
 		user2.setUserId(2L);
 		event.setUser(user2);
-
+		profile = new Profile();
+		profile.setDob(LocalDate.of(1995, 1, 1));
+		
+		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
 				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
@@ -342,5 +424,94 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
-	
+
+    @Test
+    public void findActiveAppliedEventTest() {
+        event = new Event();
+        event.setEventId(1L);
+        event.setUser(user);
+        event.setAdditionalInfo("info test");
+        event.setCompanionGender(Gender.P);
+        event.setStartDateTime(LocalDateTime.now().plusDays(1));
+        event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
+        event.setMaximumAge(40);
+        event.setMinimumAge(18);
+        event.setTitle("title test");
+        event.setCity("Test City");
+        event.setDataState(DataState.ACTIVE);
+
+        List<Event> eventList = new ArrayList<>();
+        eventList.add(event);
+
+        User user2 = new User();
+        user2.setUserId(2L);
+
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setProfileId(1L);
+        profile.setFullName("John Doe");
+        profile.setPhotoProfileFilename("image.jpg");
+
+        Applicant applicant = new Applicant();
+        applicant.setId(1L);
+        applicant.setApplicantUser(user2);
+        applicant.setEvent(event);
+        applicant.setStatus(ApplicantStatus.APPLIED);
+
+        Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+        Mockito.when(eventRepository.findAppliedEvent(anyLong(), any(DataState.class), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(eventList);
+        Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
+
+        List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "createdDate", "DESC");
+
+        assertFalse(resultList.isEmpty());
+		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+		assertEquals(resultList.get(0).getTitle(), "title test");
+    }
+
+    @Test
+    public void findPastAppliedEventTest() {
+        event = new Event();
+        event.setEventId(1L);
+        event.setUser(user);
+        event.setAdditionalInfo("info test");
+        event.setCompanionGender(Gender.P);
+        event.setStartDateTime(LocalDateTime.now().minusDays(1));
+        event.setFinishDateTime(LocalDateTime.now().minusDays(1).plusHours(1));
+        event.setMaximumAge(40);
+        event.setMinimumAge(18);
+        event.setTitle("title test");
+        event.setCity("Test City");
+        event.setDataState(DataState.ACTIVE);
+
+        List<Event> eventList = new ArrayList<>();
+        eventList.add(event);
+
+        User user2 = new User();
+        user2.setUserId(2L);
+
+        Profile profile = new Profile();
+        profile.setUser(user);
+        profile.setProfileId(1L);
+        profile.setFullName("John Doe");
+        profile.setPhotoProfileFilename("image.jpg");
+
+        Applicant applicant = new Applicant();
+        applicant.setId(1L);
+        applicant.setApplicantUser(user2);
+        applicant.setEvent(event);
+        applicant.setStatus(ApplicantStatus.APPLIED);
+
+        Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+        Mockito.when(eventRepository.findAppliedEvent(anyLong(), any(DataState.class), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(eventList);
+        Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
+
+        List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC");
+
+        assertFalse(resultList.isEmpty());
+        assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+        assertEquals(resultList.get(0).getTitle(), "title test");
+    }
 }

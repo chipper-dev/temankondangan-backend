@@ -125,7 +125,7 @@ public class ProfileServiceImpl implements ProfileService {
 	}
 
 	@Override
-	public ProfileCreatorResponseWrapper findProfileCreator(Long userId) {
+	public ProfileCreatorResponseWrapper findOtherPersonProfile(Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
