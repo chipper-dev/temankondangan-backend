@@ -378,18 +378,16 @@ public class EventServiceTest {
         applicant.setEvent(event);
         applicant.setStatus(ApplicantStatus.APPLIED);
 
-        Sort sort = Sort.by("createdDate").descending();
-
-        Mockito.when(imageFileService.getImageUrl(profile)).thenReturn(profile.getPhotoProfileFilename());
-        Mockito.when(eventRepository.findAppliedEvent(2L, DataState.ACTIVE, LocalDateTime.now(), 1, sort)).thenReturn(eventList);
-        Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(2L, 1L)).thenReturn(Optional.of(applicant));
+        Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+        Mockito.when(eventRepository.findAppliedEvent(anyLong(), any(DataState.class), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(eventList);
+        Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
 
         List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "createdDate", "DESC");
 
-//        assertFalse(resultList.isEmpty());
-//		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
-//		assertEquals(resultList.get(0).getTitle(), "title test");
+        assertFalse(resultList.isEmpty());
+		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+		assertEquals(resultList.get(0).getTitle(), "title test");
     }
 
     @Test
@@ -425,17 +423,15 @@ public class EventServiceTest {
         applicant.setEvent(event);
         applicant.setStatus(ApplicantStatus.APPLIED);
 
-        Sort sort = Sort.by("createdDate").descending();
-
-        Mockito.when(imageFileService.getImageUrl(profile)).thenReturn(profile.getPhotoProfileFilename());
-        Mockito.when(eventRepository.findAppliedEvent(2L, DataState.ACTIVE, LocalDateTime.now(), 0, sort)).thenReturn(eventList);
-        Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profile));
-        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(2L, 1L)).thenReturn(Optional.of(applicant));
+        Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+        Mockito.when(eventRepository.findAppliedEvent(anyLong(), any(DataState.class), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(eventList);
+        Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+        Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
 
         List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC");
 
-//        assertFalse(resultList.isEmpty());
-//        assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
-//        assertEquals(resultList.get(0).getTitle(), "title test");
+        assertFalse(resultList.isEmpty());
+        assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
+        assertEquals(resultList.get(0).getTitle(), "title test");
     }
 }
