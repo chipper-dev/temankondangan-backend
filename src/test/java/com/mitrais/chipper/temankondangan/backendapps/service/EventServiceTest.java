@@ -151,7 +151,7 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
-		
+
 		wrapper.setStartDateTime(
 				LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm:ss")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(DateTimeParseException.class);
@@ -162,7 +162,7 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
-		
+
 		wrapper.setStartDateTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
@@ -295,13 +295,13 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.L);
-		
+
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
 				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(false);
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
-		
+
 
 		Answer<Applicant> answer = new Answer<Applicant>() {
 			public Applicant answer(InvocationOnMock invocation) throws Throwable {
@@ -319,7 +319,7 @@ public class EventServiceTest {
 		eventService.apply(1L, 1L);
 		assertEquals(3L, user2.getUserId());
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenUserAgeDoesNotMeetApplyAgeRequirement() {
 		User user2 = new User();
@@ -330,7 +330,7 @@ public class EventServiceTest {
 		event.setMinimumAge(18);
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
-		
+
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
@@ -340,7 +340,7 @@ public class EventServiceTest {
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
 				.hasMessageContaining("Error: Your age does not meet the requirement").isInstanceOf(BadRequestException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenUserGenderDoesNotMeetApplyGenderRequirement() {
 		User user2 = new User();
@@ -353,7 +353,7 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.P);
-		
+
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
@@ -363,7 +363,7 @@ public class EventServiceTest {
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
 				.hasMessageContaining("Error: Your gender does not meet the requirement").isInstanceOf(BadRequestException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenUserApplyAfterEventHasFinishedAlready() {
 		User user2 = new User();
@@ -372,7 +372,7 @@ public class EventServiceTest {
 		event.setFinishDateTime(LocalDateTime.now().minusHours(1));
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
-		
+
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
@@ -389,7 +389,7 @@ public class EventServiceTest {
 		event.setUser(user);
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
-		
+
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
@@ -404,7 +404,7 @@ public class EventServiceTest {
 		event.setUser(user2);
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
-		
+
 		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
