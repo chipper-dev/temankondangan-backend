@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -45,4 +46,6 @@ public class EventDetailResponseWrapper {
     private Boolean isCreator;
 
     private Boolean isApplied;
+    
+    private ApplicantStatus applicantStatus;
 }
