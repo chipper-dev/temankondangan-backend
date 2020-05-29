@@ -35,7 +35,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
-		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+		if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
+				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
 
@@ -54,7 +55,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
-		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+		if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
+				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
 
@@ -78,7 +80,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
-		if (LocalDateTime.now().isAfter(event.getFinishDateTime())) {
+		if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
+				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
 		
