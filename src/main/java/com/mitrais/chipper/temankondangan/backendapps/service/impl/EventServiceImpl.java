@@ -160,6 +160,7 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+			eventWrap.setHasAcceptedApplicant(!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
 			eventAllDBResponse.add(eventWrap);
 		});
 
@@ -199,6 +200,7 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+			eventWrap.setHasAcceptedApplicant(!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
 			eventAllDBResponse.add(eventWrap);
 		});
 
