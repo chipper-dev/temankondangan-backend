@@ -391,6 +391,10 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
+		if(applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
+			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
+		}
+
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
