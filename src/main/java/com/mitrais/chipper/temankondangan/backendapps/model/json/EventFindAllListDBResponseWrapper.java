@@ -32,6 +32,7 @@ public class EventFindAllListDBResponseWrapper {
 	private Gender creatorGender;
 	private Gender companionGender;
 	private ApplicantStatus applicantStatus;
+	private Boolean hasAcceptedApplicant;
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String title, String city, LocalDateTime startDateTime, LocalDateTime finishDateTime, Integer minimumAge,
