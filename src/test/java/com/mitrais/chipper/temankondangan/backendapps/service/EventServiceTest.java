@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doAnswer;
 
 import java.time.LocalDate;
@@ -84,7 +85,7 @@ public class EventServiceTest {
 
 		user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
 		Optional<User> userOptional = Optional.of(user);
-		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
+		Mockito.when(userRepository.findById(any(Long.class))).thenReturn(userOptional);
 
 	}
 
@@ -116,7 +117,7 @@ public class EventServiceTest {
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
 
-		Mockito.when(eventRepository.save(Mockito.any(Event.class))).thenReturn(event);
+		Mockito.when(eventRepository.save(any(Event.class))).thenReturn(event);
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(event.getTitle(), result.getTitle());
 	}
@@ -124,7 +125,7 @@ public class EventServiceTest {
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreateEvent() {
 		wrapper = new CreateEventWrapper();
-		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		Mockito.when(userRepository.findById(any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.create(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
@@ -231,10 +232,10 @@ public class EventServiceTest {
 		profile1.setDob(LocalDate.now().minusYears(19));
 
 		Optional<Profile> profileOptional = Optional.of(profile1);
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(profileOptional);
 		Mockito.when(imageFileService.getImageUrl(profile1)).thenReturn("");
-		Mockito.when(eventRepository.findAllByRelevantInfo(Mockito.any(Integer.class), Mockito.anyCollection(),
-				Mockito.any(Long.class), Mockito.any(LocalDateTime.class), Mockito.any(Pageable.class)))
+		Mockito.when(eventRepository.findAllByRelevantInfo(any(Integer.class), Mockito.anyCollection(),
+				any(Long.class), any(LocalDateTime.class), any(Pageable.class)))
 				.thenReturn(pageEvent);
 
 		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "createdDate", "DESC", 1L);
@@ -244,7 +245,7 @@ public class EventServiceTest {
 	@Test
 	public void shouldThrowBadRequestException_WhenProfileNotFoundInFindAllEvent() {
 
-		Mockito.when(profileRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		Mockito.when(profileRepository.findById(any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.findAll(0, 1, "test sort key", "DESC", 1L))
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
@@ -261,8 +262,8 @@ public class EventServiceTest {
 		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
 				.status(ApplicantStatus.APPLIED).build();
 
-		Mockito.when(eventRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(event));
-		Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
 		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Arrays.asList(applicant));
 
 		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
@@ -295,11 +296,11 @@ public class EventServiceTest {
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.L);
 		
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
-				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(false);
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
 		
 
 		Answer<Applicant> answer = new Answer<Applicant>() {
@@ -314,7 +315,7 @@ public class EventServiceTest {
 			}
 		};
 
-		doAnswer(answer).when(applicantRepository).save(Mockito.any(Applicant.class));
+		doAnswer(answer).when(applicantRepository).save(any(Applicant.class));
 		eventService.apply(1L, 1L);
 		assertEquals(3L, user2.getUserId());
 	}
@@ -330,10 +331,10 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
-				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(false);
 
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
@@ -353,10 +354,10 @@ public class EventServiceTest {
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.P);
 		
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
-				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(false);
 
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
@@ -372,10 +373,10 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
-				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(false);
 
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
@@ -389,8 +390,8 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
 				.hasMessageContaining("Error: You cannot apply to your own event!")
 				.isInstanceOf(BadRequestException.class);
@@ -404,10 +405,10 @@ public class EventServiceTest {
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(Optional.of(profile));
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(profileRepository.findByUserId(any(Long.class))).thenReturn(Optional.of(profile));
+		Mockito.when(eventRepository.findById(any(Long.class))).thenReturn(Optional.of(event));
 		Mockito.when(
-				applicantRepository.existsByApplicantUserAndEvent(Mockito.any(User.class), Mockito.any(Event.class)))
+				applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
 				.thenReturn(true);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L))
 				.hasMessageContaining("Error: You have applied to this event").isInstanceOf(BadRequestException.class);
@@ -415,13 +416,13 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInApplyEvent() {
-		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		Mockito.when(userRepository.findById(any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInApplyEvent() {
-		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenThrow(ResourceNotFoundException.class);
+		Mockito.when(eventRepository.findById(any(Long.class))).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> eventService.apply(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
