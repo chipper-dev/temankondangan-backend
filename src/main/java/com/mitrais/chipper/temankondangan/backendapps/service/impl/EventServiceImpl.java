@@ -8,10 +8,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +33,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
@@ -44,6 +44,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -305,9 +306,10 @@ public class EventServiceImpl implements EventService {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
-			Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userId, id)
-					.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "user id and event id", userId + " and " + id));
-			applicantStatus = applicant.getStatus();
+			Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
+			if (applicantOpt.isPresent()) {
+				applicantStatus = applicantOpt.get().getStatus();
+			}
 		}
 
 		String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
@@ -331,7 +333,7 @@ public class EventServiceImpl implements EventService {
 
 		Profile profile = profileRepository.findByUserId(user.getUserId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", user.getUserId()));
-
+		
 		if (user.getUserId().equals(event.getUser().getUserId())) {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
