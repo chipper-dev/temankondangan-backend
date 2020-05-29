@@ -330,6 +330,9 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
+		Profile profile = profileRepository.findByUserId(user.getUserId()).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", user.getUserId()));
+
 		if (user.getUserId().equals(event.getUser().getUserId())) {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
@@ -343,6 +346,11 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
+		int userAge = profile.getDob().until(LocalDate.now()).getYears();
+		if(userAge > event.getMaximumAge() || userAge < event.getMinimumAge()) {
+			throw new BadRequestException("Error: Your age does not meet the requirement");
+		}
+		
 		Applicant applicant = new Applicant();
 		applicant.setApplicantUser(user);
 		applicant.setEvent(event);
