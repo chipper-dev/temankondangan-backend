@@ -8,10 +8,9 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +32,9 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AcceptedApplicantResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
@@ -44,6 +45,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -160,6 +162,8 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+			eventWrap.setHasAcceptedApplicant(
+					!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
 			eventAllDBResponse.add(eventWrap);
 		});
 
@@ -199,6 +203,8 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+			eventWrap.setHasAcceptedApplicant(
+					!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
 			eventAllDBResponse.add(eventWrap);
 		});
 
@@ -273,7 +279,9 @@ public class EventServiceImpl implements EventService {
 		boolean isApplied = false;
 		Long id;
 		ApplicantStatus applicantStatus = null;
-
+		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();;
+		Boolean hasAcceptedApplicant = null;
+		
 		// Custom exception as requested by Tester, when input param.
 		try {
 			id = Long.parseLong(eventIdStr);
@@ -296,29 +304,42 @@ public class EventServiceImpl implements EventService {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
-
+				
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
 						.status(applicant.getStatus()).build());
+				
+				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
+					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
+					acceptedApplicant.setFullName(profileApplicant.getFullName());
+					acceptedApplicant.setGender(profileApplicant.getGender());
+					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileApplicant));
+				}
 			});
 		} else {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
-			Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userId, id)
-					.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "user id and event id", userId + " and " + id));
-			applicantStatus = applicant.getStatus();
+			Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
+			if (applicantOpt.isPresent()) {
+				applicantStatus = applicantOpt.get().getStatus();
+			}
 		}
-
+		
 		String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
 
+		if (StringUtils.isNotEmpty(acceptedApplicant.getFullName())) {
+			hasAcceptedApplicant = true;
+		}
+		
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.fullName(profileCreator.getFullName()).photoProfileUrl(photoProfileUrl).title(event.getTitle())
 				.city(event.getCity()).startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
 				.minimumAge(event.getMinimumAge()).maximumAge(event.getMaximumAge())
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
-				.isApplied(isApplied).applicantStatus(applicantStatus).build();
+				.isApplied(isApplied).applicantStatus(applicantStatus).hasAcceptedApplicant(hasAcceptedApplicant)
+				.acceptedApplicant(acceptedApplicant).build();
 	}
 
 	@Override
@@ -329,8 +350,8 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
-		Profile profile = profileRepository.findByUserId(user.getUserId()).orElseThrow(
-				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", user.getUserId()));
+		Profile profile = profileRepository.findByUserId(user.getUserId())
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", user.getUserId()));
 
 		if (user.getUserId().equals(event.getUser().getUserId())) {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
@@ -346,14 +367,15 @@ public class EventServiceImpl implements EventService {
 		}
 
 		int userAge = profile.getDob().until(LocalDate.now()).getYears();
-		if(userAge > event.getMaximumAge() || userAge < event.getMinimumAge()) {
+		if (userAge > event.getMaximumAge() || userAge < event.getMinimumAge()) {
 			throw new BadRequestException("Error: Your age does not meet the requirement");
 		}
-		
-		if(!event.getCompanionGender().equals(Gender.B) && event.getCompanionGender().compareTo(profile.getGender()) != 0) {
+
+		if (!event.getCompanionGender().equals(Gender.B)
+				&& event.getCompanionGender().compareTo(profile.getGender()) != 0) {
 			throw new BadRequestException("Error: Your gender does not meet the requirement");
 		}
-		
+
 		Applicant applicant = new Applicant();
 		applicant.setApplicantUser(user);
 		applicant.setEvent(event);
@@ -368,6 +390,10 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "eventId", eventId));
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
+
+		if(applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
+			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
+		}
 
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);

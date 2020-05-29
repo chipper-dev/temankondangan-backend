@@ -48,4 +48,8 @@ public class EventDetailResponseWrapper {
     private Boolean isApplied;
     
     private ApplicantStatus applicantStatus;
+    
+    private Boolean hasAcceptedApplicant;
+    
+    private AcceptedApplicantResponseWrapper acceptedApplicant;
 }
