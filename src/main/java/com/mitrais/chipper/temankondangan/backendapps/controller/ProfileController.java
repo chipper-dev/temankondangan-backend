@@ -62,11 +62,11 @@ public class ProfileController extends CommonResource {
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 	}
 
-	@ApiOperation(value = "Get Profile Creator", response = ResponseEntity.class)
+	@ApiOperation(value = "Get Other Person Profile", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping("/find-creator/{userId}")
+	@GetMapping("/find-profile/{userId}")
 	public ResponseEntity<ResponseBody> findProfileCreator(HttpServletRequest request, @PathVariable Long userId) {
-    	ProfileCreatorResponseWrapper responseWrapper = profileService.findProfileCreator(userId);
+    	ProfileCreatorResponseWrapper responseWrapper = profileService.findOtherPersonProfile(userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 	}
 

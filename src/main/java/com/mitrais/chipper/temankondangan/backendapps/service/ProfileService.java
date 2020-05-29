@@ -10,5 +10,5 @@ public interface ProfileService {
 	Profile create(CreateProfileWrapper wrapper);
 	Profile update(Long userId, ProfileUpdateWrapper wrapper);
 	ProfileResponseWrapper findByUserId(Long userId);
-	ProfileCreatorResponseWrapper findProfileCreator(Long userId);
+	ProfileCreatorResponseWrapper findOtherPersonProfile(Long userId);
 }
