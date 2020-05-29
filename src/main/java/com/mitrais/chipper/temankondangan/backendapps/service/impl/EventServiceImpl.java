@@ -47,7 +47,6 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
 @Service
 public class EventServiceImpl implements EventService {
-
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 
 	private EventRepository eventRepository;
@@ -437,5 +436,4 @@ public class EventServiceImpl implements EventService {
 
 		return duration.getSeconds() * 1000 > cancelationMax;
 	}
-
 }
