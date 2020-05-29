@@ -47,7 +47,6 @@ import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
 @Service
 public class EventServiceImpl implements EventService {
-
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 
 	private EventRepository eventRepository;
@@ -351,6 +350,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Your age does not meet the requirement");
 		}
 		
+		if(!event.getCompanionGender().equals(Gender.B) && event.getCompanionGender().compareTo(profile.getGender()) != 0) {
+			throw new BadRequestException("Error: Your gender does not meet the requirement");
+		}
+		
 		Applicant applicant = new Applicant();
 		applicant.setApplicantUser(user);
 		applicant.setEvent(event);
@@ -445,5 +448,4 @@ public class EventServiceImpl implements EventService {
 
 		return duration.getSeconds() * 1000 > cancelationMax;
 	}
-
 }
