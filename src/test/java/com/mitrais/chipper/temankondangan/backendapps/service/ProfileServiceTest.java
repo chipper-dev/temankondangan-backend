@@ -6,6 +6,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -108,6 +109,18 @@ public class ProfileServiceTest {
 		wrapper = new ProfileUpdateWrapper(multipartFile, "Klaten city", "All about me", "Not interested");
 
 		Profile result = profileService.update(1L, wrapper);
+		assertEquals("full name test", result.getFullName());
+	}
+
+	@Test
+	public void findOtherPersonProfile() {
+		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
+				"All about me", "Not interested", DataState.ACTIVE);
+		Optional<Profile> profileOptional = Optional.of(profile);
+		Mockito.when(profileRepository.findByUserId(1L)).thenReturn(profileOptional);
+		Mockito.when(iamgeService.getImageUrl(profile)).thenReturn("test");
+
+		ProfileCreatorResponseWrapper result = profileService.findOtherPersonProfile(1l);
 		assertEquals("full name test", result.getFullName());
 	}
 
