@@ -241,4 +241,17 @@ public class ApplicantServiceTest {
 				.hasMessageContaining("Error: This event has finished already").isInstanceOf(BadRequestException.class);
 	}
 
+	@Test
+	public void shouldThrowBadRequestException_WhenUserRejectAcceptedApplicant() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(26));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.ACCEPTED);
+
+		Mockito.when(eventRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.any(Long.class))).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.rejectApplicant(1L))
+				.hasMessageContaining("Error: You cannot reject the accepted applicant").isInstanceOf(BadRequestException.class);
+	}
 }
