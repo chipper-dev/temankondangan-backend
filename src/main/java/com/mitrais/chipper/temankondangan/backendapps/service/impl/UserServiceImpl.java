@@ -34,7 +34,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
 
 @Service
 public class UserServiceImpl implements UserService {
-	private static final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
 	

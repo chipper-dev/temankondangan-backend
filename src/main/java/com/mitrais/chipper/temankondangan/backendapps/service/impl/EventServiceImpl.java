@@ -12,6 +12,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -49,6 +51,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
+	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 
 	private EventRepository eventRepository;
@@ -279,7 +282,7 @@ public class EventServiceImpl implements EventService {
 		boolean isApplied = false;
 		Long id;
 		ApplicantStatus applicantStatus = null;
-		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();;
+		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
 		Boolean hasAcceptedApplicant = null;
 		
 		// Custom exception as requested by Tester, when input param.
@@ -449,7 +452,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-			System.out.println(event);
+			logger.info(event.toString());
 
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
 			wrapper.setTitle(event.getTitle());
