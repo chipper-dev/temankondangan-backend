@@ -85,6 +85,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
 		
+		if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
+			throw new BadRequestException("Error: You cannot reject the accepted applicant");
+		}
+		
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 		
