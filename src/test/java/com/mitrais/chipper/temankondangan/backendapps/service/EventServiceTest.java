@@ -467,8 +467,8 @@ public class EventServiceTest {
         List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "createdDate", "DESC");
 
         assertFalse(resultList.isEmpty());
-		assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
-		assertEquals(resultList.get(0).getTitle(), "title test");
+		assertEquals( "image.jpg", resultList.get(0).getPhotoProfileUrl());
+		assertEquals("title test", resultList.get(0).getTitle());
     }
 
     @Test
@@ -512,7 +512,7 @@ public class EventServiceTest {
         List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC");
 
         assertFalse(resultList.isEmpty());
-        assertEquals(resultList.get(0).getPhotoProfileUrl(), "image.jpg");
-        assertEquals(resultList.get(0).getTitle(), "title test");
+        assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
+        assertEquals("title test", resultList.get(0).getTitle());
     }
 }
