@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class AppliedEventWrapper {
+    private Long eventId;
     private String photoProfileUrl;
     private String title;
     private String city;
