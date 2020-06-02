@@ -34,7 +34,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "WHERE ((e.minimumAge <= :age AND e.maximumAge >= :age "
 			+ "AND e.companionGender in :companionGender) "
 			+ "OR (u.userId = :userId)) "
-			+ "AND e.startDateTime > :now")
+			+ "AND e.startDateTime > :now "
+			+ "AND a.dataState <> 'DELETED' "
+			+ "AND e.dataState <> 'DELETED'")
 	Page<EventFindAllListDBResponseWrapper> findAllByRelevantInfo(@Param("age") Integer age,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId, @Param("now") LocalDateTime now,
 			Pageable paging);
