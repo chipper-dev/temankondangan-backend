@@ -418,6 +418,7 @@ public class EventServiceImpl implements EventService {
 
 		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
+			wrapper.setEventId(event.getEventId());
 			wrapper.setTitle(event.getTitle());
 			wrapper.setCity(event.getCity());
 			wrapper.setStartDateTime(event.getStartDateTime());
@@ -449,9 +450,8 @@ public class EventServiceImpl implements EventService {
 		}
 
 		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-			System.out.println(event);
-
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
+			wrapper.setEventId(event.getEventId());
 			wrapper.setTitle(event.getTitle());
 			wrapper.setCity(event.getCity());
 			wrapper.setStartDateTime(event.getStartDateTime());
