@@ -431,7 +431,7 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
 
 			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
 			resultList.add(wrapper);
 		});
@@ -466,7 +466,7 @@ public class EventServiceImpl implements EventService {
 					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
 
 			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
 			resultList.add(wrapper);
 		});
