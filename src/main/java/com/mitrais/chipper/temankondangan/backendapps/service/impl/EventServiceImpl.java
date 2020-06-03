@@ -303,7 +303,7 @@ public class EventServiceImpl implements EventService {
 				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId()));
 
 		if (userId.equals(userCreator.getUserId())) {
-			applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
+			applicantRepository.findByEventId(event.getEventId()).ifPresent(a->a.forEach(applicant -> {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
@@ -318,7 +318,7 @@ public class EventServiceImpl implements EventService {
 					acceptedApplicant.setGender(profileApplicant.getGender());
 					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileApplicant));
 				}
-			});
+			}));
 		} else {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));

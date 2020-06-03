@@ -16,7 +16,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 @Repository
 public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
     @Query("SELECT a from Applicant a WHERE a.event.eventId = :eventId")
-    List<Applicant> findByEventId(@Param("eventId")Long eventId);
+    Optional<List<Applicant>> findByEventId(@Param("eventId")Long eventId);
 
     @Query("SELECT a from Applicant a WHERE a.applicantUser.userId = :userId AND a.event.eventId = :eventId")
     Optional<Applicant> findByApplicantUserIdAndEventId(@Param("userId") Long applicantUserId, @Param("eventId") Long eventId);

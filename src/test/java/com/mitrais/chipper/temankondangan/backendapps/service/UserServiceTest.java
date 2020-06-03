@@ -3,8 +3,11 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,11 +20,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -39,6 +46,9 @@ public class UserServiceTest {
 
 	@Mock
 	ProfileRepository profileRepository;
+	
+	@Mock
+	ApplicantRepository applicantRepository;
 
 	@Mock
 	PasswordEncoder passwordEncoder;
@@ -72,21 +82,28 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenPasswordEmpty() {
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInChangePassword() {
+		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456_", "123456_");
+		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
+	}
+	
+	@Test
+	public void shouldThrowBadRequestException_WhenPasswordEmptyInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "", "");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password cannot be empty!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenOldPasswordNotMatch() {
+	public void shouldThrowBadRequestException_WhenOldPasswordNotMatchInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_@", "123456_", "123456_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Old password do not match!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenOldPasswordSameAsNewPassword() {
+	public void shouldThrowBadRequestException_WhenOldPasswordSameAsNewPasswordInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12345_", "12345_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: New password cannot be the same as old password!")
@@ -94,7 +111,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenNewPasswordDoNotMatchWithConfirmedPassword() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotMatchWithConfirmedPasswordInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456_", "123457_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Confirmed password do not match!")
@@ -102,7 +119,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenNewPasswordLengthNotRight() {
+	public void shouldThrowBadRequestException_WhenNewPasswordLengthNotRightInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "12_", "12_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password length must be 6-20 characters!")
@@ -110,7 +127,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveSpecialChar() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveSpecialCharInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "123456", "123456");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password must have at least one special character!")
@@ -118,7 +135,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveDigit() {
+	public void shouldThrowBadRequestException_WhenNewPasswordDoNotHaveDigitInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "ABCDEF_", "ABCDEF_");
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper))
 				.hasMessageContaining("Error: Password must have at least one digit character!")
@@ -138,8 +155,16 @@ public class UserServiceTest {
 		assertTrue(result);
 	}
 
+
 	@Test
-	public void shouldThrowBadRequestException_WhenPasswordIsNotNull() {
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreatePassword() {
+		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
+		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> userService.createPassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
+	}
+	
+	@Test
+	public void shouldThrowBadRequestException_WhenPasswordIsNotNullInCreatePassword() {
 		// provider must be google
 		user.setProvider(AuthProvider.google);
 
@@ -149,7 +174,7 @@ public class UserServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenProviderIsNotGoogle() {
+	public void shouldThrowBadRequestException_WhenProviderIsNotGoogleInCreatePassword() {
 		// test with other provider that is not google
 		user.setPasswordHashed(null);
 
@@ -169,7 +194,28 @@ public class UserServiceTest {
 			return null;
 		}).when(userRepository).delete(Mockito.any(User.class));
 
+		Event event = new Event();
+		event.setEventId(1L);
+		List<Event> events = new ArrayList<Event>();
+		events.add(event);
+		Mockito.when(eventRepository.findByUserId(anyLong())).thenReturn(Optional.of(events));
+		
+		Applicant applicant = new Applicant();
+		List<Applicant> applicants = new ArrayList<Applicant>();
+		applicants.add(applicant);
+		Mockito.when(applicantRepository.findByEventId(anyLong())).thenReturn(Optional.of(applicants));
+		
+		Mockito.doNothing().when(applicantRepository).deleteAll(applicants);
+		Mockito.doNothing().when(eventRepository).deleteAll(events);
+		
 		userService.remove(1L);
 		assertEquals(DataState.DELETED, user.getDataState());
+	}
+	
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInRemoveUser() {
+		
+		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> userService.remove(1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
 }

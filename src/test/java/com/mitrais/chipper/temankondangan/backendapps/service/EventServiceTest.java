@@ -243,13 +243,37 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenProfileNotFoundInFindAllEvent() {
+	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInFindAllEvent() {
 
 		Mockito.when(profileRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
-		assertThatThrownBy(() -> eventService.findAll(0, 1, "test sort key", "DESC", 1L))
+		assertThatThrownBy(() -> eventService.findAll(0, 1, "createdDate", "DESC", 1L))
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
+	public void shouldThrowBadRequestException_WhenSortByParamNotFilledWithCorrectValue() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+		
+		assertThatThrownBy(() -> eventService.findAll(0, 1, "wrong sort key", "DESC", 1L))
+		.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!").isInstanceOf(BadRequestException.class);
+	}
+	
+	public void shouldThrowBadRequestException_WhenDirectionParamNotFilledWithCorrectValue() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+		
+		assertThatThrownBy(() -> eventService.findAll(0, 1, "createdDate", "wrong direction", 1L))
+		.hasMessageContaining("Error: Can only input ASC or DESC for direction!").isInstanceOf(BadRequestException.class);
+	}
+	
 	// find Event Detail
 	@Test
 	public void findEventDetailForCreatorTest() {
@@ -264,7 +288,7 @@ public class EventServiceTest {
 
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Arrays.asList(applicant));
+		Mockito.when(applicantRepository.findByEventId(event.getEventId())).thenReturn(Optional.of(Arrays.asList(applicant)));
 
 		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
 		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
