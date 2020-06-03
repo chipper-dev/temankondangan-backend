@@ -307,11 +307,11 @@ public class EventServiceImpl implements EventService {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
-				
+
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
 						.status(applicant.getStatus()).build());
-				
+
 				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
 					acceptedApplicant.setFullName(profileApplicant.getFullName());
@@ -406,77 +406,83 @@ public class EventServiceImpl implements EventService {
 
 	}
 
-	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
-		List<AppliedEventWrapper> resultList = new ArrayList<>();
+    @Override
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
 
-		Sort sort;
-		if (direction.equalsIgnoreCase("DESC")) {
-			sort = Sort.by(sortBy).descending();
-		} else if (direction.equalsIgnoreCase("ASC")) {
-			sort = Sort.by(sortBy).ascending();
-		} else {
-			throw new BadRequestException(ERROR_SORT_DIRECTION);
-		}
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException(ERROR_SORT_DIRECTION);
+        }
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
+            AppliedEventWrapper wrapper = new AppliedEventWrapper();
+            wrapper.setEventId(event.getEventId());
+            wrapper.setTitle(event.getTitle());
+            wrapper.setCity(event.getCity());
+            wrapper.setStartDateTime(event.getStartDateTime());
+            wrapper.setFinishDateTime(event.getFinishDateTime());
 
-			profileRepository.findByUserId(event.getUser().getUserId())
-					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+            profileRepository.findByUserId(event.getUser().getUserId())
+                    .ifPresent(profile -> {
+                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+                        wrapper.setFullNameCreator(profile.getFullName());
+                    });
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-			resultList.add(wrapper);
-		});
+            resultList.add(wrapper);
+        });
 
-		return resultList;
-	}
+        return resultList;
+    }
 
-	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
-		List<AppliedEventWrapper> resultList = new ArrayList<>();
+    @Override
+    public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
 
-		Sort sort;
-		if (direction.equalsIgnoreCase("DESC")) {
-			sort = Sort.by(sortBy).descending();
-		} else if (direction.equalsIgnoreCase("ASC")) {
-			sort = Sort.by(sortBy).ascending();
-		} else {
-			throw new BadRequestException(ERROR_SORT_DIRECTION);
-		}
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException(ERROR_SORT_DIRECTION);
+        }
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-			logger.info(event.toString());
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
+            logger.info(event.toString());
 
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
+            AppliedEventWrapper wrapper = new AppliedEventWrapper();
+            wrapper.setEventId(event.getEventId());
+            wrapper.setTitle(event.getTitle());
+            wrapper.setCity(event.getCity());
+            wrapper.setStartDateTime(event.getStartDateTime());
+            wrapper.setFinishDateTime(event.getFinishDateTime());
 
-			profileRepository.findByUserId(event.getUser().getUserId())
-					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+            profileRepository.findByUserId(event.getUser().getUserId())
+                    .ifPresent(profile -> {
+                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+                        wrapper.setFullNameCreator(profile.getFullName());
+                    });
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-			resultList.add(wrapper);
-		});
+            resultList.add(wrapper);
+        });
 
-		return resultList;
-	}
+        return resultList;
+    }
 
-	private boolean isCancelationValid(LocalDateTime eventDate) {
-		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+    private boolean isCancelationValid(LocalDateTime eventDate) {
+        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
 
-		return duration.getSeconds() * 1000 > cancelationMax;
-	}
+        return duration.getSeconds() * 1000 > cancelationMax;
+    }
 }
