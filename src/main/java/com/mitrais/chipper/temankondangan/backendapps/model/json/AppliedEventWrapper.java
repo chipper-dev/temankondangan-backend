@@ -22,5 +22,5 @@ public class AppliedEventWrapper {
     private LocalDateTime startDateTime;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
     private LocalDateTime finishDateTime;
-    private ApplicantStatus status;
+    private ApplicantStatus applicantStatus;
 }
