@@ -36,7 +36,8 @@ app:
   auth:
     tokenSecret: ${TOKEN_SECRET}
 #    tokenExpirationMsec: 864000000 #10 days
-    tokenExpirationMsec: 300000 #5 mins
+#    tokenExpirationMsec: 300000 #5 mins
+    tokenExpirationMsec: 600000 #10 mins
 #    tokenExpirationMsec: 86400000 #1 days
   firebase:
     databaseUrl: ${FIREBASE_DATABASE}
