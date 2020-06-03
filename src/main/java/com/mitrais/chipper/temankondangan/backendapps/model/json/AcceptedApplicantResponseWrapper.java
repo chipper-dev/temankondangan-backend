@@ -1,7 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
