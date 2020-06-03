@@ -16,15 +16,19 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.FieldSetter;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.boot.test.context.ConfigFileApplicationContextInitializer;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.util.ApplicationContextTestUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -39,17 +43,15 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -539,4 +541,40 @@ public class EventServiceTest {
         assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
         assertEquals("title test", resultList.get(0).getTitle());
     }
+
+    @Test
+	public void editEventSuccess() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+		Event eventEdited = eventService.edit(1L, editEvent);
+
+		assertEquals("title test edited", eventEdited.getTitle());
+	}
 }
