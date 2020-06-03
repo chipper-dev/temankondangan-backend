@@ -1,21 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
-import java.util.regex.Pattern;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
@@ -25,25 +9,38 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
+import java.util.Random;
+import java.util.regex.Pattern;
 
 @Service
 public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
-	
+
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
 
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
 	private EventRepository eventRepository;
+	private ApplicantRepository applicantRepository;
 	private PasswordEncoder passwordEncoder;
 	private VerificationCodeRepository verificationRepository;
 	private EmailService emailService;
@@ -51,11 +48,12 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	public UserServiceImpl(UserRepository userRepository, ProfileRepository profileRepository,
-			EventRepository eventRepository, PasswordEncoder passwordEncoder, EmailService emailService,
-			VerificationCodeRepository verificationRepository, SimpleMailMessage template) {
+			EventRepository eventRepository, ApplicantRepository applicantRepository, PasswordEncoder passwordEncoder,
+			EmailService emailService, VerificationCodeRepository verificationRepository, SimpleMailMessage template) {
 		this.userRepository = userRepository;
 		this.eventRepository = eventRepository;
 		this.profileRepository = profileRepository;
+		this.applicantRepository = applicantRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.emailService = emailService;
 		this.verificationRepository = verificationRepository;
@@ -126,7 +124,11 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
-		eventRepository.findByUserId(userId).ifPresent(e -> eventRepository.deleteAll(e));
+		eventRepository.findByUserId(userId).ifPresent(events -> {
+			events.forEach(event -> applicantRepository.findByEventId(event.getEventId())
+					.ifPresent(applicants -> applicantRepository.deleteAll(applicants)));
+			eventRepository.deleteAll(events);
+		});
 		profileRepository.findByUserId(userId).ifPresent(p -> profileRepository.delete(p));
 		userRepository.delete(user);
 
@@ -161,8 +163,8 @@ public class UserServiceImpl implements UserService {
 
 		// check verification code is expired?
 		if (isCodeValid(verificationCode.getCreatedAt())) {
-			User user = userRepository.findByEmail(verificationCode.getEmail())
-					.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "email", verificationCode.getEmail()));
+			User user = userRepository.findByEmail(verificationCode.getEmail()).orElseThrow(
+					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "email", verificationCode.getEmail()));
 
 			// check the new password can't be same with old password
 			if (passwordEncoder.matches(wrapper.getNewPassword(), user.getPasswordHashed()))

@@ -91,7 +91,7 @@ public class EventControllerTest {
                 .startDateTime(LocalDateTime.now().plusDays(1))
                 .finishDateTime(LocalDateTime.now().plusDays(1).plusHours(1))
                 .city("Sim City")
-                .status(ApplicantStatus.APPLIED)
+                .applicantStatus(ApplicantStatus.APPLIED)
                 .build();
 
         List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
@@ -118,7 +118,7 @@ public class EventControllerTest {
                 .startDateTime(LocalDateTime.now().minusDays(1))
                 .finishDateTime(LocalDateTime.now().minusDays(1).plusHours(1))
                 .city("Sim City")
-                .status(ApplicantStatus.APPLIED)
+                .applicantStatus(ApplicantStatus.APPLIED)
                 .build();
 
         List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);

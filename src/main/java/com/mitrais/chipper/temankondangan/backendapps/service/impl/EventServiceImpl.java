@@ -1,16 +1,22 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,30 +30,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AcceptedApplicantResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Service
 public class EventServiceImpl implements EventService {
@@ -303,22 +295,22 @@ public class EventServiceImpl implements EventService {
 				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId()));
 
 		if (userId.equals(userCreator.getUserId())) {
-			applicantRepository.findByEventId(event.getEventId()).forEach(applicant -> {
+			applicantRepository.findByEventId(event.getEventId()).ifPresent(a->a.forEach(applicant -> {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
-				
+
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
 						.status(applicant.getStatus()).build());
-				
+
 				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
 					acceptedApplicant.setFullName(profileApplicant.getFullName());
 					acceptedApplicant.setGender(profileApplicant.getGender());
 					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileApplicant));
 				}
-			});
+			}));
 		} else {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
@@ -406,77 +398,83 @@ public class EventServiceImpl implements EventService {
 
 	}
 
-	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
-		List<AppliedEventWrapper> resultList = new ArrayList<>();
+    @Override
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
 
-		Sort sort;
-		if (direction.equalsIgnoreCase("DESC")) {
-			sort = Sort.by(sortBy).descending();
-		} else if (direction.equalsIgnoreCase("ASC")) {
-			sort = Sort.by(sortBy).ascending();
-		} else {
-			throw new BadRequestException(ERROR_SORT_DIRECTION);
-		}
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException(ERROR_SORT_DIRECTION);
+        }
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
+            AppliedEventWrapper wrapper = new AppliedEventWrapper();
+            wrapper.setEventId(event.getEventId());
+            wrapper.setTitle(event.getTitle());
+            wrapper.setCity(event.getCity());
+            wrapper.setStartDateTime(event.getStartDateTime());
+            wrapper.setFinishDateTime(event.getFinishDateTime());
 
-			profileRepository.findByUserId(event.getUser().getUserId())
-					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+            profileRepository.findByUserId(event.getUser().getUserId())
+                    .ifPresent(profile -> {
+                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+                        wrapper.setFullNameCreator(profile.getFullName());
+                    });
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-			resultList.add(wrapper);
-		});
+            resultList.add(wrapper);
+        });
 
-		return resultList;
-	}
+        return resultList;
+    }
 
-	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
-		List<AppliedEventWrapper> resultList = new ArrayList<>();
+    @Override
+    public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
 
-		Sort sort;
-		if (direction.equalsIgnoreCase("DESC")) {
-			sort = Sort.by(sortBy).descending();
-		} else if (direction.equalsIgnoreCase("ASC")) {
-			sort = Sort.by(sortBy).ascending();
-		} else {
-			throw new BadRequestException(ERROR_SORT_DIRECTION);
-		}
+        Sort sort;
+        if (direction.equalsIgnoreCase("DESC")) {
+            sort = Sort.by(sortBy).descending();
+        } else if (direction.equalsIgnoreCase("ASC")) {
+            sort = Sort.by(sortBy).ascending();
+        } else {
+            throw new BadRequestException(ERROR_SORT_DIRECTION);
+        }
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-			logger.info(event.toString());
+        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
+            logger.info(event.toString());
 
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
+            AppliedEventWrapper wrapper = new AppliedEventWrapper();
+            wrapper.setEventId(event.getEventId());
+            wrapper.setTitle(event.getTitle());
+            wrapper.setCity(event.getCity());
+            wrapper.setStartDateTime(event.getStartDateTime());
+            wrapper.setFinishDateTime(event.getFinishDateTime());
 
-			profileRepository.findByUserId(event.getUser().getUserId())
-					.ifPresent(profile -> wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile)));
+            profileRepository.findByUserId(event.getUser().getUserId())
+                    .ifPresent(profile -> {
+                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+                        wrapper.setFullNameCreator(profile.getFullName());
+                    });
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setStatus(applicant.getStatus()));
+            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-			resultList.add(wrapper);
-		});
+            resultList.add(wrapper);
+        });
 
-		return resultList;
-	}
+        return resultList;
+    }
 
-	private boolean isCancelationValid(LocalDateTime eventDate) {
-		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+    private boolean isCancelationValid(LocalDateTime eventDate) {
+        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
 
-		return duration.getSeconds() * 1000 > cancelationMax;
-	}
+        return duration.getSeconds() * 1000 > cancelationMax;
+    }
 }

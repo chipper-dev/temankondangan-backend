@@ -1,7 +1,9 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
-import javax.servlet.http.HttpServletRequest;
-
+import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,15 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
-import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import javax.servlet.http.HttpServletRequest;
 
 @Api(value = "Applicant Management System")
 @RestController
