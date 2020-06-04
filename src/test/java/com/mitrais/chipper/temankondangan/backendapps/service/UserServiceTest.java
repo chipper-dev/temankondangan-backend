@@ -8,6 +8,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
@@ -23,6 +24,7 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -244,8 +246,28 @@ public class UserServiceTest {
 
 		userService.forgotPassword("test@example.com");
 
-		verify(verificationRepository, times(1)).delete(verify);
+		verify(verificationRepository, times(1)).delete(any(VerificationCode.class));
 		verify(verificationRepository, times(1)).save(any(VerificationCode.class));
 		verify(emailService, times(1)).sendMessage(any(String.class), any(String.class), any(String.class));
+	}
+
+	@Test
+	public void resetPasswordTest() {
+		ResetPasswordWrapper wrapper = new ResetPasswordWrapper();
+		wrapper.setNewPassword("password123_");
+		wrapper.setConfirmPassword("password123_");
+		wrapper.setVerificationCode("11234");
+
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCreatedAt(LocalDateTime.now().minusMinutes(1));
+		verify.setCode("11234");
+
+		Mockito.when(verificationRepository.findByCode(anyString())).thenReturn(Optional.of(verify));
+		Mockito.when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+		ReflectionTestUtils.setField(userService, "expiration", (long) 300000);
+
+		userService.resetPassword(wrapper);
+		verify(userRepository, times(1)).save(any(User.class));
 	}
 }
