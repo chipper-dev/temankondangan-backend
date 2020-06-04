@@ -1,21 +1,21 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doAnswer;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -29,27 +29,22 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -105,21 +100,29 @@ public class EventServiceTest {
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
 
-		event = new Event();
-		event.setUser(user);
-		event.setAdditionalInfo("info test");
-		event.setCompanionGender(Gender.P);
-		event.setStartDateTime(LocalDateTime.now());
-		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
-		event.setMaximumAge(40);
-		event.setMinimumAge(18);
-		event.setTitle("title test");
-		event.setCity("Test City");
-		event.setDataState(DataState.ACTIVE);
-
-		Mockito.when(eventRepository.save(any(Event.class))).thenReturn(event);
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
-		assertEquals(event.getTitle(), result.getTitle());
+		assertEquals("title test", result.getTitle());
+	}
+
+	@Test
+	public void createEventTestWhenAge40() {
+
+		wrapper = new CreateEventWrapper();
+		wrapper.setAdditionalInfo("info test");
+		wrapper.setCompanionGender(Gender.P);
+		wrapper.setStartDateTime(
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setFinishDateTime(
+				LocalDateTime.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")));
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
+		wrapper.setTitle("title test");
+		wrapper.setCity("Test City");
+
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+		Event result = eventService.create(1L, wrapper);
+		assertEquals(150, result.getMaximumAge());
 	}
 
 	@Test
@@ -201,7 +204,7 @@ public class EventServiceTest {
 
 	// find all service
 	@Test
-	public void findAllEventTest() {
+	public void findAllEventTestDesc() {
 
 		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
 		event2.setCompanionGender(Gender.P);
@@ -243,6 +246,48 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void findAllEventTestAsc() {
+
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
+		event2.setCompanionGender(Gender.P);
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event2.setMaximumAge(25);
+		event2.setMinimumAge(18);
+		event2.setTitle("title test 2");
+		event2.setCity("Test City");
+
+		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
+		event3.setCompanionGender(Gender.P);
+		event3.setStartDateTime(LocalDateTime.now());
+		event3.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event3.setMaximumAge(25);
+		event3.setMinimumAge(18);
+		event3.setTitle("title test 3");
+		event3.setCity("Test City");
+
+		eventList = new ArrayList<>();
+		eventList.add(event3);
+		eventList.add(event2);
+
+		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
+
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+		Mockito.when(imageFileService.getImageUrl(profile1)).thenReturn("");
+		Mockito.when(eventRepository.findAllByRelevantInfo(any(Integer.class), Mockito.anyCollection(),
+				anyLong(), any(LocalDateTime.class), any(Pageable.class)))
+				.thenReturn(pageEvent);
+
+		EventFindAllResponseWrapper events = eventService.findAll(0, 1, "createdDate", "ASC", 1L);
+		assertEquals("title test 3", events.getContentList().get(0).getTitle());
+	}
+
+	@Test
 	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInFindAllEvent() {
 
 		Mockito.when(profileRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
@@ -250,6 +295,7 @@ public class EventServiceTest {
 				.isInstanceOf(ResourceNotFoundException.class);
 	}
 
+	@Test
 	public void shouldThrowBadRequestException_WhenSortByParamNotFilledWithCorrectValue() {
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -261,7 +307,8 @@ public class EventServiceTest {
 		assertThatThrownBy(() -> eventService.findAll(0, 1, "wrong sort key", "DESC", 1L))
 		.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!").isInstanceOf(BadRequestException.class);
 	}
-	
+
+	@Test
 	public void shouldThrowBadRequestException_WhenDirectionParamNotFilledWithCorrectValue() {
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -539,4 +586,467 @@ public class EventServiceTest {
         assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
         assertEquals("title test", resultList.get(0).getTitle());
     }
+
+    @Test
+	public void editEventSuccess() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(20);
+		editEvent.setMinimumAge(18);
+		Event eventEdited = eventService.edit(1L, editEvent);
+
+		assertEquals("title test edited", eventEdited.getTitle());
+	}
+
+	@Test
+	public void editEventSuccessWhenMaxAge40() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+		Event eventEdited = eventService.edit(1L, editEvent);
+
+		assertEquals("title test edited", eventEdited.getTitle());
+		assertEquals(150, eventEdited.getMaximumAge());
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventLessThan24Hours() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusHours(4));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(5));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+		.hasMessageContaining("Error: The event will be started in less than 24 hours").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowResponseStatusException_WhenEditEventIsNotCreator() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+
+		assertThatThrownBy(() -> eventService.edit(2L, editEvent))
+				.hasMessageContaining("Error: Users are not authorized to edit this event").isInstanceOf(ResponseStatusException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventToMakeAgeLessThan18() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(16);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+				.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventMaxAgeLessThanMinAge() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
+		editEvent.setMaximumAge(18);
+		editEvent.setMinimumAge(40);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+				.hasMessageContaining("Error: Inputted age is not valid!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventToStartTimeLessThan24Hours() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusHours(10).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusHours(11).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+				.hasMessageContaining("Error: Date inputted have to be after today!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventToFinishTimeEarlierThanStartTime() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(2).plusHours(1).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(2).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+				.hasMessageContaining("Error: Start time must be earlier than finish time!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEditEventToStartTimeAndFinishTimeDifferentDay() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+		EditEventWrapper editEvent = new EditEventWrapper();
+		editEvent.setEventId(1L);
+		editEvent.setTitle("title test edited");
+		editEvent.setCity("Test City");
+		editEvent.setAdditionalInfo("info test");
+		editEvent.setCompanionGender(Gender.P);
+		editEvent.setStartDateTime(LocalDateTime.now().plusDays(10).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(11).format(formatter));
+		editEvent.setMaximumAge(40);
+		editEvent.setMinimumAge(18);
+
+		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
+				.hasMessageContaining("Error: Start date and finish date must be the same day!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void cancelEventSuccess() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Applicant applicant = new Applicant();
+		applicant.setEvent(event);
+		applicant.setApplicantUser(user);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		eventService.cancelEvent(1L, 1L);
+		verify(applicantRepository, times(1)).delete(applicant);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelEventRejected() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Applicant applicant = new Applicant();
+		applicant.setEvent(event);
+		applicant.setApplicantUser(user);
+		applicant.setStatus(ApplicantStatus.REJECTED);
+
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+
+		assertThatThrownBy(() -> eventService.cancelEvent(1L, 1L))
+				.hasMessageContaining("Error: You are already rejected. You don't need to cancel it anymore.").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelEventStartedLessThan24Hours() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusHours(10));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(11));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		Applicant applicant = new Applicant();
+		applicant.setEvent(event);
+		applicant.setApplicantUser(user);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong())).thenReturn(Optional.of(applicant));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+
+		assertThatThrownBy(() -> eventService.cancelEvent(1L, 1L))
+				.hasMessageContaining("Error: The event will be started in less than 24 hours").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void findMyEventSuccess() {
+		EventFindAllListDBResponseWrapper event1 = new EventFindAllListDBResponseWrapper();
+		event1.setEventId(1L);
+		event1.setProfileId(1L);
+		event1.setCreatorFullName("test");
+		event1.setCreatedBy("test");
+		event1.setPhotoProfileUrl("");
+		event1.setTitle("Event Test 1");
+		event1.setCity("Yogya");
+		event1.setStartDateTime(LocalDateTime.now().plusDays(2));
+		event1.setFinishDateTime(LocalDateTime.now().plusDays(2).plusHours(1));
+		event1.setMinimumAge(18);
+		event1.setMaximumAge(22);
+		event1.setCreatorGender(Gender.L);
+		event1.setCompanionGender(Gender.B);
+		event1.setApplicantStatus(null);
+
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
+		event2.setEventId(2L);
+		event2.setProfileId(1L);
+		event2.setCreatorFullName("test");
+		event2.setCreatedBy("test");
+		event2.setPhotoProfileUrl("");
+		event2.setTitle("Event Test 2");
+		event2.setCity("Yogya");
+		event2.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event2.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(22);
+		event2.setCreatorGender(Gender.L);
+		event2.setCompanionGender(Gender.B);
+		event2.setApplicantStatus(null);
+
+		List<EventFindAllListDBResponseWrapper> list = new ArrayList<>();
+		list.add(event1);
+		list.add(event2);
+
+		profile = new Profile();
+
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(eventRepository.findAllMyEvent(anyLong(), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(list);
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(new ArrayList<>());
+
+		List<EventFindAllListDBResponseWrapper> response = eventService.findMyEvent("createdDate", "DESC", 1L, true);
+		assertEquals("Event Test 1", response.get(0).getTitle());
+	}
 }
