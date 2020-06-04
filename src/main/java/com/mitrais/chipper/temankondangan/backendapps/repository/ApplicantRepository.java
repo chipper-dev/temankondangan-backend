@@ -30,4 +30,5 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
     Optional<List<Applicant>> findByEventIdAndStatus(@Param("eventId") Long eventId, 
     		@Param("applicantStatus") ApplicantStatus applicantStatus);
 
+    Boolean existsByEventAndStatus(Event event, ApplicantStatus applicantStatus);
 }

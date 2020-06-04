@@ -18,7 +18,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
 	private static final String ERROR_EVENT_HAS_FINISHED = "Error: This event has finished already";
-	
+
 	private EventRepository eventRepository;
 	private ApplicantRepository applicantRepository;
 
@@ -44,6 +44,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 			throw new BadRequestException("Error: You cannot accept rejected applicant");
 		}
 
+		if (Boolean.TRUE.equals(applicantRepository.existsByEventAndStatus(event, ApplicantStatus.ACCEPTED))) {
+			throw new BadRequestException("Error: You already have accepted applicant");
+		}
+		
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 	}
@@ -61,7 +65,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 		}
 
 		if (LocalDateTime.now().isAfter(event.getStartDateTime().minusDays(1))) {
-			throw new BadRequestException("Error: You cannot cancel the accepted applicant 24 hours before event started");
+			throw new BadRequestException(
+					"Error: You cannot cancel the accepted applicant 24 hours before event started");
 		}
 
 		if (applicant.getStatus() != null && !applicant.getStatus().equals(ApplicantStatus.ACCEPTED)) {
@@ -84,14 +89,14 @@ public class ApplicantServiceImpl implements ApplicantService {
 				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException(ERROR_EVENT_HAS_FINISHED);
 		}
-		
+
 		if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 			throw new BadRequestException("Error: You cannot reject the accepted applicant");
 		}
-		
+
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
-		
+
 	}
 
 }
