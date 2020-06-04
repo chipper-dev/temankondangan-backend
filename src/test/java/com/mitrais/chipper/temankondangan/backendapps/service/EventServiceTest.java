@@ -1000,4 +1000,53 @@ public class EventServiceTest {
 				.hasMessageContaining("Error: The event will be started in less than 24 hours").isInstanceOf(BadRequestException.class);
 
 	}
+
+	@Test
+	public void findMyEventSuccess() {
+		EventFindAllListDBResponseWrapper event1 = new EventFindAllListDBResponseWrapper();
+		event1.setEventId(1L);
+		event1.setProfileId(1L);
+		event1.setCreatorFullName("test");
+		event1.setCreatedBy("test");
+		event1.setPhotoProfileUrl("");
+		event1.setTitle("Event Test 1");
+		event1.setCity("Yogya");
+		event1.setStartDateTime(LocalDateTime.now().plusDays(2));
+		event1.setFinishDateTime(LocalDateTime.now().plusDays(2).plusHours(1));
+		event1.setMinimumAge(18);
+		event1.setMaximumAge(22);
+		event1.setCreatorGender(Gender.L);
+		event1.setCompanionGender(Gender.B);
+		event1.setApplicantStatus(null);
+
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
+		event2.setEventId(2L);
+		event2.setProfileId(1L);
+		event2.setCreatorFullName("test");
+		event2.setCreatedBy("test");
+		event2.setPhotoProfileUrl("");
+		event2.setTitle("Event Test 2");
+		event2.setCity("Yogya");
+		event2.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event2.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(22);
+		event2.setCreatorGender(Gender.L);
+		event2.setCompanionGender(Gender.B);
+		event2.setApplicantStatus(null);
+
+		List<EventFindAllListDBResponseWrapper> list = new ArrayList<>();
+		list.add(event1);
+		list.add(event2);
+
+		profile = new Profile();
+
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(eventRepository.findAllMyEvent(anyLong(), any(LocalDateTime.class), anyInt(), any(Sort.class))).thenReturn(list);
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(new ArrayList<>());
+
+		List<EventFindAllListDBResponseWrapper> response = eventService.findMyEvent("createdDate", "DESC", 1L, true);
+		assertEquals("Event Test 1", response.get(0).getTitle());
+	}
 }
