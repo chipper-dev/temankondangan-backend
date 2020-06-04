@@ -5,14 +5,12 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFound
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,17 +19,21 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -51,6 +53,12 @@ public class UserServiceTest {
 
 	@Mock
 	PasswordEncoder passwordEncoder;
+
+	@Mock
+	VerificationCodeRepository verificationRepository;
+
+	@Mock
+	EmailService emailService;
 
 	@InjectMocks
 	UserServiceImpl userService;
@@ -216,5 +224,28 @@ public class UserServiceTest {
 		
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.remove(1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void forgotPasswordTest() {
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCode("12345");
+
+		List<VerificationCode> list = new ArrayList<>();
+		list.add(verify);
+
+		SimpleMailMessage template = new SimpleMailMessage();
+		template.setText("text");
+
+		Mockito.when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+		Mockito.when(verificationRepository.findByEmail(any(String.class))).thenReturn(list);
+		ReflectionTestUtils.setField(userService, "template", template);
+
+		userService.forgotPassword("test@example.com");
+
+		verify(verificationRepository, times(1)).delete(verify);
+		verify(verificationRepository, times(1)).save(any(VerificationCode.class));
+		verify(emailService, times(1)).sendMessage(any(String.class), any(String.class), any(String.class));
 	}
 }
