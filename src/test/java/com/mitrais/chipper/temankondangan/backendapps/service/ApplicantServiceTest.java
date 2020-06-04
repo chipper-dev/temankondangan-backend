@@ -313,4 +313,20 @@ public class ApplicantServiceTest {
 				.hasMessageContaining("Error: You cannot reject the accepted applicant")
 				.isInstanceOf(BadRequestException.class);
 	}
+	
+
+	@Test
+	public void shouldThrowBadRequestException_WhenUserAlreadyRejectApplicant() {
+		event.setStartDateTime(LocalDateTime.now().plusHours(26));
+		event.setFinishDateTime(LocalDateTime.now().plusHours(29));
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.REJECTED);
+
+		Mockito.when(eventRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(applicantRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(applicant));
+
+		assertThatThrownBy(() -> applicantService.rejectApplicant(1L, userId))
+				.hasMessageContaining("Error: You have rejected this applicant")
+				.isInstanceOf(BadRequestException.class);
+	}
 }

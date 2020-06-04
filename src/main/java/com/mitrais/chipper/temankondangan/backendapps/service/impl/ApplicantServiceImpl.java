@@ -99,6 +99,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 		if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 			throw new BadRequestException("Error: You cannot reject the accepted applicant");
 		}
+		
+		if (applicant.getStatus().compareTo(ApplicantStatus.REJECTED) == 0) {
+			throw new BadRequestException("Error: You have rejected this applicant");
+		}
 
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
