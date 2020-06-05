@@ -1,17 +1,16 @@
 package com.mitrais.chipper.temankondangan.backendapps.repository;
 
-import java.util.List;
-import java.util.Optional;
-
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
@@ -30,4 +29,5 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
     Optional<List<Applicant>> findByEventIdAndStatus(@Param("eventId") Long eventId, 
     		@Param("applicantStatus") ApplicantStatus applicantStatus);
 
+    Boolean existsByEventAndStatus(Event event, ApplicantStatus applicantStatus);
 }
