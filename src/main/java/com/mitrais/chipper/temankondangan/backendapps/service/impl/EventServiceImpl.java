@@ -402,6 +402,10 @@ public class EventServiceImpl implements EventService {
     public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
         List<AppliedEventWrapper> resultList = new ArrayList<>();
 
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+
         Sort sort;
         if (direction.equalsIgnoreCase("DESC")) {
             sort = Sort.by(sortBy).descending();
@@ -437,6 +441,10 @@ public class EventServiceImpl implements EventService {
     @Override
     public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
         List<AppliedEventWrapper> resultList = new ArrayList<>();
+
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
 
         Sort sort;
         if (direction.equalsIgnoreCase("DESC")) {
