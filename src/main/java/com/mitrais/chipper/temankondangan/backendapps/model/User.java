@@ -55,6 +55,8 @@ public class User extends Auditable<String> {
 
 	private String uid;
 
+	private String messagingToken;
+
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date logout;
 

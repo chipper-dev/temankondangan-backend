@@ -182,6 +182,15 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	@Override
+	public void saveMessagingToken(Long userId, String token) {
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		user.setMessagingToken(token);
+		userRepository.save(user);
+	}
+
 	private Integer generateRandomCode(Integer n) {
 		int m = (int) Math.pow(10, (double) n - 1);
 		return m + new Random().nextInt(9 * m);
