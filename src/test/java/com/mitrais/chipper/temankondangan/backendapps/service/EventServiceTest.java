@@ -1058,6 +1058,23 @@ public class EventServiceTest {
 		assertEquals("Event Test 1", response.get(0).getTitle());
 	}
 
+	@Test
+	public void creatorCancelEventSuccess() {
+		event = new Event();
+		event.setUser(user);
+		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setCompanionGender(Gender.B);
+		event.setDataState(DataState.ACTIVE);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		eventService.creatorCancelEvent(1L, 1L);
+		verify(eventRepository, times(1)).save(any(Event.class));
+	}
+	
 	// search event service
 	@Test
 	public void searchEventDefaultTest() {

@@ -33,5 +33,8 @@ public interface EventService {
 
 	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction);
 
+	public void creatorCancelEvent(Long userId, Long eventId);
+
+
 	public EventFindAllResponseWrapper search(Long userId, SearchEventWrapper wrapper);
 }

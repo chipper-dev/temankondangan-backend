@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -399,8 +400,22 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
-		List<AppliedEventWrapper> resultList = new ArrayList<>();
+
+	public void creatorCancelEvent(Long userId, Long eventId) {
+		Event event = eventRepository.findById(eventId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
+
+		if(!userId.equals(event.getUser().getUserId())) {
+			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
+		}
+
+		event.setDataState(DataState.DELETED);
+		eventRepository.save(event);
+	}
+
+	@Override
+    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+        List<AppliedEventWrapper> resultList = new ArrayList<>();
 
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");

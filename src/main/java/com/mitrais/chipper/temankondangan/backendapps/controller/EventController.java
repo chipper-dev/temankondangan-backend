@@ -205,13 +205,30 @@ public class EventController extends CommonResource {
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
+
+	@ApiOperation(value = "Creator of the event cancelling the event", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping(value = "/creator-cancel")
+	public ResponseEntity<ResponseBody> creatorCancelEvent(@RequestParam Long eventId, HttpServletRequest request) {
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		eventService.creatorCancelEvent(userId, eventId);
+		return ResponseEntity.ok(
+				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
+	}
 	
 	@ApiOperation(value = "Search event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@ApiResponses(value = { @ApiResponse(response = EventFindAllResponseWrapper.class, code = 200, message = ""),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
-					+ "Error: Can only input ASC or DESC for direction!"),
+					+ "Error: Can only input ASC or DESC for direction! \t\n "
+					+ "Error: Minimum age must be 18! \t\n "
+					+ "Error: Inputted age is not valid! |t\n "
+					+ "Error: The lower and upper limit for date and time must be all empty or all filled! \t\n "
+					+ "Error: Date inputted have to be today or after! \t\n "
+					+ "Error: Start time must be earlier than finish time! \t\n "
+					+ "Error: Start date and finish date must be the same day!"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/search")
 	public ResponseEntity<ResponseBody> search(@RequestBody SearchEventWrapper wrapper,
