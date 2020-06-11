@@ -276,7 +276,7 @@ public class EventServiceImpl implements EventService {
 		ApplicantStatus applicantStatus = null;
 		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
 		Boolean hasAcceptedApplicant = null;
-		
+
 		// Custom exception as requested by Tester, when input param.
 		try {
 			id = Long.parseLong(eventIdStr);
@@ -295,7 +295,7 @@ public class EventServiceImpl implements EventService {
 				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId()));
 
 		if (userId.equals(userCreator.getUserId())) {
-			applicantRepository.findByEventId(event.getEventId()).ifPresent(a->a.forEach(applicant -> {
+			applicantRepository.findByEventId(event.getEventId()).ifPresent(a -> a.forEach(applicant -> {
 				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
@@ -320,13 +320,13 @@ public class EventServiceImpl implements EventService {
 				applicantStatus = applicantOpt.get().getStatus();
 			}
 		}
-		
+
 		String photoProfileUrl = imageFileService.getImageUrl(profileCreator);
 
 		if (StringUtils.isNotEmpty(acceptedApplicant.getFullName())) {
 			hasAcceptedApplicant = true;
 		}
-		
+
 		return EventDetailResponseWrapper.builder().eventId(event.getEventId()).creatorUserId(userCreator.getUserId())
 				.fullName(profileCreator.getFullName()).photoProfileUrl(photoProfileUrl).title(event.getTitle())
 				.city(event.getCity()).startDateTime(event.getStartDateTime()).finishDateTime(event.getFinishDateTime())
@@ -386,7 +386,7 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
-		if(applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
+		if (applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
 			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
 		}
 
@@ -398,91 +398,231 @@ public class EventServiceImpl implements EventService {
 
 	}
 
-    @Override
-    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
-        List<AppliedEventWrapper> resultList = new ArrayList<>();
+	@Override
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+		List<AppliedEventWrapper> resultList = new ArrayList<>();
 
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
 		}
 
-        Sort sort;
-        if (direction.equalsIgnoreCase("DESC")) {
-            sort = Sort.by(sortBy).descending();
-        } else if (direction.equalsIgnoreCase("ASC")) {
-            sort = Sort.by(sortBy).ascending();
-        } else {
-            throw new BadRequestException(ERROR_SORT_DIRECTION);
-        }
+		Sort sort;
+		if (direction.equalsIgnoreCase("DESC")) {
+			sort = Sort.by(sortBy).descending();
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			sort = Sort.by(sortBy).ascending();
+		} else {
+			throw new BadRequestException(ERROR_SORT_DIRECTION);
+		}
 
-        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
-            AppliedEventWrapper wrapper = new AppliedEventWrapper();
-            wrapper.setEventId(event.getEventId());
-            wrapper.setTitle(event.getTitle());
-            wrapper.setCity(event.getCity());
-            wrapper.setStartDateTime(event.getStartDateTime());
-            wrapper.setFinishDateTime(event.getFinishDateTime());
+		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
+			AppliedEventWrapper wrapper = new AppliedEventWrapper();
+			wrapper.setEventId(event.getEventId());
+			wrapper.setTitle(event.getTitle());
+			wrapper.setCity(event.getCity());
+			wrapper.setStartDateTime(event.getStartDateTime());
+			wrapper.setFinishDateTime(event.getFinishDateTime());
 
-            profileRepository.findByUserId(event.getUser().getUserId())
-                    .ifPresent(profile -> {
-                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-                        wrapper.setFullNameCreator(profile.getFullName());
-                    });
+			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+				wrapper.setFullNameCreator(profile.getFullName());
+			});
 
-            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-            resultList.add(wrapper);
-        });
+			resultList.add(wrapper);
+		});
 
-        return resultList;
-    }
+		return resultList;
+	}
 
-    @Override
-    public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
-        List<AppliedEventWrapper> resultList = new ArrayList<>();
+	@Override
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+		List<AppliedEventWrapper> resultList = new ArrayList<>();
 
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
 		}
 
-        Sort sort;
-        if (direction.equalsIgnoreCase("DESC")) {
-            sort = Sort.by(sortBy).descending();
-        } else if (direction.equalsIgnoreCase("ASC")) {
-            sort = Sort.by(sortBy).ascending();
-        } else {
-            throw new BadRequestException(ERROR_SORT_DIRECTION);
-        }
+		Sort sort;
+		if (direction.equalsIgnoreCase("DESC")) {
+			sort = Sort.by(sortBy).descending();
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			sort = Sort.by(sortBy).ascending();
+		} else {
+			throw new BadRequestException(ERROR_SORT_DIRECTION);
+		}
 
-        eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-            logger.info(event.toString());
+		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
+			logger.info(event.toString());
 
-            AppliedEventWrapper wrapper = new AppliedEventWrapper();
-            wrapper.setEventId(event.getEventId());
-            wrapper.setTitle(event.getTitle());
-            wrapper.setCity(event.getCity());
-            wrapper.setStartDateTime(event.getStartDateTime());
-            wrapper.setFinishDateTime(event.getFinishDateTime());
+			AppliedEventWrapper wrapper = new AppliedEventWrapper();
+			wrapper.setEventId(event.getEventId());
+			wrapper.setTitle(event.getTitle());
+			wrapper.setCity(event.getCity());
+			wrapper.setStartDateTime(event.getStartDateTime());
+			wrapper.setFinishDateTime(event.getFinishDateTime());
 
-            profileRepository.findByUserId(event.getUser().getUserId())
-                    .ifPresent(profile -> {
-                        wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-                        wrapper.setFullNameCreator(profile.getFullName());
-                    });
+			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+				wrapper.setFullNameCreator(profile.getFullName());
+			});
 
-            applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-                    .ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-            resultList.add(wrapper);
-        });
+			resultList.add(wrapper);
+		});
 
-        return resultList;
-    }
+		return resultList;
+	}
 
-    private boolean isCancelationValid(LocalDateTime eventDate) {
-        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+	private boolean isCancelationValid(LocalDateTime eventDate) {
+		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
 
-        return duration.getSeconds() * 1000 > cancelationMax;
-    }
+		return duration.getSeconds() * 1000 > cancelationMax;
+	}
+
+	@Override
+	public EventFindAllResponseWrapper search(Long userId, SearchEventWrapper wrapper) {
+		// check sortBy and direction
+		if (!("createdDate".equals(wrapper.getSortBy()) || "startDateTime".equals(wrapper.getSortBy()))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+
+		Pageable paging;
+		if (wrapper.getDirection().equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(wrapper.getPageNumber(), wrapper.getPageSize(),
+					Sort.by(wrapper.getSortBy()).descending());
+		} else if (wrapper.getDirection().equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(wrapper.getPageNumber(), wrapper.getPageSize(),
+					Sort.by(wrapper.getSortBy()).ascending());
+		} else {
+			throw new BadRequestException(ERROR_SORT_DIRECTION);
+		}
+
+		// check age inputted
+		if (wrapper.getCreatorMinimumAge() < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
+		if (wrapper.getCreatorMaximumAge() < wrapper.getCreatorMinimumAge()) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+
+		// check user profile who is searching
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
+		Integer userAge = Period.between(profile.getDob(), LocalDate.now()).getYears();
+		ArrayList<Gender> companionGender = new ArrayList<>();
+		companionGender.add(Gender.B);
+		companionGender.add(profile.getGender());
+
+		// check inputted gender in search
+		ArrayList<Gender> creatorGender = new ArrayList<>();
+		if (wrapper.getCreatorGender().compareTo(Gender.B) == 0) {
+			creatorGender.add(Gender.B);
+			creatorGender.add(Gender.P);
+			creatorGender.add(Gender.L);
+		}
+
+		// check inputted city in search
+		String eventCity = "";
+		if (StringUtils.isNotEmpty(wrapper.getCity())) {
+			eventCity = wrapper.getCity().toLowerCase();
+		}
+
+		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime startDateTimeLowerLimit = LocalDateTime.now();
+		LocalDateTime startDateTimeUpperLimit = LocalDateTime.now().plusDays(90);
+		LocalDateTime finishDateTimeLowerLimit;
+		LocalDateTime finishDateTimeUpperLimit;
+		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = Page.empty();
+
+		// check startDateTime and finishDateTime
+		if ((StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
+				&& StringUtils.isNotEmpty(wrapper.getStartDateTimeUpperLimit()))
+				|| (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
+						&& StringUtils.isEmpty(wrapper.getStartDateTimeUpperLimit()))
+				|| (StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())
+						&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeUpperLimit()))
+				|| (StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())
+						&& StringUtils.isEmpty(wrapper.getFinishDateTimeUpperLimit()))) {
+			throw new BadRequestException(
+					"Error: The lower and upper limit for date and time must be all empty or all filled!");
+		}
+
+		if (StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
+				&& StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())) {
+			// search event default
+			eventWrapperPages = eventRepository.searchWithStartDateTime(userAge, companionGender, userId,
+					startDateTimeLowerLimit, startDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
+					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
+
+		} else if (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
+				&& StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())) {
+			startDateTimeLowerLimit = LocalDateTime.parse(wrapper.getStartDateTimeLowerLimit(), df);
+			startDateTimeUpperLimit = LocalDateTime.parse(wrapper.getStartDateTimeUpperLimit(), df);
+
+			if (startDateTimeLowerLimit.isBefore(LocalDateTime.now())) {
+				throw new BadRequestException("Error: Date inputted have to be today or after!");
+			}
+
+			eventWrapperPages = eventRepository.searchWithStartDateTime(userAge, companionGender, userId,
+					startDateTimeLowerLimit, startDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
+					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
+
+		}
+
+		else if (StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
+				&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())) {
+
+			finishDateTimeLowerLimit = LocalDateTime.parse(wrapper.getFinishDateTimeLowerLimit(), df);
+			finishDateTimeUpperLimit = LocalDateTime.parse(wrapper.getFinishDateTimeUpperLimit(), df);
+
+			if (finishDateTimeLowerLimit.isBefore(LocalDateTime.now())) {
+				throw new BadRequestException("Error: Date inputted have to be today or after!");
+			}
+
+			eventWrapperPages = eventRepository.searchWithFinishDateTime(userAge, companionGender, userId,
+					finishDateTimeLowerLimit, finishDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
+					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
+
+		} else if (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
+				&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())) {
+			startDateTimeLowerLimit = LocalDateTime.parse(wrapper.getStartDateTimeLowerLimit(), df);
+			startDateTimeUpperLimit = LocalDateTime.parse(wrapper.getStartDateTimeUpperLimit(), df);
+
+			finishDateTimeLowerLimit = LocalDateTime.parse(wrapper.getFinishDateTimeLowerLimit(), df);
+			finishDateTimeUpperLimit = LocalDateTime.parse(wrapper.getFinishDateTimeUpperLimit(), df);
+
+			if (startDateTimeLowerLimit.isAfter(finishDateTimeLowerLimit)) {
+				throw new BadRequestException("Error: Start time must be earlier than finish time!");
+			}
+
+			if (!startDateTimeLowerLimit.toLocalDate().isEqual(finishDateTimeLowerLimit.toLocalDate())) {
+				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			}
+
+			eventWrapperPages = eventRepository.searchWithStartAndFinishDateTime(userAge, companionGender, userId,
+					startDateTimeLowerLimit, startDateTimeUpperLimit, finishDateTimeLowerLimit,
+					finishDateTimeUpperLimit, wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(),
+					creatorGender, eventCity, paging);
+		}
+
+		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
+		eventWrapperPages.forEach(eventWrap -> {
+			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
+			profileRepository.findById(eventWrap.getProfileId())
+					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
+
+			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
+			eventWrap.setHasAcceptedApplicant(
+					!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
+			eventAllDBResponse.add(eventWrap);
+		});
+
+		return EventFindAllResponseWrapper.builder().pageNumber(wrapper.getPageNumber()).pageSize(wrapper.getPageSize())
+				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
+	}
 }
