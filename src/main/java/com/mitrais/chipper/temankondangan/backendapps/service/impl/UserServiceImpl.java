@@ -187,6 +187,10 @@ public class UserServiceImpl implements UserService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
+		if(StringUtils.isEmpty(token)) {
+			throw new BadRequestException("Error: Token cannot null or empty");
+		}
+
 		user.setMessagingToken(token);
 		userRepository.save(user);
 	}
