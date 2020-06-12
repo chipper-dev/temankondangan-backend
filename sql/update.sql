@@ -1,0 +1,1 @@
+UPDATE event set cancelled=FALSE;
