@@ -73,7 +73,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.dataState <> 'DELETED' " 
 			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
 			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
-			+ "AND p.gender IN :creatorGender")
+			+ "AND p.gender IN :creatorGender "
+			+ "AND u.userId <> :userId")
 	Page<EventFindAllListDBResponseWrapper> searchWithStartDateTime(@Param("userAge") Integer userAge,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
 			@Param("startDateTimeLowerLimit") LocalDateTime startDateTimeLowerLimit,
@@ -97,7 +98,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.dataState <> 'DELETED' " 
 			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
 			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
-			+ "AND p.gender IN :creatorGender")
+			+ "AND p.gender IN :creatorGender "
+			+ "AND u.userId <> :userId")
 	Page<EventFindAllListDBResponseWrapper> searchWithFinishDateTime(@Param("userAge") Integer userAge,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
 			@Param("finishDateTimeLowerLimit") LocalDateTime finishDateTimeLowerLimit,
@@ -121,7 +123,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.dataState <> 'DELETED' " 
 			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
 			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
-			+ "AND p.gender IN :creatorGender")
+			+ "AND p.gender IN :creatorGender "
+			+ "AND u.userId <> :userId")
 	Page<EventFindAllListDBResponseWrapper> searchWithStartAndFinishDateTime(@Param("userAge") Integer userAge,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
 			@Param("startDateTimeLowerLimit") LocalDateTime startDateTimeLowerLimit,
