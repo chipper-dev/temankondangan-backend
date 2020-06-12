@@ -231,12 +231,15 @@ public class EventController extends CommonResource {
 					+ "Error: Start date and finish date must be the same day!"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/search")
-	public ResponseEntity<ResponseBody> search(@RequestBody SearchEventWrapper wrapper,
+	public ResponseEntity<ResponseBody> search(@RequestBody(required=false) SearchEventWrapper wrapper,
 			HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
+		if (wrapper == null) {
+			wrapper = new SearchEventWrapper();
+		}
 		EventFindAllResponseWrapper events = eventService.search(userId, wrapper);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
