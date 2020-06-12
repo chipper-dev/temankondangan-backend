@@ -1,1 +1,0 @@
-INSERT INTO event (cancelled) VALUES (FALSE);
