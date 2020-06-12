@@ -70,7 +70,7 @@ public class UserServiceTest {
 	@BeforeEach
 	public void init() {
 
-		user = new User(1L, "test@email.com", "12345_", AuthProvider.email, null, null, DataState.ACTIVE);
+		user = new User(1L, "test@email.com", "12345_", AuthProvider.email, null, null, null, DataState.ACTIVE);
 
 		Optional<User> userOptional = Optional.of(user);
 

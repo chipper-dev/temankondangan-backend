@@ -1,7 +1,7 @@
 node{
     def app
     def build = "${env.BUILD_NUMBER}"
-    def version = "4"
+    def version = "5"
     def image = 'chippermitrais/temankondangan-backend:'+ version +'.'+ build
     def containerName = 'chipper-backend'
     def mvnHome = tool name: 'maven-default', type: 'maven'
