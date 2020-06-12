@@ -57,3 +57,6 @@ ADD finish_date_time timestamp without time zone NULL;
 
 ALTER TABLE profile
 ADD COLUMN photo_profile_filename VARCHAR;
+
+ALTER TABLE users
+ADD COLUMN messaging_token VARCHAR;

@@ -8,9 +8,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePassw
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -81,6 +79,21 @@ public class UserController extends CommonResource {
     public ResponseEntity<ResponseBody> resetPassword(@RequestBody ResetPasswordWrapper wrapper, HttpServletRequest request) {
         userService.resetPassword(wrapper);
         return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your password is updated successfully. Please try to login with your new password", request.getRequestURI()));
+    }
+
+    @ApiOperation(value = "Save Token", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @ApiResponses(value = { @ApiResponse(code = 200, message = ""),
+            @ApiResponse(code = 400, message = "Error: Token cannot null or empty"),
+            @ApiResponse(code = 404, message = "Profile not found with userId ") })
+    @GetMapping(value = "/save-messaging-token")
+    public ResponseEntity<ResponseBody> findAll(@ApiParam(value = "input messaging token") String messagingToken,
+                                                HttpServletRequest request) {
+        String token = getToken(request.getHeader(HEADER_AUTH));
+        Long userId = tokenProvider.getUserIdFromToken(token);
+
+        userService.saveMessagingToken(userId, messagingToken);
+        return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
     }
 
 }
