@@ -94,7 +94,7 @@ public class EventServiceTest {
 	@BeforeEach
 	public void init() {
 
-		user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+		user = new User(1L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(anyLong())).thenReturn(userOptional);
 
@@ -320,7 +320,7 @@ public class EventServiceTest {
 	// find Event Detail
 	@Test
 	public void findEventDetailForCreatorTest() {
-		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
 
 		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
 
