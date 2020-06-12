@@ -92,6 +92,8 @@ public class Event extends Auditable<String> {
 	@Enumerated(EnumType.STRING)
 	protected DataState dataState;
 
+	protected Boolean cancelled;
+
 	@PreRemove
 	public void deleteUser() {
 		this.dataState = DataState.DELETED;

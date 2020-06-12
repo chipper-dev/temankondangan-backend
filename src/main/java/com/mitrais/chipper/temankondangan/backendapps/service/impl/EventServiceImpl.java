@@ -118,6 +118,7 @@ public class EventServiceImpl implements EventService {
 		event.setMaximumAge(maxAge);
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		event.setDataState(DataState.ACTIVE);
+		event.setCancelled(false);
 
 		return eventRepository.save(event);
 
@@ -335,7 +336,7 @@ public class EventServiceImpl implements EventService {
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
 				.isApplied(isApplied).applicantStatus(applicantStatus).hasAcceptedApplicant(hasAcceptedApplicant)
-				.acceptedApplicant(acceptedApplicant).build();
+				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).build();
 	}
 
 	@Override
@@ -409,7 +410,7 @@ public class EventServiceImpl implements EventService {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
 		}
 
-		event.setDataState(DataState.DELETED);
+		event.setCancelled(true);
 		eventRepository.save(event);
 	}
 

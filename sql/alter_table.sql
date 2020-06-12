@@ -60,3 +60,6 @@ ADD COLUMN photo_profile_filename VARCHAR;
 
 ALTER TABLE users
 ADD COLUMN messaging_token VARCHAR;
+
+ALTER TABLE event
+ADD COLUMN cancelled BOOLEAN;

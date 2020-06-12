@@ -52,4 +52,6 @@ public class EventDetailResponseWrapper {
     private Boolean hasAcceptedApplicant;
     
     private AcceptedApplicantResponseWrapper acceptedApplicant;
+
+    private Boolean cancelled;
 }
