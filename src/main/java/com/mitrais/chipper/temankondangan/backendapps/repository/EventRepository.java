@@ -48,7 +48,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "JOIN Profile p ON u.userId = p.user.userId "
 			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
 			+ "WHERE u.userId = :userId "
-			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
+			+ "AND ((e.startDateTime >= :now AND :current = 1) "
+			+ "OR ((e.startDateTime < :now OR e.dataState = 'DELETED') AND :current = 0))")
 	List<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId, @Param("now") LocalDateTime now,
 														   @Param("current") int current, Sort sort);
 
