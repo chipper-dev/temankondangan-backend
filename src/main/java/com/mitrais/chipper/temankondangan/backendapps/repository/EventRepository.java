@@ -69,69 +69,25 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND a.dataState <> 'DELETED' " 
 			+ "WHERE e.minimumAge <= :userAge AND e.maximumAge >= :userAge "
 			+ "AND e.companionGender in :companionGender " 
-			+ "AND e.startDateTime BETWEEN :startDateTimeLowerLimit AND :startDateTimeUpperLimit "
+			+ "AND e.startDateTime BETWEEN :startDate AND :finishDate "
+			+ "AND (extract(hour from start_date_time) between :startHourLowerLimit and :startHourUpperLimit "
+			+ "OR extract(hour from finish_date_time) between :finishHourLowerLimit and :finishHourUpperLimit) "
 			+ "AND e.dataState <> 'DELETED' " 
 			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
 			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
 			+ "AND p.gender IN :creatorGender "
 			+ "AND u.userId <> :userId")
-	Page<EventFindAllListDBResponseWrapper> searchWithStartDateTime(@Param("userAge") Integer userAge,
+	Page<EventFindAllListDBResponseWrapper> search(@Param("userAge") Integer userAge,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
-			@Param("startDateTimeLowerLimit") LocalDateTime startDateTimeLowerLimit,
-			@Param("startDateTimeUpperLimit") LocalDateTime startDateTimeUpperLimit,
+			@Param("startDate") LocalDateTime startDate,
+			@Param("finishDate") LocalDateTime finishDate,
+			@Param("startHourLowerLimit") Integer startHourLowerLimit,
+			@Param("startHourUpperLimit") Integer startHourUpperLimit,
+			@Param("finishHourLowerLimit") Integer finishHourLowerLimit,
+			@Param("finishHourUpperLimit") Integer finishHourUpperLimit,
 			@Param("creatorMaximumAge") Integer creatorMaximumAge,
 			@Param("creatorMinimumAge") Integer creatorMinimumAge,
 			@Param("creatorGender") Collection<Gender> creatorGender, 
 			@Param("city") String city, Pageable paging);
 
-	@Query("SELECT new com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper"
-			+ "(e.eventId, p.profileId, p.fullName, e.createdBy, "
-			+ "e.title, e.city , e.startDateTime, e.finishDateTime, "
-			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender, a.status) from Event e "
-			+ "JOIN User u ON e.user.userId = u.userId " 
-			+ "JOIN Profile p ON u.userId = p.user.userId "
-			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
-			+ "AND a.dataState <> 'DELETED' " 
-			+ "WHERE e.minimumAge <= :userAge AND e.maximumAge >= :userAge "
-			+ "AND e.companionGender in :companionGender "
-			+ "AND e.finishDateTime BETWEEN :finishDateTimeLowerLimit AND :finishDateTimeUpperLimit "
-			+ "AND e.dataState <> 'DELETED' " 
-			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
-			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
-			+ "AND p.gender IN :creatorGender "
-			+ "AND u.userId <> :userId")
-	Page<EventFindAllListDBResponseWrapper> searchWithFinishDateTime(@Param("userAge") Integer userAge,
-			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
-			@Param("finishDateTimeLowerLimit") LocalDateTime finishDateTimeLowerLimit,
-			@Param("finishDateTimeUpperLimit") LocalDateTime finishDateTimeUpperLimit,
-			@Param("creatorMaximumAge") Integer creatorMaximumAge,
-			@Param("creatorMinimumAge") Integer creatorMinimumAge,
-			@Param("creatorGender") Collection<Gender> creatorGender, @Param("city") String city, Pageable paging);
-
-	@Query("SELECT new com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper"
-			+ "(e.eventId, p.profileId, p.fullName, e.createdBy, "
-			+ "e.title, e.city , e.startDateTime, e.finishDateTime, "
-			+ "e.minimumAge, e.maximumAge, p.gender, e.companionGender, a.status) from Event e "
-			+ "JOIN User u ON e.user.userId = u.userId " 
-			+ "JOIN Profile p ON u.userId = p.user.userId "
-			+ "LEFT JOIN Applicant a ON a.applicantUser.userId = :userId AND a.event.eventId = e.eventId "
-			+ "AND a.dataState <> 'DELETED' " 
-			+ "WHERE e.minimumAge <= :userAge AND e.maximumAge >= :userAge "
-			+ "AND e.companionGender in :companionGender "
-			+ "AND (e.startDateTime BETWEEN :startDateTimeLowerLimit AND :startDateTimeUpperLimit "
-			+ "OR e.finishDateTime BETWEEN :finishDateTimeLowerLimit AND :finishDateTimeUpperLimit) "
-			+ "AND e.dataState <> 'DELETED' " 
-			+ "AND lower(e.city) LIKE CONCAT('%',:city,'%') "
-			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
-			+ "AND p.gender IN :creatorGender "
-			+ "AND u.userId <> :userId")
-	Page<EventFindAllListDBResponseWrapper> searchWithStartAndFinishDateTime(@Param("userAge") Integer userAge,
-			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
-			@Param("startDateTimeLowerLimit") LocalDateTime startDateTimeLowerLimit,
-			@Param("startDateTimeUpperLimit") LocalDateTime startDateTimeUpperLimit,
-			@Param("finishDateTimeLowerLimit") LocalDateTime finishDateTimeLowerLimit,
-			@Param("finishDateTimeUpperLimit") LocalDateTime finishDateTimeUpperLimit,
-			@Param("creatorMaximumAge") Integer creatorMaximumAge,
-			@Param("creatorMinimumAge") Integer creatorMinimumAge,
-			@Param("creatorGender") Collection<Gender> creatorGender, @Param("city") String city, Pageable paging);
 }

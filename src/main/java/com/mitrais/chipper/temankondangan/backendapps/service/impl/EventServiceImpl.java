@@ -1,23 +1,18 @@
+
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
-import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
+import java.time.Duration;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.time.format.ResolverStyle;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,21 +26,38 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AcceptedApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ApplicantResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.SearchEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @Service
 public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
+	private static final String ERROR_RANGE_LIMIT = "Error: Lower limit cannot be more than upper limit in range!";
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
@@ -405,7 +417,7 @@ public class EventServiceImpl implements EventService {
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
-		if(!userId.equals(event.getUser().getUserId())) {
+		if (!userId.equals(event.getUser().getUserId())) {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
 		}
 
@@ -414,8 +426,8 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-    public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
-        List<AppliedEventWrapper> resultList = new ArrayList<>();
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+		List<AppliedEventWrapper> resultList = new ArrayList<>();
 
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
@@ -547,83 +559,73 @@ public class EventServiceImpl implements EventService {
 			eventCity = wrapper.getCity().toLowerCase();
 		}
 
-		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime startDateTimeLowerLimit = LocalDateTime.now();
-		LocalDateTime startDateTimeUpperLimit = LocalDateTime.now().plusDays(90);
-		LocalDateTime finishDateTimeLowerLimit;
-		LocalDateTime finishDateTimeUpperLimit;
-		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = Page.empty();
-
-		// check startDateTime and finishDateTime
-		if ((StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
-				&& StringUtils.isNotEmpty(wrapper.getStartDateTimeUpperLimit()))
-				|| (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
-						&& StringUtils.isEmpty(wrapper.getStartDateTimeUpperLimit()))
-				|| (StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())
-						&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeUpperLimit()))
-				|| (StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())
-						&& StringUtils.isEmpty(wrapper.getFinishDateTimeUpperLimit()))) {
+		// check upper limit and lower limit
+		if ((StringUtils.isEmpty(wrapper.getStartDate()) && StringUtils.isNotEmpty(wrapper.getFinishDate()))
+				|| (StringUtils.isNotEmpty(wrapper.getStartDate()) && StringUtils.isEmpty(wrapper.getFinishDate()))
+				|| (wrapper.getStartHourLowerLimit() == null && wrapper.getStartHourUpperLimit() != null)
+				|| (wrapper.getStartHourLowerLimit() != null && wrapper.getStartHourUpperLimit() == null)
+				|| (wrapper.getFinishHourLowerLimit() == null && wrapper.getFinishHourUpperLimit() != null)
+				|| (wrapper.getFinishHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() == null)) {
 			throw new BadRequestException(
-					"Error: The lower and upper limit for date and time must be all empty or all filled!");
+					"Error: The lower and upper limit range for date and hour must be all empty or all filled!");
 		}
 
-		if (StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
-				&& StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())) {
-			// search event default
-			eventWrapperPages = eventRepository.searchWithStartDateTime(userAge, companionGender, userId,
-					startDateTimeLowerLimit, startDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
-					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
+		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
+		LocalDateTime startDate = LocalDateTime.now();
+		LocalDateTime finishDate = LocalDateTime.now().plusDays(90);
 
-		} else if (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
-				&& StringUtils.isEmpty(wrapper.getFinishDateTimeLowerLimit())) {
-			startDateTimeLowerLimit = LocalDateTime.parse(wrapper.getStartDateTimeLowerLimit(), df);
-			startDateTimeUpperLimit = LocalDateTime.parse(wrapper.getStartDateTimeUpperLimit(), df);
+		Integer startHourLowerLimit = 0;
+		Integer startHourUpperLimit = 24;
+		Integer finishHourLowerLimit = 0;
+		Integer finishHourUpperLimit = 24;
 
-			if (startDateTimeLowerLimit.isBefore(LocalDateTime.now())) {
-				throw new BadRequestException("Error: Date inputted have to be today or after!");
+		if ((StringUtils.isNotEmpty(wrapper.getStartDate()))) {
+			startDate = LocalDate.parse(wrapper.getStartDate(), dfDate).atStartOfDay();
+			finishDate = LocalDate.parse(wrapper.getFinishDate(), dfDate).atTime(LocalTime.MAX);
+		}
+		
+		if (wrapper.getStartHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() == null) {
+			if (wrapper.getStartHourLowerLimit() > wrapper.getStartHourUpperLimit()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
 			}
-
-			eventWrapperPages = eventRepository.searchWithStartDateTime(userAge, companionGender, userId,
-					startDateTimeLowerLimit, startDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
-					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
-
+			
+			startHourLowerLimit = wrapper.getStartHourLowerLimit();
+			startHourUpperLimit = wrapper.getStartHourUpperLimit();
+			
+			finishHourLowerLimit = 0;
+			finishHourUpperLimit = 0;
+		}
+		
+		if (wrapper.getStartHourLowerLimit() == null && wrapper.getFinishHourUpperLimit() != null) {
+			if (wrapper.getFinishHourLowerLimit() > wrapper.getFinishHourUpperLimit()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
+			}
+			
+			finishHourLowerLimit  = wrapper.getFinishHourLowerLimit();
+			finishHourUpperLimit  = wrapper.getFinishHourUpperLimit();
+			
+			startHourLowerLimit = 0;
+			startHourUpperLimit = 0;
 		}
 
-		else if (StringUtils.isEmpty(wrapper.getStartDateTimeLowerLimit())
-				&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())) {
-
-			finishDateTimeLowerLimit = LocalDateTime.parse(wrapper.getFinishDateTimeLowerLimit(), df);
-			finishDateTimeUpperLimit = LocalDateTime.parse(wrapper.getFinishDateTimeUpperLimit(), df);
-
-			if (finishDateTimeLowerLimit.isBefore(LocalDateTime.now())) {
-				throw new BadRequestException("Error: Date inputted have to be today or after!");
+		if (wrapper.getStartHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() != null) {
+			if (wrapper.getStartHourLowerLimit() > wrapper.getStartHourUpperLimit()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
 			}
-
-			eventWrapperPages = eventRepository.searchWithFinishDateTime(userAge, companionGender, userId,
-					finishDateTimeLowerLimit, finishDateTimeUpperLimit, wrapper.getCreatorMaximumAge(),
-					wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
-
-		} else if (StringUtils.isNotEmpty(wrapper.getStartDateTimeLowerLimit())
-				&& StringUtils.isNotEmpty(wrapper.getFinishDateTimeLowerLimit())) {
-			startDateTimeLowerLimit = LocalDateTime.parse(wrapper.getStartDateTimeLowerLimit(), df);
-			startDateTimeUpperLimit = LocalDateTime.parse(wrapper.getStartDateTimeUpperLimit(), df);
-
-			finishDateTimeLowerLimit = LocalDateTime.parse(wrapper.getFinishDateTimeLowerLimit(), df);
-			finishDateTimeUpperLimit = LocalDateTime.parse(wrapper.getFinishDateTimeUpperLimit(), df);
-
-			if (startDateTimeLowerLimit.isAfter(finishDateTimeLowerLimit)) {
-				throw new BadRequestException("Error: Start time must be earlier than finish time!");
+			if (wrapper.getFinishHourLowerLimit() > wrapper.getFinishHourUpperLimit()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
 			}
-
-			if (!startDateTimeLowerLimit.toLocalDate().isEqual(finishDateTimeLowerLimit.toLocalDate())) {
-				throw new BadRequestException("Error: Start date and finish date must be the same day!");
-			}
-
-			eventWrapperPages = eventRepository.searchWithStartAndFinishDateTime(userAge, companionGender, userId,
-					startDateTimeLowerLimit, startDateTimeUpperLimit, finishDateTimeLowerLimit,
-					finishDateTimeUpperLimit, wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(),
-					creatorGender, eventCity, paging);
+			
+			startHourLowerLimit = wrapper.getStartHourLowerLimit();
+			startHourUpperLimit = wrapper.getStartHourUpperLimit();
+			
+			finishHourLowerLimit  = wrapper.getFinishHourLowerLimit();
+			finishHourUpperLimit  = wrapper.getFinishHourUpperLimit();
 		}
+		
+		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.search(userAge, companionGender, userId, startDate, finishDate,
+				startHourLowerLimit, startHourUpperLimit, finishHourLowerLimit, finishHourUpperLimit,
+				wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
