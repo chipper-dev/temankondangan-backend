@@ -1,6 +1,8 @@
 
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -10,6 +12,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -516,6 +519,10 @@ public class EventServiceImpl implements EventService {
 		// check sortBy and direction
 		if (!("createdDate".equals(wrapper.getSortBy()) || "startDateTime".equals(wrapper.getSortBy()))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		} else if (wrapper.getSortBy().equals("startDateTime")) {
+			wrapper.setSortBy("start_date_time");
+		} else {
+			wrapper.setSortBy("created_date");
 		}
 
 		Pageable paging;
@@ -541,31 +548,35 @@ public class EventServiceImpl implements EventService {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
 		Integer userAge = Period.between(profile.getDob(), LocalDate.now()).getYears();
-		ArrayList<Gender> companionGender = new ArrayList<>();
-		companionGender.add(Gender.B);
-		companionGender.add(profile.getGender());
+		String companionGender = profile.getGender().toString();
 
 		// check inputted gender in search
-		ArrayList<Gender> creatorGender = new ArrayList<>();
+		List<String> creatorGender = new ArrayList<String>();
 		if (wrapper.getCreatorGender().compareTo(Gender.B) == 0) {
-			creatorGender.add(Gender.B);
-			creatorGender.add(Gender.P);
-			creatorGender.add(Gender.L);
+			creatorGender.add("L");
+			creatorGender.add("P");
+		} else {
+			creatorGender.add(wrapper.getCreatorGender().toString());
 		}
-
 		// check inputted city in search
-		String eventCity = "";
-		if (StringUtils.isNotEmpty(wrapper.getCity())) {
-			eventCity = wrapper.getCity().toLowerCase();
+		StringBuilder builder = new StringBuilder();
+		if (!wrapper.getCity().isEmpty()) {
+			for (int i = 0; i < wrapper.getCity().size(); i++) {
+				if (i > 0) {
+					builder.append("|");
+				}
+				builder.append("%").append(wrapper.getCity().get(i).toLowerCase()).append("%");
+			}
 		}
+		String eventCity = builder.toString();
 
 		// check upper limit and lower limit
 		if ((StringUtils.isEmpty(wrapper.getStartDate()) && StringUtils.isNotEmpty(wrapper.getFinishDate()))
 				|| (StringUtils.isNotEmpty(wrapper.getStartDate()) && StringUtils.isEmpty(wrapper.getFinishDate()))
-				|| (wrapper.getStartHourLowerLimit() == null && wrapper.getStartHourUpperLimit() != null)
-				|| (wrapper.getStartHourLowerLimit() != null && wrapper.getStartHourUpperLimit() == null)
-				|| (wrapper.getFinishHourLowerLimit() == null && wrapper.getFinishHourUpperLimit() != null)
-				|| (wrapper.getFinishHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() == null)) {
+				|| (wrapper.getStartHourLowerRange() == null && wrapper.getStartHourUpperRange() != null)
+				|| (wrapper.getStartHourLowerRange() != null && wrapper.getStartHourUpperRange() == null)
+				|| (wrapper.getFinishHourLowerRange() == null && wrapper.getFinishHourUpperRange() != null)
+				|| (wrapper.getFinishHourLowerRange() != null && wrapper.getFinishHourUpperRange() == null)) {
 			throw new BadRequestException(
 					"Error: The lower and upper limit range for date and hour must be all empty or all filled!");
 		}
@@ -574,69 +585,86 @@ public class EventServiceImpl implements EventService {
 		LocalDateTime startDate = LocalDateTime.now();
 		LocalDateTime finishDate = LocalDateTime.now().plusDays(90);
 
-		Integer startHourLowerLimit = 0;
-		Integer startHourUpperLimit = 24;
-		Integer finishHourLowerLimit = 0;
-		Integer finishHourUpperLimit = 24;
+		Integer startHourLowerRange = 0;
+		Integer startHourUpperRange = 24;
+		Integer finishHourLowerRange = 0;
+		Integer finishHourUpperRange = 24;
 
 		if ((StringUtils.isNotEmpty(wrapper.getStartDate()))) {
 			startDate = LocalDate.parse(wrapper.getStartDate(), dfDate).atStartOfDay();
 			finishDate = LocalDate.parse(wrapper.getFinishDate(), dfDate).atTime(LocalTime.MAX);
 		}
-		
-		if (wrapper.getStartHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() == null) {
-			if (wrapper.getStartHourLowerLimit() > wrapper.getStartHourUpperLimit()) {
+
+		if (wrapper.getStartHourLowerRange() != null && wrapper.getFinishHourUpperRange() == null) {
+			if (wrapper.getStartHourLowerRange() > wrapper.getStartHourUpperRange()) {
 				throw new BadRequestException(ERROR_RANGE_LIMIT);
 			}
-			
-			startHourLowerLimit = wrapper.getStartHourLowerLimit();
-			startHourUpperLimit = wrapper.getStartHourUpperLimit();
-			
-			finishHourLowerLimit = 0;
-			finishHourUpperLimit = 0;
-		}
-		
-		if (wrapper.getStartHourLowerLimit() == null && wrapper.getFinishHourUpperLimit() != null) {
-			if (wrapper.getFinishHourLowerLimit() > wrapper.getFinishHourUpperLimit()) {
-				throw new BadRequestException(ERROR_RANGE_LIMIT);
-			}
-			
-			finishHourLowerLimit  = wrapper.getFinishHourLowerLimit();
-			finishHourUpperLimit  = wrapper.getFinishHourUpperLimit();
-			
-			startHourLowerLimit = 0;
-			startHourUpperLimit = 0;
+
+			startHourLowerRange = wrapper.getStartHourLowerRange();
+			startHourUpperRange = wrapper.getStartHourUpperRange();
+
+			finishHourLowerRange = 0;
+			finishHourUpperRange = 0;
 		}
 
-		if (wrapper.getStartHourLowerLimit() != null && wrapper.getFinishHourUpperLimit() != null) {
-			if (wrapper.getStartHourLowerLimit() > wrapper.getStartHourUpperLimit()) {
+		if (wrapper.getStartHourLowerRange() == null && wrapper.getFinishHourUpperRange() != null) {
+			if (wrapper.getFinishHourLowerRange() > wrapper.getFinishHourUpperRange()) {
 				throw new BadRequestException(ERROR_RANGE_LIMIT);
 			}
-			if (wrapper.getFinishHourLowerLimit() > wrapper.getFinishHourUpperLimit()) {
-				throw new BadRequestException(ERROR_RANGE_LIMIT);
-			}
-			
-			startHourLowerLimit = wrapper.getStartHourLowerLimit();
-			startHourUpperLimit = wrapper.getStartHourUpperLimit();
-			
-			finishHourLowerLimit  = wrapper.getFinishHourLowerLimit();
-			finishHourUpperLimit  = wrapper.getFinishHourUpperLimit();
+
+			finishHourLowerRange = wrapper.getFinishHourLowerRange();
+			finishHourUpperRange = wrapper.getFinishHourUpperRange();
+
+			startHourLowerRange = 0;
+			startHourUpperRange = 0;
 		}
-		
-		Page<EventFindAllListDBResponseWrapper> eventWrapperPages = eventRepository.search(userAge, companionGender, userId, startDate, finishDate,
-				startHourLowerLimit, startHourUpperLimit, finishHourLowerLimit, finishHourUpperLimit,
-				wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
+
+		if (wrapper.getStartHourLowerRange() != null && wrapper.getFinishHourUpperRange() != null) {
+			if (wrapper.getStartHourLowerRange() > wrapper.getStartHourUpperRange()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
+			}
+			if (wrapper.getFinishHourLowerRange() > wrapper.getFinishHourUpperRange()) {
+				throw new BadRequestException(ERROR_RANGE_LIMIT);
+			}
+
+			startHourLowerRange = wrapper.getStartHourLowerRange();
+			startHourUpperRange = wrapper.getStartHourUpperRange();
+
+			finishHourLowerRange = wrapper.getFinishHourLowerRange();
+			finishHourUpperRange = wrapper.getFinishHourUpperRange();
+		}
+
+		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
+				startDate, finishDate, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
+				finishHourUpperRange, wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(), creatorGender, eventCity, paging);
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
+
 		eventWrapperPages.forEach(eventWrap -> {
+			EventFindAllListDBResponseWrapper responseWrapper = new EventFindAllListDBResponseWrapper();
+			if (StringUtils.isNotEmpty((String) eventWrap.get("status")))
+				responseWrapper.setApplicantStatus(ApplicantStatus.valueOf((String) eventWrap.get("status")));
+			responseWrapper.setCity((String) eventWrap.get("city"));
+			responseWrapper.setCompanionGender(Gender.valueOf((String) eventWrap.get("companion_gender")));
+			responseWrapper.setCreatedBy((String) eventWrap.get("created_by"));
+			responseWrapper.setCreatorFullName((String) eventWrap.get("full_name"));
+			responseWrapper.setCreatorGender(Gender.valueOf((String) eventWrap.get("gender")));
+			responseWrapper.setEventId(((BigInteger) eventWrap.get("event_id")).longValue());
+			responseWrapper.setFinishDateTime(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime());
+			responseWrapper.setMaximumAge((Integer) eventWrap.get("maximum_age"));
+			responseWrapper.setMinimumAge((Integer) eventWrap.get("minimum_age"));
+			responseWrapper.setProfileId(((BigInteger) eventWrap.get("profile_id")).longValue());
+			responseWrapper.setStartDateTime(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime());
+			responseWrapper.setTitle((String) eventWrap.get("title"));
+
 			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
-			profileRepository.findById(eventWrap.getProfileId())
+			profileRepository.findById(((BigInteger) eventWrap.get("profile_id")).longValue())
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
-			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
-			eventWrap.setHasAcceptedApplicant(
-					!applicantRepository.findByEventIdAccepted(eventWrap.getEventId()).isEmpty());
-			eventAllDBResponse.add(eventWrap);
+			responseWrapper.setPhotoProfileUrl(photoProfileUrl.get());
+			responseWrapper.setHasAcceptedApplicant(!applicantRepository
+					.findByEventIdAccepted(((BigInteger) eventWrap.get("event_id")).longValue()).isEmpty());
+			eventAllDBResponse.add(responseWrapper);
 		});
 
 		return EventFindAllResponseWrapper.builder().pageNumber(wrapper.getPageNumber()).pageSize(wrapper.getPageSize())
