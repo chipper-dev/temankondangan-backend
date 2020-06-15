@@ -1,5 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 
@@ -27,13 +29,11 @@ public class SearchEventWrapper {
 	private Integer creatorMaximumAge = 150;
 	@Builder.Default
 	private Integer creatorMinimumAge = 18;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-	private String startDateTimeLowerLimit;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-	private String startDateTimeUpperLimit;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-	private String finishDateTimeLowerLimit;
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy HH:mm")
-	private String finishDateTimeUpperLimit;
-	private String city;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+	private String startDate;
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+	private String finishDate;
+	private List<String> startHour;
+	private List<String> finishHour;
+	private List<String> city;
 }

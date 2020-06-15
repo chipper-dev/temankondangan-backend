@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 public class AppliedEventWrapper {
     private Long eventId;
     private String photoProfileUrl;
-    private String fullNameCreator;
+    private String creatorFullName;
     private String title;
     private String city;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)

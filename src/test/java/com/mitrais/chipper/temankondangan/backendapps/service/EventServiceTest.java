@@ -11,6 +11,8 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import java.math.BigInteger;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +20,9 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -88,7 +92,9 @@ public class EventServiceTest {
 	private static Profile profile;
 	private static Page<EventFindAllListDBResponseWrapper> pageEvent;
 	private static List<EventFindAllListDBResponseWrapper> eventList;
-	private static DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")
+	private static DateTimeFormatter dfDateTime = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm")
+			.withResolverStyle(ResolverStyle.STRICT);
+	private static DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu")
 			.withResolverStyle(ResolverStyle.STRICT);
 
 	@BeforeEach
@@ -107,8 +113,8 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
-		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(df));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(df));
+		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
+		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -125,8 +131,8 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
-		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(df));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(df));
+		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
+		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -178,7 +184,7 @@ public class EventServiceTest {
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
 
-		wrapper.setStartDateTime(LocalDateTime.now().format(df));
+		wrapper.setStartDateTime(LocalDateTime.now().format(dfDateTime));
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Date inputted have to be after today!")
 				.isInstanceOf(BadRequestException.class);
@@ -189,8 +195,8 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
-		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(df));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).minusHours(1).format(df));
+		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
+		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).minusHours(1).format(dfDateTime));
 
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Start time must be earlier than finish time!")
@@ -202,8 +208,8 @@ public class EventServiceTest {
 		wrapper = new CreateEventWrapper();
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
-		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(df));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(4).format(df));
+		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
+		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(4).format(dfDateTime));
 
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
 				.hasMessageContaining("Error: Start date and finish date must be the same day!")
@@ -1074,14 +1080,13 @@ public class EventServiceTest {
 		eventService.creatorCancelEvent(1L, 1L);
 		verify(eventRepository, times(1)).save(any(Event.class));
 	}
-	
+
 	// search event service
 	@Test
 	public void searchEventDefaultTest() {
 
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setCity("Klaten");
-		
+
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
 		profile1.setDob(LocalDate.now().minusYears(19));
@@ -1089,38 +1094,50 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
 
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+//		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
 
-		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
-		event3.setProfileId(2L);
-		event3.setEventId(3L);
-		event3.setTitle("title test 3");
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
 
-		eventList = new ArrayList<>();
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		Mockito.when(eventRepository.searchWithStartDateTime(any(Integer.class), Mockito.anyCollection(), anyLong(),
-				any(LocalDateTime.class), any(LocalDateTime.class), any(Integer.class), any(Integer.class),
-				Mockito.anyCollection(), any(String.class), any(Pageable.class))).thenReturn(pageEvent);
+		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
+				.thenReturn(eventSearchPage);
 
 		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
 		EventFindAllResponseWrapper events = eventService.search(1L, wrapper);
-		assertEquals("title test 2", events.getContentList().get(0).getTitle());
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
 
 	@Test
-	public void searchEventAscTest() {
-
+	public void searchEvent_WithSortByAndDirectionAndCreatorGenderAndDateAndHourFilledTest() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
+		wrapper.setCity(Arrays.asList("Klaten", "Jogja"));
 		wrapper.setDirection("ASC");
+		wrapper.setSortBy("startDateTime");
+		wrapper.setCreatorGender(Gender.L);
+		wrapper.setStartDate(LocalDate.now().plusDays(3).format(dfDate));
+		wrapper.setFinishDate(LocalDate.now().plusDays(3).format(dfDate));
+		wrapper.setStartHour(Arrays.asList("00-12","12-18","18-00"));
+		wrapper.setFinishHour(Arrays.asList("00-12","12-18","18-00"));
 
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -1129,40 +1146,44 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
 
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
-
-		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
-		event3.setProfileId(2L);
-		event3.setEventId(3L);
-		event3.setTitle("title test 3");
-
-		eventList = new ArrayList<>();
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		Mockito.when(eventRepository.searchWithStartDateTime(any(Integer.class), Mockito.anyCollection(), anyLong(),
-				any(LocalDateTime.class), any(LocalDateTime.class), any(Integer.class), any(Integer.class),
-				Mockito.anyCollection(), any(String.class), any(Pageable.class))).thenReturn(pageEvent);
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+		
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String,Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String,Object>>(eventSearchs);
+		
+		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
+				.thenReturn(eventSearchPage);
 
 		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-		
+
 		EventFindAllResponseWrapper events = eventService.search(1L, wrapper);
-		assertEquals("title test 2", events.getContentList().get(0).getTitle());
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
 
 	@Test
-	public void searchEventStartDateTimeNotEmptyTest() {
-
+	public void searchEvent_Without1218HourRangeTest() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setCity("Klaten");
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setStartDateTimeUpperLimit(LocalDateTime.now().plusDays(1).plusHours(2).format(df));
+		wrapper.setStartHour(Arrays.asList("00-12","18-00"));
+		wrapper.setFinishHour(Arrays.asList("00-12","18-00"));
 
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -1171,120 +1192,39 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
 
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
-
-		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
-		event3.setProfileId(2L);
-		event3.setEventId(3L);
-		event3.setTitle("title test 3");
-
-		eventList = new ArrayList<>();
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		Mockito.when(eventRepository.searchWithStartDateTime(any(Integer.class), Mockito.anyCollection(), anyLong(),
-				any(LocalDateTime.class), any(LocalDateTime.class), any(Integer.class), any(Integer.class),
-				Mockito.anyCollection(), any(String.class), any(Pageable.class))).thenReturn(pageEvent);
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+		
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String,Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String,Object>>(eventSearchs);
+		
+		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
+				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
+				.thenReturn(eventSearchPage);
 
 		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-		
+
 		EventFindAllResponseWrapper events = eventService.search(1L, wrapper);
-		assertEquals("title test 2", events.getContentList().get(0).getTitle());
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
-
-	@Test
-	public void searchEventFinishDateTimeNotEmptyTest() {
-
-		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setCity("Klaten");
-		wrapper.setFinishDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setFinishDateTimeUpperLimit(LocalDateTime.now().plusDays(1).plusHours(2).format(df));
-
-		Profile profile1 = new Profile();
-		profile1.setGender(Gender.P);
-		profile1.setDob(LocalDate.now().minusYears(19));
-
-		Optional<Profile> profileOptional = Optional.of(profile1);
-		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
-
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
-
-		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
-		event3.setProfileId(2L);
-		event3.setEventId(3L);
-		event3.setTitle("title test 3");
-
-		eventList = new ArrayList<>();
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		Mockito.when(eventRepository.searchWithFinishDateTime(any(Integer.class), Mockito.anyCollection(), anyLong(),
-				any(LocalDateTime.class), any(LocalDateTime.class), any(Integer.class), any(Integer.class),
-				Mockito.anyCollection(), any(String.class), any(Pageable.class))).thenReturn(pageEvent);
-
-		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
-		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
-		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-				
-		EventFindAllResponseWrapper events = eventService.search(1L, wrapper);
-		assertEquals("title test 2", events.getContentList().get(0).getTitle());
-	}
-
-	@Test
-	public void searchEventStartDateTimeAndFinishDateTimeNotEmptyTest() {
-
-		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setCity("Klaten");
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setStartDateTimeUpperLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setFinishDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setFinishDateTimeUpperLimit(LocalDateTime.now().plusDays(1).format(df));
-
-		Profile profile1 = new Profile();
-		profile1.setGender(Gender.P);
-		profile1.setDob(LocalDate.now().minusYears(19));
-
-		Optional<Profile> profileOptional = Optional.of(profile1);
-		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
-
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
-
-		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
-		event3.setProfileId(2L);
-		event3.setEventId(3L);
-		event3.setTitle("title test 3");
-
-		eventList = new ArrayList<>();
-		eventList.add(event2);
-		eventList.add(event3);
-
-		pageEvent = new PageImpl<EventFindAllListDBResponseWrapper>(eventList);
-		Mockito.when(eventRepository.searchWithStartAndFinishDateTime(any(Integer.class), Mockito.anyCollection(),
-				anyLong(), any(LocalDateTime.class), any(LocalDateTime.class), any(LocalDateTime.class),
-				any(LocalDateTime.class), any(Integer.class), any(Integer.class), Mockito.anyCollection(),
-				any(String.class), any(Pageable.class))).thenReturn(pageEvent);
-		
-		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
-		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
-		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-		
-		EventFindAllResponseWrapper events = eventService.search(1L, wrapper);
-		assertEquals("title test 2", events.getContentList().get(0).getTitle());
-	}
-
+	
 	@Test
 	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
@@ -1333,9 +1273,9 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenDateTimeLowerLimitNotSyncWithUpperLimitInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenDateIsNotFilledTogetherInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().plusDays(10).format(df));
+		wrapper.setStartDate(LocalDateTime.now().plusDays(10).format(dfDate));
 
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
@@ -1344,16 +1284,16 @@ public class EventServiceTest {
 
 		assertThatThrownBy(() -> eventService.search(1L, wrapper))
 				.hasMessageContaining(
-						"Error: The lower and upper limit for date and time must be all empty or all filled!")
+						"Error: startDate and finishDate must be all empty or all filled!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateTimeLowerLimitBeforeTodayInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenStartDateIsBeforeNowInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().minusDays(1).format(df));
-		wrapper.setStartDateTimeUpperLimit(LocalDateTime.now().minusDays(1).plusHours(1).format(df));
-
+		wrapper.setStartDate(LocalDateTime.now().minusDays(1).format(dfDate));
+		wrapper.setFinishDate(LocalDateTime.now().minusDays(1).format(dfDate));
+		
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
 		profileMock.setGender(Gender.L);
@@ -1363,12 +1303,12 @@ public class EventServiceTest {
 				.hasMessageContaining("Error: Date inputted have to be today or after!")
 				.isInstanceOf(BadRequestException.class);
 	}
-
+	
 	@Test
-	public void shouldThrowBadRequestException_WhenFinishDateTimeLowerLimitBeforeTodayInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenStartDateIsAfterFinishDateInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setFinishDateTimeLowerLimit(LocalDateTime.now().minusDays(1).format(df));
-		wrapper.setFinishDateTimeUpperLimit(LocalDateTime.now().minusDays(1).plusHours(1).format(df));
+		wrapper.setStartDate(LocalDateTime.now().plusDays(10).format(dfDate));
+		wrapper.setFinishDate(LocalDateTime.now().plusDays(9).format(dfDate));
 
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
@@ -1376,17 +1316,14 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
 		assertThatThrownBy(() -> eventService.search(1L, wrapper))
-				.hasMessageContaining("Error: Date inputted have to be today or after!")
+				.hasMessageContaining("Error: startDate must be earlier than finishDate!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateTimeLowerLimitIsAfterFinishDateTimeLowerLimitInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenStartHourFormatIsWrongInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().plusDays(1).plusHours(1).format(df));
-		wrapper.setStartDateTimeUpperLimit(LocalDateTime.now().plusDays(1).plusHours(2).format(df));
-		wrapper.setFinishDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setFinishDateTimeUpperLimit(LocalDateTime.now().plusDays(1).plusHours(1).format(df));
+		wrapper.setStartHour(Arrays.asList("wrong format"));
 
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
@@ -1394,17 +1331,14 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
 		assertThatThrownBy(() -> eventService.search(1L, wrapper))
-				.hasMessageContaining("Error: Start time must be earlier than finish time!")
+				.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
 				.isInstanceOf(BadRequestException.class);
 	}
-
+	
 	@Test
-	public void shouldThrowBadRequestException_WhenStartDateTimeLowerLimitAndFinishDateTimeLowerLimitIsNotTheSameDayInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenFinishHourFormatIsWrongInSearchEvent() {
 		SearchEventWrapper wrapper = new SearchEventWrapper();
-		wrapper.setStartDateTimeLowerLimit(LocalDateTime.now().plusDays(1).format(df));
-		wrapper.setStartDateTimeUpperLimit(LocalDateTime.now().plusDays(1).plusHours(2).format(df));
-		wrapper.setFinishDateTimeLowerLimit(LocalDateTime.now().plusDays(2).plusHours(1).format(df));
-		wrapper.setFinishDateTimeUpperLimit(LocalDateTime.now().plusDays(2).plusHours(1).format(df));
+		wrapper.setFinishHour(Arrays.asList("wrong format"));
 
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
@@ -1412,7 +1346,7 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
 		assertThatThrownBy(() -> eventService.search(1L, wrapper))
-				.hasMessageContaining("Error: Start date and finish date must be the same day!")
+				.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
 				.isInstanceOf(BadRequestException.class);
 	}
 }
