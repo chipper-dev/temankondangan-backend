@@ -35,7 +35,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.companionGender in :companionGender) " 
 			+ "OR (u.userId = :userId)) "
 			+ "AND e.startDateTime > :now " 
-			+ "AND e.dataState <> 'DELETED'")
+			+ "AND e.dataState <> 'DELETED' "
+			+ "AND e.cancelled = FALSE")
 	Page<EventFindAllListDBResponseWrapper> findAllByRelevantInfo(@Param("age") Integer age,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
 			@Param("now") LocalDateTime now, Pageable paging);
