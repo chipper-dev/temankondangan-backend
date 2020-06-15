@@ -33,9 +33,7 @@ public class SearchEventWrapper {
 	private String startDate;
 	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
 	private String finishDate;
-	private Integer startHourLowerRange;
-	private Integer startHourUpperRange;
-	private Integer finishHourLowerRange;
-	private Integer finishHourUpperRange;
+	private List<String> startHour;
+	private List<String> finishHour;
 	private List<String> city;
 }

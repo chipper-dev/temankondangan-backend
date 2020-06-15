@@ -64,7 +64,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
 	@Query(nativeQuery = true, value = "SELECT e.event_id, p.profile_id, p.full_name, e.created_by, "
 			+ "e.title, e.city , e.start_date_time, e.finish_date_time, e.minimum_age, e.maximum_age, "
-			+ "p.gender, e.companion_gender, a.status FROM Event e "
+			+ "p.gender, e.companion_gender, a.status, e.cancelled FROM Event e "
 			+ "JOIN Users u ON e.user_id = u.user_id " 
 			+ "JOIN Profile p ON u.user_id = p.user_id "
 			+ "LEFT JOIN Applicants a ON a.user_id = :userId AND a.event_id = e.event_id AND a.data_state <> 'DELETED' " 
@@ -72,8 +72,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.companion_gender = :companionGender " 
 			+ "AND e.start_date_time BETWEEN :startDate AND :finishDate "
 			+ "AND (extract(hour from start_date_time) between :startHourLowerRange and :startHourUpperRange "
-			+ "OR extract(hour from finish_date_time) between :finishHourLowerRange and :finishHourUpperRange) "
-			+ "AND e.data_state <> 'DELETED' " 
+			+ "OR extract(hour from start_date_time) between :secondStartHourLowerRange and :secondStartHourUpperRange "
+			+ "OR extract(hour from finish_date_time) between :finishHourLowerRange and :finishHourUpperRange "
+			+ "OR extract(hour from finish_date_time) between :secondFinishHourLowerRange and :secondFinishHourUpperRange) "
+			+ "AND e.data_state <> 'DELETED' "
+			+ "AND e.cancelled = FALSE " 
 			+ "AND lower(e.city) SIMILAR TO CONCAT('(',:city,')') "
 			+ "AND (extract(year from age (NOW(), p.dob)) between :creatorMinimumAge AND :creatorMaximumAge) "
 			+ "AND p.gender IN (:creatorGender) "
@@ -88,9 +91,13 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			@Param("startHourUpperRange") Integer startHourUpperRange,
 			@Param("finishHourLowerRange") Integer finishHourLowerRange,
 			@Param("finishHourUpperRange") Integer finishHourUpperRange,
+			@Param("secondStartHourLowerRange") Integer secondStartHourLowerRange,
+			@Param("secondStartHourUpperRange") Integer secondStartHourUpperRange,
+			@Param("secondFinishHourLowerRange") Integer secondFinishHourLowerRange,
+			@Param("secondFinishHourUpperRange") Integer secondFinishHourUpperRange,
 			@Param("creatorMaximumAge") Integer creatorMaximumAge,
 			@Param("creatorMinimumAge") Integer creatorMinimumAge,
 			@Param("creatorGender") List<String> creatorGender, 
-			@Param("city") String city, 
+			@Param("city") String city,
 			Pageable paging);
 	}

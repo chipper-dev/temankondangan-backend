@@ -224,14 +224,14 @@ public class EventController extends CommonResource {
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
 					+ "Error: Can only input ASC or DESC for direction! \t\n "
 					+ "Error: Minimum age must be 18! \t\n "
-					+ "Error: Inputted age is not valid! |t\n "
-					+ "Error: The lower and upper limit for date and time must be all empty or all filled! \t\n "
+					+ "Error: Inputted age is not valid! t\n "
+					+ "Error: startDate and finishDate must be all empty or all filled! \t\n "
 					+ "Error: Date inputted have to be today or after! \t\n "
-					+ "Error: Start time must be earlier than finish time! \t\n "
-					+ "Error: Start date and finish date must be the same day!"),
+					+ "Error: startDate must be earlier than finishDate! \t\n "
+					+ "Error: Please use 00-12, 12-18 or 18-00 for hour value"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/search")
-	public ResponseEntity<ResponseBody> search(@RequestBody(required=false) SearchEventWrapper wrapper,
+	public ResponseEntity<ResponseBody> search(@RequestBody(required = false) SearchEventWrapper wrapper,
 			HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
