@@ -87,7 +87,7 @@ public class UserController extends CommonResource {
             @ApiResponse(code = 400, message = "Error: Token cannot null or empty"),
             @ApiResponse(code = 404, message = "Profile not found with userId ") })
     @PostMapping(value = "/save-messaging-token")
-    public ResponseEntity<ResponseBody> findAll(@RequestParam(value = "Messaging Token", required = true) String messagingToken,
+    public ResponseEntity<ResponseBody> findAll(@RequestParam(value = "messagingToken", required = true) String messagingToken,
                                                 HttpServletRequest request) {
         String token = getToken(request.getHeader(HEADER_AUTH));
         Long userId = tokenProvider.getUserIdFromToken(token);
