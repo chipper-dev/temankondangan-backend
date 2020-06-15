@@ -565,7 +565,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		// check inputted city in search
-		String eventCity = "";
+		String eventCity = "%%";
 		StringBuilder builder = new StringBuilder();
 		if (!(wrapper.getCity() == null || wrapper.getCity().isEmpty())) {
 			for (int i = 0; i < wrapper.getCity().size(); i++) {
