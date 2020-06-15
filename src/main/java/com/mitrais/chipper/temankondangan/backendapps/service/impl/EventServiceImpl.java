@@ -438,6 +438,7 @@ public class EventServiceImpl implements EventService {
 			wrapper.setCity(event.getCity());
 			wrapper.setStartDateTime(event.getStartDateTime());
 			wrapper.setFinishDateTime(event.getFinishDateTime());
+			wrapper.setCancelled(event.getCancelled());
 
 			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
@@ -480,6 +481,7 @@ public class EventServiceImpl implements EventService {
 			wrapper.setCity(event.getCity());
 			wrapper.setStartDateTime(event.getStartDateTime());
 			wrapper.setFinishDateTime(event.getFinishDateTime());
+			wrapper.setCancelled(event.getCancelled());
 
 			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
