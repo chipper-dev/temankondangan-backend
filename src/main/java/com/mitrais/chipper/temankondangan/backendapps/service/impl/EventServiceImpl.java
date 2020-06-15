@@ -442,7 +442,7 @@ public class EventServiceImpl implements EventService {
 
 			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-				wrapper.setFullNameCreator(profile.getFullName());
+				wrapper.setCreatorFullName(profile.getFullName());
 				wrapper.setCreatorGender(profile.getGender());
 			});
 
@@ -485,7 +485,7 @@ public class EventServiceImpl implements EventService {
 
 			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-				wrapper.setFullNameCreator(profile.getFullName());
+				wrapper.setCreatorFullName(profile.getFullName());
 				wrapper.setCreatorGender(profile.getGender());
 			});
 
