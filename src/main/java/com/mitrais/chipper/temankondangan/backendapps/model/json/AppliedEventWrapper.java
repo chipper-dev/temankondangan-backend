@@ -26,4 +26,5 @@ public class AppliedEventWrapper {
     private LocalDateTime finishDateTime;
     private ApplicantStatus applicantStatus;
     private Gender creatorGender;
+    private Boolean cancelled;
 }
