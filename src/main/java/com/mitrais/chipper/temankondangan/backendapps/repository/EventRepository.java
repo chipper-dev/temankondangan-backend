@@ -37,7 +37,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.companionGender in :companionGender) " 
 			+ "OR (u.userId = :userId)) "
 			+ "AND e.startDateTime > :now " 
-			+ "AND e.dataState <> 'DELETED'")
+			+ "AND e.dataState <> 'DELETED' "
+			+ "AND e.cancelled = FALSE")
 	Page<EventFindAllListDBResponseWrapper> findAllByRelevantInfo(@Param("age") Integer age,
 			@Param("companionGender") Collection<Gender> companionGender, @Param("userId") Long userId,
 			@Param("now") LocalDateTime now, Pageable paging);
@@ -58,7 +59,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	@Query("SELECT e FROM Event e " + "JOIN Applicant a ON a.event.eventId = e.eventId "
 			+ "WHERE a.applicantUser.userId = :userId " + "AND a.dataState = 'ACTIVE' "
 			+ "AND e.dataState = :dataStateEvent "
-			+ "AND ((e.startDateTime >= :now AND :current = 1) OR (e.startDateTime < :now AND :current = 0))")
+			+ "AND (((e.startDateTime >= :now AND e.cancelled = FALSE) AND :current = 1) "
+			+ "OR ((e.startDateTime < :now OR e.cancelled = TRUE) AND :current = 0))")
 	List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState,
 			@Param("now") LocalDateTime now, @Param("current") Integer current, Sort sort);
 
