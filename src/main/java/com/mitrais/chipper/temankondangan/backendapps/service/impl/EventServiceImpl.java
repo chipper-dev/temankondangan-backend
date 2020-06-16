@@ -592,10 +592,15 @@ public class EventServiceImpl implements EventService {
 
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime startDateSearch = LocalDateTime.now();
-		LocalDateTime finishDateSearch = LocalDateTime.now().plusDays(90);
+		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX);
 
 		if ((StringUtils.isNotEmpty(startDate))) {
-			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay();
+			LocalDate startDateCheck = LocalDate.parse(startDate, dfDate);
+			if (startDateCheck.equals(LocalDate.now())) {
+				startDateSearch = startDateCheck.atTime(LocalTime.now());
+			} else {
+				startDateSearch = startDateCheck.atStartOfDay();
+			}
 			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX);
 
 			if (startDateSearch.isBefore(LocalDateTime.now())) {
