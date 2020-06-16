@@ -49,7 +49,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrappe
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.SearchEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
@@ -418,11 +417,19 @@ public class EventServiceImpl implements EventService {
 	@Override
 
 	public void creatorCancelEvent(Long userId, Long eventId) {
+		if (eventId == null) {
+			throw new BadRequestException("Error: eventId cannot null");
+		}
+
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
 		if (!userId.equals(event.getUser().getUserId())) {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
+		}
+
+		if (Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
 		event.setCancelled(true);
@@ -520,32 +527,32 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventFindAllResponseWrapper search(Long userId, SearchEventWrapper wrapper) {
+	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
+			String direction, Gender creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
+			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city) {
 		// check sortBy and direction
-		if (!("createdDate".equals(wrapper.getSortBy()) || "startDateTime".equals(wrapper.getSortBy()))) {
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		} else if (wrapper.getSortBy().equals("startDateTime")) {
-			wrapper.setSortBy("start_date_time");
+		} else if (sortBy.equals("startDateTime")) {
+			sortBy = "start_date_time";
 		} else {
-			wrapper.setSortBy("created_date");
+			sortBy = "created_date";
 		}
 
 		Pageable paging;
-		if (wrapper.getDirection().equalsIgnoreCase("DESC")) {
-			paging = PageRequest.of(wrapper.getPageNumber(), wrapper.getPageSize(),
-					Sort.by(wrapper.getSortBy()).descending());
-		} else if (wrapper.getDirection().equalsIgnoreCase("ASC")) {
-			paging = PageRequest.of(wrapper.getPageNumber(), wrapper.getPageSize(),
-					Sort.by(wrapper.getSortBy()).ascending());
+		if (direction.equalsIgnoreCase("DESC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).descending());
+		} else if (direction.equalsIgnoreCase("ASC")) {
+			paging = PageRequest.of(pageNumber, pageSize, Sort.by(sortBy).ascending());
 		} else {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
 		// check age inputted
-		if (wrapper.getCreatorMinimumAge() < 18) {
+		if (creatorMinimumAge < 18) {
 			throw new BadRequestException("Error: Minimum age must be 18!");
 		}
-		if (wrapper.getCreatorMaximumAge() < wrapper.getCreatorMinimumAge()) {
+		if (creatorMaximumAge < creatorMinimumAge) {
 			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 
@@ -556,46 +563,46 @@ public class EventServiceImpl implements EventService {
 		String companionGender = profile.getGender().toString();
 
 		// check inputted gender in search
-		List<String> creatorGender = new ArrayList<>();
-		if (wrapper.getCreatorGender().compareTo(Gender.B) == 0) {
-			creatorGender.add("L");
-			creatorGender.add("P");
+		List<String> creatorGenderSearch = new ArrayList<>();
+		if (creatorGender.compareTo(Gender.B) == 0) {
+			creatorGenderSearch.add("L");
+			creatorGenderSearch.add("P");
 		} else {
-			creatorGender.add(wrapper.getCreatorGender().toString());
+			creatorGenderSearch.add(creatorGender.toString());
 		}
 
 		// check inputted city in search
 		String eventCity = "%%";
 		StringBuilder builder = new StringBuilder();
-		if (!(wrapper.getCity() == null || wrapper.getCity().isEmpty())) {
-			for (int i = 0; i < wrapper.getCity().size(); i++) {
+		if (!(city == null || city.isEmpty())) {
+			for (int i = 0; i < city.size(); i++) {
 				if (i > 0) {
 					builder.append("|");
 				}
-				builder.append("%").append(wrapper.getCity().get(i).toLowerCase()).append("%");
+				builder.append("%").append(city.get(i).toLowerCase()).append("%");
 			}
 			eventCity = builder.toString();
 		}
 
-//		check startDate and finishDate
-		if ((StringUtils.isEmpty(wrapper.getStartDate()) && StringUtils.isNotEmpty(wrapper.getFinishDate()))
-				|| (StringUtils.isNotEmpty(wrapper.getStartDate()) && StringUtils.isEmpty(wrapper.getFinishDate()))) {
+//				check startDate and finishDate
+		if ((StringUtils.isEmpty(startDate) && StringUtils.isNotEmpty(finishDate))
+				|| (StringUtils.isNotEmpty(startDate) && StringUtils.isEmpty(finishDate))) {
 			throw new BadRequestException("Error: startDate and finishDate must be all empty or all filled!");
 		}
 
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime startDate = LocalDateTime.now();
-		LocalDateTime finishDate = LocalDateTime.now().plusDays(90);
+		LocalDateTime startDateSearch = LocalDateTime.now();
+		LocalDateTime finishDateSearch = LocalDateTime.now().plusDays(90);
 
-		if ((StringUtils.isNotEmpty(wrapper.getStartDate()))) {
-			startDate = LocalDate.parse(wrapper.getStartDate(), dfDate).atStartOfDay();
-			finishDate = LocalDate.parse(wrapper.getFinishDate(), dfDate).atTime(LocalTime.MAX);
+		if ((StringUtils.isNotEmpty(startDate))) {
+			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay();
+			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX);
 
-			if (startDate.isBefore(LocalDateTime.now())) {
+			if (startDateSearch.isBefore(LocalDateTime.now())) {
 				throw new BadRequestException("Error: Date inputted have to be today or after!");
 			}
 
-			if (startDate.isAfter(finishDate)) {
+			if (startDateSearch.isAfter(finishDateSearch)) {
 				throw new BadRequestException("Error: startDate must be earlier than finishDate!");
 			}
 		}
@@ -616,13 +623,13 @@ public class EventServiceImpl implements EventService {
 		String hour3 = "18-00";
 
 		// check startHour and finishHour
-		if (!(wrapper.getStartHour() == null || wrapper.getStartHour().isEmpty())) {
-			int startHourSize = wrapper.getStartHour().size();
-			Collections.sort(wrapper.getStartHour());
+		if (!(startHour == null || startHour.isEmpty())) {
+			int startHourSize = startHour.size();
+			Collections.sort(startHour);
 
-//			if startHour only contains "00-12", "18-24"
-			if (startHourSize == 2 && wrapper.getStartHour().get(0).equalsIgnoreCase(hour1)
-					&& wrapper.getStartHour().get(1).equalsIgnoreCase(hour3)) {
+//					if startHour only contains "00-12", "18-24"
+			if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+					&& startHour.get(1).equalsIgnoreCase(hour3)) {
 				startHourLowerRange = 0;
 				startHourUpperRange = 12;
 				secondStartHourLowerRange = 18;
@@ -630,14 +637,14 @@ public class EventServiceImpl implements EventService {
 
 			} else {
 				for (int i = 0; i < startHourSize; i++) {
-					if (wrapper.getStartHour().get(i).equalsIgnoreCase(hour1)) {
+					if (startHour.get(i).equalsIgnoreCase(hour1)) {
 						startHourLowerRange = 0;
 						startHourUpperRange = 12;
-					} else if (wrapper.getStartHour().get(i).equalsIgnoreCase(hour2)) {
+					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
 						if (i == 0)
 							startHourLowerRange = 12;
 						startHourUpperRange = 18;
-					} else if (wrapper.getStartHour().get(i).equalsIgnoreCase(hour3)) {
+					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							startHourLowerRange = 18;
 						startHourUpperRange = 24;
@@ -648,15 +655,15 @@ public class EventServiceImpl implements EventService {
 			}
 		}
 
-		if (!(wrapper.getFinishHour() == null || wrapper.getFinishHour().isEmpty())) {
-			if (wrapper.getStartHour() == null || wrapper.getStartHour().isEmpty())
+		if (!(finishHour == null || finishHour.isEmpty())) {
+			if (startHour == null || startHour.isEmpty())
 				startHourUpperRange = 0;
 
-			int finishHourSize = wrapper.getFinishHour().size();
-			Collections.sort(wrapper.getFinishHour());
-//			if finishHour only contains "00-12", "18-24"
-			if (finishHourSize == 2 && wrapper.getFinishHour().get(0).equalsIgnoreCase(hour1)
-					&& wrapper.getFinishHour().get(1).equalsIgnoreCase(hour3)) {
+			int finishHourSize = finishHour.size();
+			Collections.sort(finishHour);
+//					if finishHour only contains "00-12", "18-24"
+			if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
+					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
 				finishHourLowerRange = 0;
 				finishHourUpperRange = 12;
 				secondFinishHourLowerRange = 18;
@@ -664,14 +671,14 @@ public class EventServiceImpl implements EventService {
 
 			} else {
 				for (int i = 0; i < finishHourSize; i++) {
-					if (wrapper.getFinishHour().get(i).equalsIgnoreCase(hour1)) {
+					if (finishHour.get(i).equalsIgnoreCase(hour1)) {
 						finishHourLowerRange = 0;
 						finishHourUpperRange = 12;
-					} else if (wrapper.getFinishHour().get(i).equalsIgnoreCase(hour2)) {
+					} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
 						if (i == 0)
 							finishHourLowerRange = 12;
 						finishHourUpperRange = 18;
-					} else if (wrapper.getFinishHour().get(i).equalsIgnoreCase(hour3)) {
+					} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							finishHourLowerRange = 18;
 						finishHourUpperRange = 24;
@@ -683,10 +690,10 @@ public class EventServiceImpl implements EventService {
 		}
 
 		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
-				startDate, finishDate, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
+				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
 				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
-				secondFinishHourUpperRange, wrapper.getCreatorMaximumAge(), wrapper.getCreatorMinimumAge(),
-				creatorGender, eventCity, paging);
+				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
+				paging);
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
@@ -718,7 +725,7 @@ public class EventServiceImpl implements EventService {
 			eventAllDBResponse.add(responseWrapper);
 		});
 
-		return EventFindAllResponseWrapper.builder().pageNumber(wrapper.getPageNumber()).pageSize(wrapper.getPageSize())
+		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
 				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 	}
 }
