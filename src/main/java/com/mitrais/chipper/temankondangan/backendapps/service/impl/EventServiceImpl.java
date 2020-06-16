@@ -432,8 +432,12 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
-		event.setCancelled(true);
-		eventRepository.save(event);
+		if (isCancelationValid(event.getStartDateTime())) {
+			event.setCancelled(true);
+			eventRepository.save(event);
+		} else {
+			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+		}
 	}
 
 	@Override
