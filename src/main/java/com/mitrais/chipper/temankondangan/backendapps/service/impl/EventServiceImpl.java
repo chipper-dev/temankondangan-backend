@@ -590,20 +590,19 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: startDate and finishDate must be all empty or all filled!");
 		}
 
+		LocalDateTime currentTime = LocalDateTime.now();
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime startDateSearch = LocalDateTime.now();
+		LocalDateTime startDateSearch = currentTime;
 		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX);
 
 		if ((StringUtils.isNotEmpty(startDate))) {
-			LocalDate startDateCheck = LocalDate.parse(startDate, dfDate);
-			if (startDateCheck.equals(LocalDate.now())) {
-				startDateSearch = startDateCheck.atTime(LocalTime.now());
-			} else {
-				startDateSearch = startDateCheck.atStartOfDay();
+			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay();
+			if (startDateSearch.toLocalDate().equals(LocalDate.now())) {
+				startDateSearch = currentTime;
 			}
 			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX);
 
-			if (startDateSearch.isBefore(LocalDateTime.now())) {
+			if (startDateSearch.isBefore(currentTime)) {
 				throw new BadRequestException("Error: Date inputted have to be today or after!");
 			}
 
