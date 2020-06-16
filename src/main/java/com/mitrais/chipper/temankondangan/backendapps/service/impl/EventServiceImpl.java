@@ -403,6 +403,10 @@ public class EventServiceImpl implements EventService {
 	@Override
 
 	public void creatorCancelEvent(Long userId, Long eventId) {
+		if(eventId == null) {
+			throw new BadRequestException("Error: eventId cannot null");
+		}
+
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
