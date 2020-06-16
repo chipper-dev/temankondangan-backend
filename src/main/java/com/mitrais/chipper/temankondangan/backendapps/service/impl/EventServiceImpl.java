@@ -368,6 +368,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
 
+		if(Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You cannot applied to cancelled event");
+		}
+
 		if (Boolean.TRUE.equals(applicantRepository.existsByApplicantUserAndEvent(user, event))) {
 			throw new BadRequestException("Error: You have applied to this event");
 		}
@@ -404,6 +408,10 @@ public class EventServiceImpl implements EventService {
 
 		if (applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
 			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
+		}
+
+		if(Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You cannot cancel to cancelled event");
 		}
 
 		if (isCancelationValid(event.getStartDateTime())) {
