@@ -410,6 +410,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
 		}
 
+		if(Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You cannot cancel to cancelled event");
+		}
+
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
