@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.SearchEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -113,8 +113,7 @@ public class EventController extends CommonResource {
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Successfully applied to the event"),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: This event has finished already\t\n "
-					+ "Error: You cannot apply to your own event! \t\n "
-					+ "Error: You have applied to this event"),
+					+ "Error: You cannot apply to your own event! \t\n " + "Error: You have applied to this event"),
 			@ApiResponse(code = 404, message = "User not found with id") })
 	@PostMapping(value = "/apply")
 	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
@@ -142,16 +141,17 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Find My Event (Current)", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
+	@ApiResponses(value = {
+			@ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
 					+ "Error: Can only input ASC or DESC for direction!"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/my-event-current")
 	public ResponseEntity<ResponseBody> findMyEventCurrent(
-												@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
-												@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-												HttpServletRequest request) {
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			HttpServletRequest request) {
 		LOGGER.info("Find My Event (Current)");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
@@ -162,16 +162,17 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Find My Event (Past)", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@ApiResponses(value = { @ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
+	@ApiResponses(value = {
+			@ApiResponse(response = EventFindAllListDBResponseWrapper.class, code = 200, message = "", responseContainer = "List"),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
 					+ "Error: Can only input ASC or DESC for direction!"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/my-event-past")
 	public ResponseEntity<ResponseBody> findMyEventPast(
-													   @ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
-													   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-													   HttpServletRequest request) {
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			HttpServletRequest request) {
 		LOGGER.info("Find My Event (Past)");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
@@ -183,27 +184,27 @@ public class EventController extends CommonResource {
 	@ApiOperation(value = "User find the Current Applied Event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-current")
-	public ResponseEntity<ResponseBody> findActiveAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
-															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-															   HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> findActiveAppliedEvent(
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction);
-		return ResponseEntity.ok(
-				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
 	@ApiOperation(value = "User find the Past Applied Event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-past")
-	public ResponseEntity<ResponseBody> findPastAppliedEvent(@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
-															   @ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-															   HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> findPastAppliedEvent(
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction);
-		return ResponseEntity.ok(
-				getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
 	@ApiOperation(value = "Creator of the event cancelling the event", response = ResponseEntity.class)
@@ -216,14 +217,13 @@ public class EventController extends CommonResource {
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
-	
+
 	@ApiOperation(value = "Search event", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@ApiResponses(value = { @ApiResponse(response = EventFindAllResponseWrapper.class, code = 200, message = ""),
 			@ApiResponse(code = 401, message = "Full authentication is required to access this resource"),
 			@ApiResponse(code = 400, message = "Error: Can only input createdDate or startDateTime for sortBy! \t\n "
-					+ "Error: Can only input ASC or DESC for direction! \t\n "
-					+ "Error: Minimum age must be 18! \t\n "
+					+ "Error: Can only input ASC or DESC for direction! \t\n " + "Error: Minimum age must be 18! \t\n "
 					+ "Error: Inputted age is not valid! t\n "
 					+ "Error: startDate and finishDate must be all empty or all filled! \t\n "
 					+ "Error: Date inputted have to be today or after! \t\n "
@@ -231,16 +231,25 @@ public class EventController extends CommonResource {
 					+ "Error: Please use 00-12, 12-18 or 18-00 for hour value"),
 			@ApiResponse(code = 404, message = "Profile not found with userId ") })
 	@GetMapping(value = "/search")
-	public ResponseEntity<ResponseBody> search(@RequestBody(required = false) SearchEventWrapper wrapper,
-			HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> search(@RequestParam(defaultValue = "0", required = false) Integer pageNumber,
+			@RequestParam(defaultValue = "10", required = false) Integer pageSize,
+			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate", required = false) String sortBy,
+			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC", required = false) String direction,
+			@ApiParam(value = "input L, P or B") @RequestParam(defaultValue = "B", required = false) Gender creatorGender,
+			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "150", required = false) Integer creatorMaximumAge,
+			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "18", required = false) Integer creatorMinimumAge,
+			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String startDate,
+			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String finishDate,
+			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> startHour,
+			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> finishHour,
+			@ApiParam(value = "input city") @RequestParam (required = false)List<String> city, HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		if (wrapper == null) {
-			wrapper = new SearchEventWrapper();
-		}
-		EventFindAllResponseWrapper events = eventService.search(userId, wrapper);
+		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
+				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
+				city);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 }
