@@ -418,11 +418,19 @@ public class EventServiceImpl implements EventService {
 	@Override
 
 	public void creatorCancelEvent(Long userId, Long eventId) {
+		if(eventId == null) {
+			throw new BadRequestException("Error: eventId cannot null");
+		}
+
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
 		if (!userId.equals(event.getUser().getUserId())) {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
+		}
+
+		if(event.getCancelled()) {
+			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
 		event.setCancelled(true);
