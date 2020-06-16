@@ -417,7 +417,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 
 	public void creatorCancelEvent(Long userId, Long eventId) {
-		if(eventId == null) {
+		if (eventId == null) {
 			throw new BadRequestException("Error: eventId cannot null");
 		}
 
@@ -428,7 +428,7 @@ public class EventServiceImpl implements EventService {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
 		}
 
-		if(event.getCancelled()) {
+		if (Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
