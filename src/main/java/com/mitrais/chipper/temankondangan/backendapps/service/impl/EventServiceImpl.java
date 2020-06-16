@@ -410,6 +410,10 @@ public class EventServiceImpl implements EventService {
 			throw new UnauthorizedException("Error: Users are not authorized to cancel this event");
 		}
 
+		if(event.getCancelled()) {
+			throw new BadRequestException("Error: You already have canceled this event");
+		}
+
 		event.setCancelled(true);
 		eventRepository.save(event);
 	}
