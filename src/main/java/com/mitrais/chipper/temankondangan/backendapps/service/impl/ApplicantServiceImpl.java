@@ -59,6 +59,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
 		Event event = (Event) checkResult.get(Entity.EVENT.getLabel());
 
+		if(Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You cannot accept applicant in cancelled event");
+		}
+
 		if (applicant.getStatus() != null && applicant.getStatus().equals(ApplicantStatus.REJECTED)) {
 			throw new BadRequestException("Error: You cannot accept rejected applicant");
 		}
@@ -76,6 +80,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Map<String, Object> checkResult = checkApplicant(userId, applicantId);
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
 		Event event = (Event) checkResult.get(Entity.EVENT.getLabel());
+
+		if(Boolean.TRUE.equals(event.getCancelled())) {
+			throw new BadRequestException("Error: You cannot cancel applicant in cancelled event");
+		}
 
 		if (LocalDateTime.now().isAfter(event.getStartDateTime().minusDays(1))) {
 			throw new BadRequestException(
@@ -95,6 +103,10 @@ public class ApplicantServiceImpl implements ApplicantService {
 	public void rejectApplicant(Long userId, Long applicantId) {
 		Map<String, Object> checkResult = checkApplicant(userId, applicantId);
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
+
+		if(Boolean.TRUE.equals(applicant.getEvent().getCancelled())) {
+			throw new BadRequestException("Error: You cannot reject applicant in cancelled event");
+		}
 		
 		if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 			throw new BadRequestException("Error: You cannot reject the accepted applicant");
