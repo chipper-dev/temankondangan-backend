@@ -1135,8 +1135,8 @@ public class EventServiceTest {
 		Gender creatorGender = Gender.L;
 		Integer creatorMaximumAge = 150;
 		Integer creatorMinimumAge = 18;
-		String startDate = LocalDate.now().plusDays(3).format(dfDate);
-		String finishDate = LocalDate.now().plusDays(3).format(dfDate);
+		String startDate = LocalDate.now().format(dfDate);
+		String finishDate = LocalDate.now().format(dfDate);
 		List<String> startHour = Arrays.asList("00-12", "12-18", "18-00");
 		List<String> finishHour = Arrays.asList("00-12", "12-18", "18-00");
 		List<String> city = Arrays.asList("Klaten", "Jogja");
