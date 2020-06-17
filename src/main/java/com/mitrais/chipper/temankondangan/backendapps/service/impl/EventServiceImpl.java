@@ -11,6 +11,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -440,6 +441,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
+		if(LocalDateTime.now().isAfter(event.getStartDateTime())) {
+			throw new BadRequestException("Error: Past event cannot be canceled");
+		}
+
 		if (isCancelationValid(event.getStartDateTime())) {
 			event.setCancelled(true);
 			eventRepository.save(event);
@@ -572,7 +577,7 @@ public class EventServiceImpl implements EventService {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
 		Integer userAge = Period.between(profile.getDob(), LocalDate.now()).getYears();
-		String companionGender = profile.getGender().toString();
+		List<String> companionGender = Arrays.asList("B", profile.getGender().toString());
 
 		// check inputted gender in search
 		List<String> creatorGenderSearch = new ArrayList<>();

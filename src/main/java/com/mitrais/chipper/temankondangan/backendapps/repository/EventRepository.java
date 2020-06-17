@@ -71,7 +71,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "JOIN Profile p ON u.user_id = p.user_id "
 			+ "LEFT JOIN Applicants a ON a.user_id = :userId AND a.event_id = e.event_id AND a.data_state <> 'DELETED' " 
 			+ "WHERE e.minimum_age <= :userAge AND e.maximum_age >= :userAge "
-			+ "AND e.companion_gender = :companionGender " 
+			+ "AND e.companion_gender IN (:companionGender) " 
 			+ "AND e.start_date_time BETWEEN :startDate AND :finishDate "
 			+ "AND (extract(hour from start_date_time) between :startHourLowerRange and :startHourUpperRange "
 			+ "OR extract(hour from start_date_time) between :secondStartHourLowerRange and :secondStartHourUpperRange "
@@ -85,7 +85,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND u.user_id <> :userId")
 	Page<Map<String,Object>> search(
 			@Param("userAge") Integer userAge,
-			@Param("companionGender") String companionGender, 
+			@Param("companionGender") List<String> companionGender, 
 			@Param("userId") Long userId,
 			@Param("startDate") LocalDateTime startDate,
 			@Param("finishDate") LocalDateTime finishDate,
