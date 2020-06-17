@@ -545,7 +545,7 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Gender creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
+			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
 			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city) {
 		// check sortBy and direction
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
@@ -581,13 +581,16 @@ public class EventServiceImpl implements EventService {
 
 		// check inputted gender in search
 		List<String> creatorGenderSearch = new ArrayList<>();
-		if (creatorGender.compareTo(Gender.B) == 0) {
+		
+		if (creatorGender.equalsIgnoreCase("B")) {
 			creatorGenderSearch.add("L");
 			creatorGenderSearch.add("P");
+		} else if (creatorGender.equalsIgnoreCase("L") || creatorGender.equalsIgnoreCase("P")){
+			creatorGenderSearch.add(creatorGender);
 		} else {
-			creatorGenderSearch.add(creatorGender.toString());
+			throw new BadRequestException("Error: Can only input L, P or B for creatorGender!");
 		}
-
+		
 		// check inputted city in search
 		String eventCity = "%%";
 		StringBuilder builder = new StringBuilder();
