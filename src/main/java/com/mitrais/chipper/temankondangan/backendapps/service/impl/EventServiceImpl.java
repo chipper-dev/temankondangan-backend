@@ -440,6 +440,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
+		if(LocalDateTime.now().isAfter(event.getStartDateTime())) {
+			throw new BadRequestException("Error: Past event cannot be canceled");
+		}
+
 		if (isCancelationValid(event.getStartDateTime())) {
 			event.setCancelled(true);
 			eventRepository.save(event);
