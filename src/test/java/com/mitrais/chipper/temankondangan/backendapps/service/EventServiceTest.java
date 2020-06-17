@@ -1067,14 +1067,16 @@ public class EventServiceTest {
 	public void creatorCancelEventSuccess() {
 		event = new Event();
 		event.setUser(user);
-		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
-		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(2));
+		event.setStartDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
 		event.setMaximumAge(40);
 		event.setMinimumAge(18);
 		event.setCompanionGender(Gender.B);
 		event.setDataState(DataState.ACTIVE);
+		event.setCancelled(false);
 
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
 
 		eventService.creatorCancelEvent(1L, 1L);
 		verify(eventRepository, times(1)).save(any(Event.class));
