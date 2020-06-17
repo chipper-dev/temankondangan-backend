@@ -1112,7 +1112,7 @@ public class EventServiceTest {
 		eventSearchs.add(eventSearch);
 		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
 
-		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
 				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
 				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
 				.thenReturn(eventSearchPage);
@@ -1170,7 +1170,7 @@ public class EventServiceTest {
 		eventSearchs.add(eventSearch);
 		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
 
-		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
 				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
 				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
 				.thenReturn(eventSearchPage);
@@ -1214,7 +1214,7 @@ public class EventServiceTest {
 		eventSearchs.add(eventSearch);
 		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
 
-		Mockito.when(eventRepository.search(any(Integer.class), any(String.class), anyLong(), any(LocalDateTime.class),
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
 				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
 				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
 				.thenReturn(eventSearchPage);
