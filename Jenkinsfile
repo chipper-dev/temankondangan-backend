@@ -74,7 +74,7 @@ node{
                 password_email = env.emailPassword
                 firebase = env.firebaseDb
 
-                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network chipper -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase -e EMAIL_USER=$user_email -e EMAIL_PASSWORD=$emailPassword --restart always -d $image"
+                sshCommand remote: remote, command: "docker run --name $containerName -p 80:8181 --network tk-be-network -e DB_URL=jdbc:postgresql://chipper-db:5432/postgres -v  /home/ubuntu/backend-config:/backend-config -e DB_USERNAME=$db_username -e DB_PASSWORD=$db_password -e TOKEN_SECRET=$token_secret -e GOOGLE_APPLICATION_CREDENTIALS=/backend-config/serviceAccountKey.json -e FIREBASE_DATABASE=$firebase -e EMAIL_USER=$user_email -e EMAIL_PASSWORD=$emailPassword -e EUREKA_SERVER_URL=http://tk-be-discovery-service:8761 --restart always -d $image"
         }
     }
 }

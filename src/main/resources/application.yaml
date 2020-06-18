@@ -2,6 +2,8 @@ server:
   port: 8181
 
 spring:
+  application:
+    name: backend-service
   datasource:
     hikari:
       connectionTimeout: 20000
@@ -45,3 +47,16 @@ app:
     googleCredentials: ${GOOGLE_APPLICATION_CREDENTIALS}
   verificationExpirationMsec: 300000 #5 mins
   eventCancelationValidMaxMsec: 86400000 #24 hours
+
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 2
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL}/eureka/
+    healthcheck:
+      enabled: true
+    lease:
+      duration: 5
