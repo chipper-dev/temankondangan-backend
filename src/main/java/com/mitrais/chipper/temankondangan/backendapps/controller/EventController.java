@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
@@ -235,7 +234,7 @@ public class EventController extends CommonResource {
 			@RequestParam(defaultValue = "10", required = false) Integer pageSize,
 			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate", required = false) String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC", required = false) String direction,
-			@ApiParam(value = "input L, P or B") @RequestParam(defaultValue = "B", required = false) Gender creatorGender,
+			@ApiParam(value = "input L, P or B") @RequestParam(defaultValue = "B", required = false) String creatorGender,
 			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "150", required = false) Integer creatorMaximumAge,
 			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "18", required = false) Integer creatorMinimumAge,
 			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String startDate,

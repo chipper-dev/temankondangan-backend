@@ -3,7 +3,6 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import java.util.List;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
@@ -36,7 +35,7 @@ public interface EventService {
 	public void creatorCancelEvent(Long userId, Long eventId);
 
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, Gender creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
+			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
 			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city);
 
 }
