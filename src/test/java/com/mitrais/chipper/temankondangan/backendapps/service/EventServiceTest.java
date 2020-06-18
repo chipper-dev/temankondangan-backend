@@ -1121,7 +1121,7 @@ public class EventServiceTest {
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
-		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18,
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				"", "", Arrays.asList(), Arrays.asList(), Arrays.asList());
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
@@ -1134,7 +1134,7 @@ public class EventServiceTest {
 		Integer pageSize = 10;
 		String sortBy = "startDateTime";
 		String direction = "ASC";
-		Gender creatorGender = Gender.L;
+		String creatorGender = Gender.L.toString();
 		Integer creatorMaximumAge = 150;
 		Integer creatorMinimumAge = 18;
 		String startDate = LocalDate.now().format(dfDate);
@@ -1223,7 +1223,7 @@ public class EventServiceTest {
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
-		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18,
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				"", "", Arrays.asList("00-12", "18-00"), Arrays.asList("00-12", "18-00"), Arrays.asList());
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
@@ -1231,7 +1231,7 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B, 150, 18, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B.toString(), 150, 18, "", "",
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!")
 						.isInstanceOf(BadRequestException.class);
@@ -1239,7 +1239,7 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenDirectionNotFilledWithCorrectValueInSearchEvent() {
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "wrong direction", Gender.B, 150, 18, "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "wrong direction", Gender.B.toString(), 150, 18, "",
 				"", Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
 						.isInstanceOf(BadRequestException.class);
@@ -1247,24 +1247,37 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsInvalidInSearchEvent() {
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 17, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 17, "", "",
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
 	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsMoreThanCreatorMaximumAgeInSearchEvent() {
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 19, 20, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 19, 20, "", "",
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Inputted age is not valid!")
 						.isInstanceOf(BadRequestException.class);
-	}
-
+	}	
+	
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInSearchEvent() {
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
 				Arrays.asList(), Arrays.asList(), Arrays.asList())).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCreatorGenderIsNotValidInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", null, 29, 20, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList()))
+						.hasMessageContaining("Error: Can only input L, P or B for creatorGender!")
+						.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
@@ -1274,7 +1287,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18,
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				LocalDateTime.now().plusDays(10).format(dfDate), "", Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
 						.isInstanceOf(BadRequestException.class);
@@ -1287,7 +1300,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18,
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				LocalDateTime.now().minusDays(1).format(dfDate), LocalDateTime.now().minusDays(1).format(dfDate),
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Date inputted have to be today or after!")
@@ -1301,7 +1314,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18,
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				LocalDateTime.now().plusDays(10).format(dfDate), LocalDateTime.now().plusDays(9).format(dfDate),
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: startDate must be earlier than finishDate!")
@@ -1315,7 +1328,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
 				Arrays.asList("wrong format"), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
 						.isInstanceOf(BadRequestException.class);
@@ -1328,7 +1341,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B, 150, 18, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
 				Arrays.asList(), Arrays.asList("wrong format"), Arrays.asList()))
 						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
 						.isInstanceOf(BadRequestException.class);
