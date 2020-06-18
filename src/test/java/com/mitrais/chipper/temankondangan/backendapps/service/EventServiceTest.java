@@ -1274,7 +1274,7 @@ public class EventServiceTest {
 		profileMock.setGender(Gender.L);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
 
-		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", null, 29, 20, "", "",
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", "wrong gender", 29, 20, "", "",
 				Arrays.asList(), Arrays.asList(), Arrays.asList()))
 						.hasMessageContaining("Error: Can only input L, P or B for creatorGender!")
 						.isInstanceOf(BadRequestException.class);
