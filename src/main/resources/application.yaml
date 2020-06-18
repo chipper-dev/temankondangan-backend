@@ -2,6 +2,8 @@ server:
   port: 8181
 
 spring:
+  application:
+    name: backend-service
   datasource:
     hikari:
       connectionTimeout: 20000
