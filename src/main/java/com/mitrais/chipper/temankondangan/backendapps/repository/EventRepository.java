@@ -75,8 +75,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.start_date_time BETWEEN :startDate AND :finishDate "
 			+ "AND (extract(hour from start_date_time) between :startHourLowerRange and :startHourUpperRange "
 			+ "OR extract(hour from start_date_time) between :secondStartHourLowerRange and :secondStartHourUpperRange "
+			+ "OR to_char(start_date_time,'HH-MI') IN :startAddedHour "
 			+ "OR extract(hour from finish_date_time) between :finishHourLowerRange and :finishHourUpperRange "
-			+ "OR extract(hour from finish_date_time) between :secondFinishHourLowerRange and :secondFinishHourUpperRange) "
+			+ "OR extract(hour from finish_date_time) between :secondFinishHourLowerRange and :secondFinishHourUpperRange "
+			+ "OR to_char(finish_date_time,'HH-MI') IN :finishAddedHour) "
 			+ "AND e.data_state <> 'DELETED' "
 			+ "AND e.cancelled = FALSE " 
 			+ "AND lower(e.city) SIMILAR TO CONCAT('(',:city,')') "
@@ -97,6 +99,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			@Param("secondStartHourUpperRange") Integer secondStartHourUpperRange,
 			@Param("secondFinishHourLowerRange") Integer secondFinishHourLowerRange,
 			@Param("secondFinishHourUpperRange") Integer secondFinishHourUpperRange,
+			@Param("startAddedHour") List<String> startAddedHour, 
+			@Param("finishAddedHour") List<String> finishAddedHour, 
 			@Param("creatorMaximumAge") Integer creatorMaximumAge,
 			@Param("creatorMinimumAge") Integer creatorMinimumAge,
 			@Param("creatorGender") List<String> creatorGender, 

@@ -645,7 +645,14 @@ public class EventServiceImpl implements EventService {
 		String hour1 = "00-12";
 		String hour2 = "12-18";
 		String hour3 = "18-00";
-
+		
+		String strHour00 = "00-00";
+		String strHour12 = "12-00"; 
+		String strHour18 = "18-00";
+		
+		List<String> startAddedHour = new ArrayList<>();
+		startAddedHour.add(strHour00);
+		
 		// check startHour and finishHour
 		if (!(startHour == null || startHour.isEmpty())) {
 			int startHourSize = startHour.size();
@@ -658,16 +665,19 @@ public class EventServiceImpl implements EventService {
 				startHourUpperRange = 11;
 				secondStartHourLowerRange = 18;
 				secondStartHourUpperRange = 24;
-
+				startAddedHour.add(strHour12);
 			} else {
 				for (int i = 0; i < startHourSize; i++) {
 					if (startHour.get(i).equalsIgnoreCase(hour1)) {
 						startHourLowerRange = 0;
 						startHourUpperRange = 11;
+						startAddedHour.add(strHour12);						
 					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
-						if (i == 0)
+						if (i == 0) {
 							startHourLowerRange = 12;
+						}
 						startHourUpperRange = 17;
+						startAddedHour.add(strHour18);
 					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							startHourLowerRange = 18;
@@ -679,6 +689,9 @@ public class EventServiceImpl implements EventService {
 			}
 		}
 
+		List<String> finishAddedHour = new ArrayList<>();
+		finishAddedHour.add(strHour00);
+		
 		if (!(finishHour == null || finishHour.isEmpty())) {
 			if (startHour == null || startHour.isEmpty())
 				startHourUpperRange = 0;
@@ -692,16 +705,18 @@ public class EventServiceImpl implements EventService {
 				finishHourUpperRange = 11;
 				secondFinishHourLowerRange = 18;
 				secondFinishHourUpperRange = 24;
-
+				finishAddedHour.add(strHour12);
 			} else {
 				for (int i = 0; i < finishHourSize; i++) {
 					if (finishHour.get(i).equalsIgnoreCase(hour1)) {
 						finishHourLowerRange = 0;
 						finishHourUpperRange = 11;
+						finishAddedHour.add(strHour12);
 					} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
 						if (i == 0)
 							finishHourLowerRange = 12;
 						finishHourUpperRange = 17;
+						finishAddedHour.add(strHour18);
 					} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							finishHourLowerRange = 18;
@@ -716,8 +731,14 @@ public class EventServiceImpl implements EventService {
 		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
 				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
 				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
-				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
+				secondFinishHourUpperRange, startAddedHour, finishAddedHour, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
 				paging);
+		
+//		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
+//				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
+//				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
+//				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
+//				paging);
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
