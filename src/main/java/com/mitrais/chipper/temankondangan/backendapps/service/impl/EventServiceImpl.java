@@ -655,7 +655,7 @@ public class EventServiceImpl implements EventService {
 			if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
 					&& startHour.get(1).equalsIgnoreCase(hour3)) {
 				startHourLowerRange = 0;
-				startHourUpperRange = 12;
+				startHourUpperRange = 11;
 				secondStartHourLowerRange = 18;
 				secondStartHourUpperRange = 24;
 
@@ -663,11 +663,11 @@ public class EventServiceImpl implements EventService {
 				for (int i = 0; i < startHourSize; i++) {
 					if (startHour.get(i).equalsIgnoreCase(hour1)) {
 						startHourLowerRange = 0;
-						startHourUpperRange = 12;
+						startHourUpperRange = 11;
 					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
 						if (i == 0)
 							startHourLowerRange = 12;
-						startHourUpperRange = 18;
+						startHourUpperRange = 17;
 					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							startHourLowerRange = 18;
@@ -689,7 +689,7 @@ public class EventServiceImpl implements EventService {
 			if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
 					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
 				finishHourLowerRange = 0;
-				finishHourUpperRange = 12;
+				finishHourUpperRange = 11;
 				secondFinishHourLowerRange = 18;
 				secondFinishHourUpperRange = 24;
 
@@ -697,11 +697,11 @@ public class EventServiceImpl implements EventService {
 				for (int i = 0; i < finishHourSize; i++) {
 					if (finishHour.get(i).equalsIgnoreCase(hour1)) {
 						finishHourLowerRange = 0;
-						finishHourUpperRange = 12;
+						finishHourUpperRange = 11;
 					} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
 						if (i == 0)
 							finishHourLowerRange = 12;
-						finishHourUpperRange = 18;
+						finishHourUpperRange = 17;
 					} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
 						if (i == 0)
 							finishHourLowerRange = 18;
