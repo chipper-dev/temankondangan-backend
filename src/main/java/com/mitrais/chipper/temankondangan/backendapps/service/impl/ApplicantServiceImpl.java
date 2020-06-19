@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
@@ -24,11 +26,14 @@ public class ApplicantServiceImpl implements ApplicantService {
 
 	private EventRepository eventRepository;
 	private ApplicantRepository applicantRepository;
+	private NotificationService notificationService;
 
 	@Autowired
-	public ApplicantServiceImpl(EventRepository eventRepository, ApplicantRepository applicantRepository) {
+	public ApplicantServiceImpl(EventRepository eventRepository, ApplicantRepository applicantRepository,
+								NotificationService notificationService) {
 		this.eventRepository = eventRepository;
 		this.applicantRepository = applicantRepository;
+		this.notificationService = notificationService;
 	}
 
 	private Map<String, Object> checkApplicant(Long userId, Long applicantId) {
@@ -73,6 +78,14 @@ public class ApplicantServiceImpl implements ApplicantService {
 
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
+
+		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
+			String title = "Event that you are apply are approved";
+			String body = "Event ".concat(event.getTitle()).concat(" are approve you as the applicant");
+			Map<String, String> data = new HashMap<>();
+
+			notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+		}
 	}
 
 	@Override
@@ -97,6 +110,13 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
+		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
+			String title = "Your accepted application to event are cancelled";
+			String body = "Event ".concat(event.getTitle()).concat(" are cancelled you as the applicant");
+			Map<String, String> data = new HashMap<>();
+
+			notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+		}
 	}
 	
 	@Override

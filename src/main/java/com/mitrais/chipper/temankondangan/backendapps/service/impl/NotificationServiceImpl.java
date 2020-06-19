@@ -9,6 +9,9 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.validation.constraints.NotNull;
+import java.util.Map;
+
 public class NotificationServiceImpl implements NotificationService {
 
     private UserRepository userRepository;
@@ -19,7 +22,7 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void send(String title, String body, String messagingToken) {
+    public void send(String title, String body, String messagingToken, @NotNull Map<String, String> data) {
         try{
 
             Notification notification = Notification.builder()
@@ -28,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
 
             Message message = Message.builder()
+                    .putAllData(data)
                     .setNotification(notification)
                     .setToken(messagingToken)
                     .build();
