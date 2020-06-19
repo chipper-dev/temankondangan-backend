@@ -8,10 +8,12 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
+@Service
 public class NotificationServiceImpl implements NotificationService {
 
     private UserRepository userRepository;
