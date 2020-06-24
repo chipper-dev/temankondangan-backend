@@ -237,18 +237,20 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input L, P or B") @RequestParam(defaultValue = "B", required = false) String creatorGender,
 			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "150", required = false) Integer creatorMaximumAge,
 			@ApiParam(value = "input age minimum 18") @RequestParam(defaultValue = "18", required = false) Integer creatorMinimumAge,
-			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String startDate,
-			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String finishDate,
+			@ApiParam(value = "input date with dd-mm-yyyy hh:mm format") @RequestParam(required = false) String startDate,
+			@ApiParam(value = "input date with dd-mm-yyyy hh:mm format") @RequestParam(required = false) String finishDate,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> startHour,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> finishHour,
-			@ApiParam(value = "input city") @RequestParam (required = false)List<String> city, HttpServletRequest request) {
+			@ApiParam(value = "input city") @RequestParam (required = false)List<String> city,
+			@ApiParam(value = "input zone offset") @RequestParam (defaultValue = "0", required = false) Double zoneOffset,
+			HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
 				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
-				city);
+				city, zoneOffset);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 }

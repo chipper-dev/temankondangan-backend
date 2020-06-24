@@ -1,4 +1,3 @@
-
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import java.math.BigInteger;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.DoubleFunction;
+import java.util.function.IntFunction;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -369,7 +370,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
 
-		if(Boolean.TRUE.equals(event.getCancelled())) {
+		if (Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: You cannot applied to cancelled event");
 		}
 
@@ -411,7 +412,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
 		}
 
-		if(Boolean.TRUE.equals(event.getCancelled())) {
+		if (Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: You cannot cancel to cancelled event");
 		}
 
@@ -441,7 +442,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
-		if(LocalDateTime.now().isAfter(event.getStartDateTime())) {
+		if (LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException("Error: Past event cannot be canceled");
 		}
 
@@ -546,7 +547,8 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
 			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
-			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city) {
+			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
+			Double zoneOffset) {
 		// check sortBy and direction
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
@@ -581,16 +583,16 @@ public class EventServiceImpl implements EventService {
 
 		// check inputted gender in search
 		List<String> creatorGenderSearch = new ArrayList<>();
-		
+
 		if (creatorGender.equalsIgnoreCase("B")) {
 			creatorGenderSearch.add("L");
 			creatorGenderSearch.add("P");
-		} else if (creatorGender.equalsIgnoreCase("L") || creatorGender.equalsIgnoreCase("P")){
+		} else if (creatorGender.equalsIgnoreCase("L") || creatorGender.equalsIgnoreCase("P")) {
 			creatorGenderSearch.add(creatorGender);
 		} else {
 			throw new BadRequestException("Error: Can only input L, P or B for creatorGender!");
 		}
-		
+
 		// check inputted city in search
 		String eventCity = "%%";
 		StringBuilder builder = new StringBuilder();
@@ -610,17 +612,20 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: startDate and finishDate must be all empty or all filled!");
 		}
 
-		LocalDateTime currentTime = LocalDateTime.now();
+		long zoneOffsetInMinutes = (long) (zoneOffset * 60L);
+		LocalDateTime currentTime = LocalDateTime.now().minusMinutes(zoneOffsetInMinutes);
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime startDateSearch = currentTime;
-		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX);
+		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX)
+				.minusMinutes(zoneOffsetInMinutes);
 
 		if ((StringUtils.isNotEmpty(startDate))) {
-			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay();
-			if (startDateSearch.toLocalDate().equals(LocalDate.now())) {
+			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay().minusMinutes(zoneOffsetInMinutes);
+			if (startDateSearch.toLocalDate().equals(currentTime.toLocalDate())) {
 				startDateSearch = currentTime;
 			}
-			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX);
+			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX)
+					.minusMinutes(zoneOffsetInMinutes);
 
 			if (startDateSearch.isBefore(currentTime)) {
 				throw new BadRequestException("Error: Date inputted have to be today or after!");
@@ -631,114 +636,183 @@ public class EventServiceImpl implements EventService {
 			}
 		}
 
-		Integer startHourLowerRange = 0;
-		Integer startHourUpperRange = 24;
-		Integer finishHourLowerRange = 0;
-		Integer finishHourUpperRange = 0;
-
-		// maximum hour is 24, initialized in 25 so it won't get any event if not needed
-		Integer secondStartHourLowerRange = 25;
-		Integer secondStartHourUpperRange = 25;
-		Integer secondFinishHourLowerRange = 25;
-		Integer secondFinishHourUpperRange = 25;
-
 		String hour1 = "00-12";
 		String hour2 = "12-18";
 		String hour3 = "18-00";
+
+		LocalTime startHourLowerRange = LocalTime.MIN;
+		LocalTime startHourUpperRange = LocalTime.MAX;
+		LocalTime finishHourLowerRange = LocalTime.MIN;
+		LocalTime finishHourUpperRange = LocalTime.MIN;
+
+		LocalTime secondStartHourLowerRange = LocalTime.MIN;
+		LocalTime secondStartHourUpperRange = LocalTime.MIN;
+		LocalTime secondFinishHourLowerRange = LocalTime.MIN;
+		LocalTime secondFinishHourUpperRange = LocalTime.MIN;
 		
-		String strHour00 = "00-00";
-		String strHour12 = "12-00"; 
-		String strHour18 = "18-00";
+		IntFunction<LocalTime> localTimeConvert = x -> LocalTime.of(0, 0, 0)
+				.plusMinutes((x * 60) - zoneOffsetInMinutes);
 		
-		List<String> startAddedHour = new ArrayList<>();
-		startAddedHour.add(strHour00);
-		
-		// check startHour and finishHour
 		if (!(startHour == null || startHour.isEmpty())) {
 			int startHourSize = startHour.size();
 			Collections.sort(startHour);
-
-//					if startHour only contains "00-12", "18-24"
-			if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
-					&& startHour.get(1).equalsIgnoreCase(hour3)) {
-				startHourLowerRange = 0;
-				startHourUpperRange = 11;
-				secondStartHourLowerRange = 18;
-				secondStartHourUpperRange = 24;
-				startAddedHour.add(strHour12);
-			} else {
-				for (int i = 0; i < startHourSize; i++) {
-					if (startHour.get(i).equalsIgnoreCase(hour1)) {
-						startHourLowerRange = 0;
-						startHourUpperRange = 11;
-						startAddedHour.add(strHour12);						
-					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
-						if (i == 0) {
-							startHourLowerRange = 12;
-						}
-						startHourUpperRange = 17;
-						startAddedHour.add(strHour18);
-					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
-						if (i == 0)
-							startHourLowerRange = 18;
-						startHourUpperRange = 24;
-					} else {
-						throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+			
+			for (int i = 0; i < startHourSize; i++) {
+				if (startHour.get(i).equalsIgnoreCase(hour1)) {
+					startHourLowerRange = localTimeConvert.apply(0);
+					startHourUpperRange = localTimeConvert.apply(12);
+				} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+					if (i == 0) {
+						startHourLowerRange = localTimeConvert.apply(12);
 					}
+					startHourUpperRange = localTimeConvert.apply(18);
+				} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+					if (i == 0) {
+						startHourLowerRange = localTimeConvert.apply(18);
+					}
+					startHourUpperRange = localTimeConvert.apply(24);
+				} else {
+					throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
 				}
 			}
-		}
-
-		List<String> finishAddedHour = new ArrayList<>();
-		finishAddedHour.add(strHour00);
-		
-		if (!(finishHour == null || finishHour.isEmpty())) {
-			if (startHour == null || startHour.isEmpty())
-				startHourUpperRange = 0;
-
-			int finishHourSize = finishHour.size();
-			Collections.sort(finishHour);
-//					if finishHour only contains "00-12", "18-24"
-			if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
-					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
-				finishHourLowerRange = 0;
-				finishHourUpperRange = 11;
-				secondFinishHourLowerRange = 18;
-				secondFinishHourUpperRange = 24;
-				finishAddedHour.add(strHour12);
-			} else {
-				for (int i = 0; i < finishHourSize; i++) {
-					if (finishHour.get(i).equalsIgnoreCase(hour1)) {
-						finishHourLowerRange = 0;
-						finishHourUpperRange = 11;
-						finishAddedHour.add(strHour12);
-					} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
-						if (i == 0)
-							finishHourLowerRange = 12;
-						finishHourUpperRange = 17;
-						finishAddedHour.add(strHour18);
-					} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
-						if (i == 0)
-							finishHourLowerRange = 18;
-						finishHourUpperRange = 24;
-					} else {
-						throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
-					}
-				}
+			
+			if (startHourLowerRange.isAfter(startHourUpperRange)) {
+				secondStartHourLowerRange = startHourLowerRange;
+				secondStartHourUpperRange = LocalTime.MAX;
+				startHourLowerRange = LocalTime.MIN;
 			}
+
+//			if (zoneOffset > 12) { // > GMT +12
+//				for (int i = 0; i < startHourSize; i++) {
+//					if (startHour.get(i).equalsIgnoreCase(hour1)) {
+//						startHourLowerRange = localTimeConvert.apply(0);
+//						startHourUpperRange = localTimeConvert.apply(12);
+//					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+//						if (i == 0) {
+//							startHourLowerRange = localTimeConvert.apply(12);
+//						}
+//						startHourUpperRange = LocalTime.MAX;
+//						secondStartHourUpperRange = localTimeConvert.apply(18);
+//					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+//						if (i == 0) {
+//							startHourUpperRange = LocalTime.MIN;
+//						}
+//						secondStartHourUpperRange = localTimeConvert.apply(24);
+//					} else {
+//						throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+//					}
+//				}
+//			}
+//			else if (zoneOffset > 0) { // GMT +1 - +12
+//				if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+//						&& startHour.get(1).equalsIgnoreCase(hour3)) {
+//					startHourUpperRange = localTimeConvert.apply(12);
+//					secondStartHourLowerRange = localTimeConvert.apply(18);
+//					secondStartHourUpperRange = LocalTime.MAX;
+//				} else {
+//					// for GMT+1 - GMT+12
+//					for (int i = 0; i < startHourSize; i++) {
+//						if (startHour.get(i).equalsIgnoreCase(hour1)) {
+//							secondStartHourLowerRange = localTimeConvert.apply(24);
+//							secondStartHourUpperRange = LocalTime.MAX;
+//							startHourUpperRange = localTimeConvert.apply(12);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+//							if (i == 0) {
+//								startHourLowerRange = localTimeConvert.apply(12);
+//							}
+//							startHourUpperRange = localTimeConvert.apply(18);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+//							if (i == 0) {
+//								startHourLowerRange = localTimeConvert.apply(18);
+//							}
+//							startHourUpperRange = localTimeConvert.apply(24);
+//						} else {
+//							throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+//						}
+//					}
+//				}
+//			} else if (zoneOffset < -6) { // < GMT -6
+//				if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+//						&& startHour.get(1).equalsIgnoreCase(hour3)) {
+//					startHourLowerRange = localTimeConvert.apply(0);
+//					if (zoneOffset == -12)
+//						startHourUpperRange = LocalTime.MAX;
+//					else
+//						startHourUpperRange = localTimeConvert.apply(12);
+//					secondStartHourLowerRange = localTimeConvert.apply(24);
+//					secondStartHourUpperRange = localTimeConvert.apply(12);
+//				} else {
+//					for (int i = 0; i < startHourSize; i++) {
+//						if (startHour.get(i).equalsIgnoreCase(hour1)) {
+//							startHourLowerRange = localTimeConvert.apply(0);
+//							if (zoneOffset == -12)
+//								startHourUpperRange = LocalTime.MAX;
+//							else
+//								startHourUpperRange = localTimeConvert.apply(12);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+//							if (i == 0) {
+//								startHourLowerRange = localTimeConvert.apply(12);
+//							}
+//							startHourUpperRange = LocalTime.MAX;
+//							secondStartHourUpperRange = localTimeConvert.apply(18);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+//							if (i == 0) {
+//								startHourUpperRange = LocalTime.MIN;
+//								secondStartHourLowerRange = localTimeConvert.apply(18);
+//							}						
+//							secondStartHourUpperRange = localTimeConvert.apply(24);
+//						} else {
+//							throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+//						}
+//					}
+//				}
+//			} else if (zoneOffset < 0) { // GMT between -1 and -6
+//				if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+//						&& startHour.get(1).equalsIgnoreCase(hour3)) {
+//					startHourUpperRange = localTimeConvert.apply(24);
+//					secondStartHourLowerRange = localTimeConvert.apply(24);
+//					secondStartHourUpperRange = localTimeConvert.apply(12);
+//				} else {
+//					for (int i = 0; i < startHourSize; i++) {
+//						if (startHour.get(i).equalsIgnoreCase(hour1)) {
+//							startHourLowerRange = localTimeConvert.apply(0);
+//							startHourUpperRange = localTimeConvert.apply(12);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+//							if (i == 0) {
+//								startHourLowerRange = localTimeConvert.apply(12);
+//							}
+//							if (zoneOffset == -6)
+//								startHourUpperRange = LocalTime.MAX;
+//							else
+//								startHourUpperRange = localTimeConvert.apply(18);
+//						} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+//							if (i == 0) {
+//								startHourLowerRange = localTimeConvert.apply(18);
+//							}
+//							if (zoneOffset == -6) {
+//								startHourUpperRange = localTimeConvert.apply(24);
+//							}
+//							else {
+//								startHourUpperRange = LocalTime.MAX;
+//								secondStartHourUpperRange = localTimeConvert.apply(24);
+//							}
+//						} else {
+//							throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+//						}
+//					}
+//				}
+//			}
 		}
+
+//		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
+//				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
+//				paging);
 
 		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
 				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
 				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
-				secondFinishHourUpperRange, startAddedHour, finishAddedHour, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
+				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
 				paging);
-		
-//		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
-//				startDateSearch, finishDateSearch, startHourLowerRange, startHourUpperRange, finishHourLowerRange,
-//				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
-//				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
-//				paging);
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {

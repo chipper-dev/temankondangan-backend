@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.repository;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -73,12 +74,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "WHERE e.minimum_age <= :userAge AND e.maximum_age >= :userAge "
 			+ "AND e.companion_gender IN (:companionGender) " 
 			+ "AND e.start_date_time BETWEEN :startDate AND :finishDate "
-			+ "AND (extract(hour from start_date_time) between :startHourLowerRange and :startHourUpperRange "
-			+ "OR extract(hour from start_date_time) between :secondStartHourLowerRange and :secondStartHourUpperRange "
-			+ "OR to_char(start_date_time,'HH-MI') IN :startAddedHour "
-			+ "OR extract(hour from finish_date_time) between :finishHourLowerRange and :finishHourUpperRange "
-			+ "OR extract(hour from finish_date_time) between :secondFinishHourLowerRange and :secondFinishHourUpperRange "
-			+ "OR to_char(finish_date_time,'HH-MI') IN :finishAddedHour) "
+			+ "AND (start_date_time\\:\\:time NOT BETWEEN :startHourLowerRange AND :startHourUpperRange "
+			+ "AND start_date_time\\:\\:time NOT BETWEEN :secondStartHourLowerRange AND :secondStartHourUpperRange "
+			+ "AND finish_date_time\\:\\:time NOT BETWEEN :finishHourLowerRange AND :finishHourUpperRange "
+			+ "AND finish_date_time\\:\\:time NOT BETWEEN :secondFinishHourLowerRange AND :secondFinishHourUpperRange) "
 			+ "AND e.data_state <> 'DELETED' "
 			+ "AND e.cancelled = FALSE " 
 			+ "AND lower(e.city) SIMILAR TO CONCAT('(',:city,')') "
@@ -91,16 +90,14 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			@Param("userId") Long userId,
 			@Param("startDate") LocalDateTime startDate,
 			@Param("finishDate") LocalDateTime finishDate,
-			@Param("startHourLowerRange") Integer startHourLowerRange,
-			@Param("startHourUpperRange") Integer startHourUpperRange,
-			@Param("finishHourLowerRange") Integer finishHourLowerRange,
-			@Param("finishHourUpperRange") Integer finishHourUpperRange,
-			@Param("secondStartHourLowerRange") Integer secondStartHourLowerRange,
-			@Param("secondStartHourUpperRange") Integer secondStartHourUpperRange,
-			@Param("secondFinishHourLowerRange") Integer secondFinishHourLowerRange,
-			@Param("secondFinishHourUpperRange") Integer secondFinishHourUpperRange,
-			@Param("startAddedHour") List<String> startAddedHour, 
-			@Param("finishAddedHour") List<String> finishAddedHour, 
+			@Param("startHourLowerRange") LocalTime startHourLowerRange,
+			@Param("startHourUpperRange") LocalTime startHourUpperRange,
+			@Param("finishHourLowerRange") LocalTime finishHourLowerRange,
+			@Param("finishHourUpperRange") LocalTime finishHourUpperRange,
+			@Param("secondStartHourLowerRange") LocalTime secondStartHourLowerRange,
+			@Param("secondStartHourUpperRange") LocalTime secondStartHourUpperRange,
+			@Param("secondFinishHourLowerRange") LocalTime secondFinishHourLowerRange,
+			@Param("secondFinishHourUpperRange") LocalTime secondFinishHourUpperRange,
 			@Param("creatorMaximumAge") Integer creatorMaximumAge,
 			@Param("creatorMinimumAge") Integer creatorMinimumAge,
 			@Param("creatorGender") List<String> creatorGender, 
