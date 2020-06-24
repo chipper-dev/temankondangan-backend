@@ -63,10 +63,10 @@ public class RatingServiceImpl implements RatingService {
         } else if (ratingWrapper.getRatingType().equals(RatingType.CREATOR)) {
             // Rating validation for event creator
             if (!event.getUser().getUserId().equals(ratingWrapper.getUserId())) {
-                throw new UnauthorizedException("Error: Event creator doesn't match!");
+                throw new BadRequestException("Error: Event creator doesn't match!");
             }
             if (!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(userVoterId)) {
-                throw new BadRequestException("Error: Event applicant doesn't match!");
+                throw new UnauthorizedException("Error: Event applicant doesn't match!");
             }
         } else {
             throw new BadRequestException("Error: Unknown Rating Type. Please use: APPLICANT or CREATOR");
