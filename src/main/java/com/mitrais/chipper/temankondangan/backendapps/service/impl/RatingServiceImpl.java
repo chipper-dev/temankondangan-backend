@@ -41,20 +41,31 @@ public class RatingServiceImpl implements RatingService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
 
-        if(ratingWrapper.getRatingType().equals(RatingType.APPLICANT)) {
+        if (ratingWrapper.getScore() < 1 || ratingWrapper.getScore() > 5) {
+            throw new BadRequestException("Error: Rating score is out of scope. Please use score from 1 to 5");
+        }
+
+        if (event.getCancelled()) {
+            throw new BadRequestException("Error: Event has been canceled you can't give the rating!");
+        }
+        if (acceptedApplicantList.isEmpty()) {
+            throw new BadRequestException("Error: Event doesn't have a accepted Applicant!");
+        }
+
+        if (ratingWrapper.getRatingType().equals(RatingType.APPLICANT)) {
             // Rating validation for applicant
-            if(!event.getUser().getUserId().equals(userVoterId)) {
+            if (!event.getUser().getUserId().equals(userVoterId)) {
                 throw new UnauthorizedException("Error: Event creator doesn't match!");
             }
-            if(!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(ratingWrapper.getUserId())){
+            if (!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(ratingWrapper.getUserId())) {
                 throw new BadRequestException("Error: Event applicant doesn't match!");
             }
         } else if (ratingWrapper.getRatingType().equals(RatingType.CREATOR)) {
             // Rating validation for event creator
-            if(!event.getUser().getUserId().equals(ratingWrapper.getUserId())) {
+            if (!event.getUser().getUserId().equals(ratingWrapper.getUserId())) {
                 throw new UnauthorizedException("Error: Event creator doesn't match!");
             }
-            if(!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(userVoterId)){
+            if (!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(userVoterId)) {
                 throw new BadRequestException("Error: Event applicant doesn't match!");
             }
         } else {
@@ -68,33 +79,5 @@ public class RatingServiceImpl implements RatingService {
                 .build();
 
         ratingRepository.save(rating);
-    }
-
-    private void ratingValidation(List<Applicant> acceptedApplicantList, Event event, RatingWrapper ratingWrapper, Long userVoterId) {
-        if(ratingWrapper.getRatingType().equals(RatingType.APPLICANT)) {
-            // Rating validation for applicant
-            ratingEventValidation(event, userVoterId, ratingWrapper.getUserId(), acceptedApplicantList);
-        } else if (ratingWrapper.getRatingType().equals(RatingType.CREATOR)) {
-            // Rating validation for event creator
-            ratingEventValidation(event, ratingWrapper.getUserId(), userVoterId, acceptedApplicantList);
-        } else {
-            throw new BadRequestException("Error: Unknown Rating Type. Please use: APPLICANT or CREATOR");
-        }
-    }
-
-    private void ratingEventValidation(Event event, Long eventCreatorId, Long eventApplicantId, List<Applicant> acceptedApplicantList) {
-        if (event.getCancelled()) {
-            throw new BadRequestException("Error: Event has been canceled you can't give the rating!");
-        }
-        if (acceptedApplicantList.isEmpty()) {
-            throw new BadRequestException("Error: Event doesn't have a accepted Applicant!");
-        }
-
-        if(!event.getUser().getUserId().equals(eventCreatorId)) {
-            throw new UnauthorizedException("Error: Event creator doesn't match!");
-        }
-        if(!acceptedApplicantList.get(0).getApplicantUser().getUserId().equals(eventApplicantId)){
-            throw new BadRequestException("Error: Event applicant doesn't match!");
-        }
     }
 }
