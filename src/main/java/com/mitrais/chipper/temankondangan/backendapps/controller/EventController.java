@@ -249,12 +249,12 @@ public class EventController extends CommonResource {
 
 	@ApiOperation(value = "Give rate to accepted applicant", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@PostMapping("/{eventId}/applicant/rate")
+	@PostMapping("/{eventId}/rate")
 	public ResponseEntity<ResponseBody> sendRating(@RequestBody RatingWrapper ratingWrapper, @PathVariable Long eventId, HttpServletRequest request){
 		String token = getToken(request.getHeader(HttpHeaders.AUTHORIZATION));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		ratingService.sendApplicantRating(eventId, userId, ratingWrapper);
+		ratingService.sendRating(eventId, userId, ratingWrapper);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Rating has been given successfully", request.getRequestURI()));
 	}
 }
