@@ -17,7 +17,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
-import java.util.function.UnaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -761,10 +760,6 @@ public class EventServiceImpl implements EventService {
 				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
 				paging);
 
-		UnaryOperator<LocalDateTime> localDateTimeConvert = x -> {
-			return x.minusMinutes(zoneOffsetInMinutes);
-		};
-
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
 			EventFindAllListDBResponseWrapper responseWrapper = new EventFindAllListDBResponseWrapper();
@@ -777,13 +772,11 @@ public class EventServiceImpl implements EventService {
 			responseWrapper.setCreatorGender(Gender.valueOf((String) eventWrap.get("gender")));
 			responseWrapper.setEventId(((BigInteger) eventWrap.get("event_id")).longValue());
 			if (((Timestamp) eventWrap.get("finish_date_time")) != null)
-				responseWrapper.setFinishDateTime(
-						localDateTimeConvert.apply(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime()));
+				responseWrapper.setFinishDateTime(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime());
 			responseWrapper.setMaximumAge((Integer) eventWrap.get("maximum_age"));
 			responseWrapper.setMinimumAge((Integer) eventWrap.get("minimum_age"));
 			responseWrapper.setProfileId(((BigInteger) eventWrap.get("profile_id")).longValue());
-			responseWrapper.setStartDateTime(
-					localDateTimeConvert.apply(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime()));
+			responseWrapper.setStartDateTime(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime());
 			responseWrapper.setTitle((String) eventWrap.get("title"));
 			responseWrapper.setCancelled((Boolean) eventWrap.get("cancelled"));
 
