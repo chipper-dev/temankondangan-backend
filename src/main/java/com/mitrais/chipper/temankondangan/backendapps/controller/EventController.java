@@ -4,26 +4,18 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -42,6 +34,9 @@ public class EventController extends CommonResource {
 
 	@Autowired
 	private EventService eventService;
+
+	@Autowired
+	private RatingService ratingService;
 
 	@Autowired
 	private TokenProvider tokenProvider;
@@ -241,14 +236,27 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String finishDate,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> startHour,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> finishHour,
-			@ApiParam(value = "input city") @RequestParam (required = false)List<String> city, HttpServletRequest request) {
+			@ApiParam(value = "input city") @RequestParam(required = false) List<String> city,
+			@ApiParam(value = "input zone offset, input 4.5 for 4:30 and 5.75 for 5:45 (and other cases with x:30 or x:45)") @RequestParam(defaultValue = "0", required = false) Double zoneOffset,
+			HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
-				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
-				city);
+				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour, city,
+				zoneOffset);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "Give rate to accepted applicant", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping("/{eventId}/rate")
+	public ResponseEntity<ResponseBody> sendRating(@RequestBody RatingWrapper ratingWrapper, @PathVariable Long eventId, HttpServletRequest request){
+		String token = getToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		ratingService.sendRating(eventId, userId, ratingWrapper);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Rating has been given successfully", request.getRequestURI()));
 	}
 }

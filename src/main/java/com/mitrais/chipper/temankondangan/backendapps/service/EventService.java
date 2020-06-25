@@ -36,6 +36,7 @@ public interface EventService {
 
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
 			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
-			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city);
+			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
+			Double zoneOffset);
 
 }

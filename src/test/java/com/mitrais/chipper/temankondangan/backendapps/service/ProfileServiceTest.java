@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.common.Constants;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -26,6 +27,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
@@ -45,6 +47,9 @@ public class ProfileServiceTest {
 
 	@Mock
 	ImageFileService imageService;
+
+	@Mock
+	RatingService ratingService;
 
 	@InjectMocks
 	ProfileServiceImpl profileService;
@@ -130,7 +135,13 @@ public class ProfileServiceTest {
 	public void findByUserIdTest() {
 		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
 				"All about me", "Not interested", DataState.ACTIVE);
+
+		HashMap<String, Double> ratingData = new HashMap<>();
+		ratingData.put(Constants.RatingDataKey.TOT, 3.0);
+		ratingData.put(Constants.RatingDataKey.AVG, 5.0);
+
 		Optional<Profile> profileOptional = Optional.of(profile);
+		Mockito.when(ratingService.getUserRating(ArgumentMatchers.anyLong())).thenReturn(ratingData);
 		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
 		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
 
