@@ -11,4 +11,7 @@ import java.util.Optional;
 public interface RatingRepository extends JpaRepository<Rating, Long> {
     @Query("SELECT a from Rating a WHERE a.userId = :userId")
     List<Rating> findByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT r FROM Rating r WHERE r.userId = :userId AND r.eventId = :eventId")
+    List<Rating> findByUserAndEventId(@Param("userId") Long userId, @Param("eventId") Long eventId);
 }
