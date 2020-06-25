@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import java.util.List;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
@@ -28,9 +29,9 @@ public interface EventService {
 
 	public void cancelEvent(Long userId, Long eventId);
 
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction);
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, ApplicantStatus applicantStatus);
 
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction);
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction, ApplicantStatus applicantStatus);
 
 	public void creatorCancelEvent(Long userId, Long eventId);
 

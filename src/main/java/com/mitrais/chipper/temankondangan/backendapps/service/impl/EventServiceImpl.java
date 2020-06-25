@@ -425,7 +425,6 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-
 	public void creatorCancelEvent(Long userId, Long eventId) {
 		if (eventId == null) {
 			throw new BadRequestException("Error: eventId cannot null");
@@ -455,11 +454,14 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, ApplicantStatus applicantStatus) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
-
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		int allStatus = 1;
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+		} else if ("latestApplied".equals(sortBy)) {
+			allStatus = 0;
+			sortBy = "a.createdDate";
 		}
 
 		Sort sort;
@@ -471,7 +473,8 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
+		
+		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, applicantStatus, allStatus, sort).forEach(event -> {
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
 			wrapper.setEventId(event.getEventId());
 			wrapper.setTitle(event.getTitle());
@@ -496,9 +499,9 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,ApplicantStatus applicantStatus) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
-
+		int allStatus = 1;
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
 		}
@@ -512,7 +515,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
+		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0,applicantStatus,allStatus, sort).forEach(event -> {
 			logger.info(event.toString());
 
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
