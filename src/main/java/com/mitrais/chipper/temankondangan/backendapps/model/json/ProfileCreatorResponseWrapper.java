@@ -8,6 +8,7 @@ import lombok.Data;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import java.util.HashMap;
 
 @Data
 @Builder
@@ -31,4 +32,7 @@ public class ProfileCreatorResponseWrapper {
 
     @ApiModelProperty(notes = "Profile interest")
     private String interest;
+
+    @ApiModelProperty(notes = "Rating")
+    private HashMap<String, Double> ratingData;
 }
