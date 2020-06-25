@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +68,7 @@ public class EventServiceImpl implements EventService {
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
+	private RatingService ratingService;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
@@ -74,12 +76,13 @@ public class EventServiceImpl implements EventService {
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
-			ImageFileService imageFileService) {
+			ImageFileService imageFileService, RatingService ratingService) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
 		this.imageFileService = imageFileService;
+		this.ratingService = ratingService;
 	}
 
 	@Override
@@ -317,9 +320,11 @@ public class EventServiceImpl implements EventService {
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
 
+				boolean isRated = ratingService.isRated(userId, event.getEventId());
+
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
-						.status(applicant.getStatus()).build());
+						.status(applicant.getStatus()).isRated(isRated).build());
 
 				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
