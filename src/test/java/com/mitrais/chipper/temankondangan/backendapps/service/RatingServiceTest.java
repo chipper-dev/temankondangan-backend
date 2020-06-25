@@ -1,9 +1,11 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.common.Constants;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.Rating;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.RatingType;
@@ -20,12 +22,17 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.AssertionErrors;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static java.lang.Math.round;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 @SpringBootTest
@@ -91,5 +98,22 @@ public class RatingServiceTest {
         assertThatThrownBy(() -> ratingService.sendRating(3L, 2L, ratingWrapper))
                 .hasMessageContaining("Error: Event creator doesn't match!")
                 .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    public void getUserRatingDataTest() {
+        Rating rating = Rating.builder().userId(1L).score(3).build();
+        List<Rating> ratingList = Arrays.asList(
+                Rating.builder().userId(1L).score(3).build(),
+                Rating.builder().userId(1L).score(4).build(),
+                Rating.builder().userId(1L).score(4).build(),
+                Rating.builder().userId(1L).score(3).build()
+        );
+
+        Mockito.when(ratingRepository.findByUserId(anyLong())).thenReturn(ratingList);
+        HashMap<String, Double> dataRating = ratingService.getUserRating(1L);
+
+        assertEquals(3.5, dataRating.get(Constants.RatingDataKey.AVG));
+        assertEquals(4.0, dataRating.get(Constants.RatingDataKey.TOT));
     }
 }
