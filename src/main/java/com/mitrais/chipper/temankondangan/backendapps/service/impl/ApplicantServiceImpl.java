@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,11 +81,15 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicantRepository.save(applicant);
 
 		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
-			String title = "Event that you are apply are approved";
-			String body = "Event ".concat(event.getTitle()).concat(" are approve you as the applicant");
-			Map<String, String> data = new HashMap<>();
+			try {
+				String title = "Event that you are apply are approved";
+				String body = "Event ".concat(event.getTitle()).concat(" are approve you as the applicant");
+				Map<String, String> data = new HashMap<>();
 
-			notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+				notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+			} catch (FirebaseMessagingException e) {
+
+			}
 		}
 	}
 
@@ -111,11 +116,15 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicantRepository.save(applicant);
 
 		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
-			String title = "Your accepted application to event are cancelled";
-			String body = "Event ".concat(event.getTitle()).concat(" are cancelled you as the applicant");
-			Map<String, String> data = new HashMap<>();
+			try{
+				String title = "Your accepted application to event are cancelled";
+				String body = "Event ".concat(event.getTitle()).concat(" are cancelled you as the applicant");
+				Map<String, String> data = new HashMap<>();
 
-			notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+				notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
+			} catch (FirebaseMessagingException e) {
+
+			}
 		}
 	}
 	

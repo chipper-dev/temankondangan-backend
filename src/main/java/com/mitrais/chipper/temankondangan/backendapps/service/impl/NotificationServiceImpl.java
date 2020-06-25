@@ -13,46 +13,35 @@ import java.util.Map;
 public class NotificationServiceImpl implements NotificationService {
 
     @Override
-    public void send(String title, String body, String messagingToken, @NotNull Map<String, String> data) {
-        try{
+    public void send(String title, String body, String messagingToken, @NotNull Map<String, String> data) throws FirebaseMessagingException {
+        Notification notification = Notification.builder()
+                .setTitle(title)
+                .setBody(body)
+                .build();
 
-            Notification notification = Notification.builder()
-                    .setTitle(title)
-                    .setBody(body)
-                    .build();
+        Message message = Message.builder()
+                .putAllData(data)
+                .setNotification(notification)
+                .setToken(messagingToken)
+                .build();
 
-            Message message = Message.builder()
-                    .putAllData(data)
-                    .setNotification(notification)
-                    .setToken(messagingToken)
-                    .build();
+        FirebaseMessaging.getInstance().send(message);
 
-            FirebaseMessaging.getInstance().send(message);
-
-        } catch (FirebaseMessagingException e) {
-            throw new BadRequestException("Error: " + e);
-        }
     }
 
     @Override
-    public void sendMultiple(String title, String body, List<String> messagingTokens, @NotNull Map<String, String> data) {
-        try{
+    public void sendMultiple(String title, String body, List<String> messagingTokens, @NotNull Map<String, String> data) throws FirebaseMessagingException {
+        Notification notification = Notification.builder()
+                .setTitle(title)
+                .setBody(body)
+                .build();
 
-            Notification notification = Notification.builder()
-                    .setTitle(title)
-                    .setBody(body)
-                    .build();
+        MulticastMessage message = MulticastMessage.builder()
+                .putAllData(data)
+                .setNotification(notification)
+                .addAllTokens(messagingTokens)
+                .build();
 
-            MulticastMessage message = MulticastMessage.builder()
-                    .putAllData(data)
-                    .setNotification(notification)
-                    .addAllTokens(messagingTokens)
-                    .build();
-
-            FirebaseMessaging.getInstance().sendMulticast(message);
-
-        } catch (FirebaseMessagingException e) {
-            throw new BadRequestException("Error: " + e);
-        }
+        FirebaseMessaging.getInstance().sendMulticast(message);
     }
 }
