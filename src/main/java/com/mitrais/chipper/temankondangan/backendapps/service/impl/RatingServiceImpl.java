@@ -18,6 +18,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -89,11 +90,13 @@ public class RatingServiceImpl implements RatingService {
 
         List ratingList = ratingRepository.findByUserId(userId);
         if(!ratingList.isEmpty()) {
-            Double average = (Double) ratingList.stream().collect(Collectors.averagingDouble(Rating::getScore));
             Double total = Double.valueOf(ratingList.size());
+            Double average = (Double) ratingList.stream().collect(Collectors.averagingDouble(Rating::getScore));
+            double scale = Math.pow(10, 2);
+            Double averageRounded = Math.round(average * scale) / scale;
 
             ratingData.put(Constants.RatingDataKey.TOT, total);
-            ratingData.put(Constants.RatingDataKey.AVG, average);
+            ratingData.put(Constants.RatingDataKey.AVG, averageRounded);
         } else {
             ratingData.put(Constants.RatingDataKey.TOT, 0.0);
             ratingData.put(Constants.RatingDataKey.AVG, 0.0);
