@@ -77,6 +77,7 @@ public class RatingServiceImpl implements RatingService {
 
         Rating rating = Rating.builder()
                 .eventId(eventId)
+                .userVoterId(userVoterId)
                 .userId(ratingWrapper.getUserId())
                 .score(ratingWrapper.getScore())
                 .build();
