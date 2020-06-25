@@ -13,6 +13,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileReposito
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import com.mitrais.chipper.temankondangan.backendapps.service.ProfileService;
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -35,13 +37,15 @@ public class ProfileServiceImpl implements ProfileService {
 	private final ProfileRepository profileRepository;
 	private final UserRepository userRepository;
 	ImageFileService imageService;
+	RatingService ratingService;
 
 	@Autowired
 	public ProfileServiceImpl(ProfileRepository profileRepository, UserRepository userRepository,
-			ImageFileService imageService) {
+			ImageFileService imageService, RatingService ratingService) {
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;
 		this.imageService = imageService;
+		this.ratingService = ratingService;
 	}
 
 	@Override
@@ -111,6 +115,7 @@ public class ProfileServiceImpl implements ProfileService {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new BadRequestException("No profile with user id : " + userId));
 
+		HashMap<String, Double> rating = ratingService.getUserRating(userId);
 		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		boolean hasPassword = true;
@@ -121,7 +126,9 @@ public class ProfileServiceImpl implements ProfileService {
 		return ProfileResponseWrapper.builder().profileId(profile.getProfileId()).fullName(profile.getFullName())
 				.dob(profile.getDob()).gender(profile.getGender()).city(profile.getCity()).aboutMe(profile.getAboutMe())
 				.interest(profile.getInterest()).photoProfileUrl(photoProfileUrl).email(profile.getUser().getEmail())
-				.hasPassword(hasPassword).build();
+				.hasPassword(hasPassword)
+				.ratingData(rating)
+				.build();
 	}
 
 	@Override
@@ -132,11 +139,12 @@ public class ProfileServiceImpl implements ProfileService {
 		Period period = Period.between(profile.getDob(), LocalDate.now());
 		String age = String.valueOf(period.getYears());
 
+		HashMap<String, Double> rating = ratingService.getUserRating(userId);
 		String photoProfileUrl = imageService.getImageUrl(profile);
 
 		return ProfileCreatorResponseWrapper.builder().fullName(profile.getFullName()).age(age)
 				.gender(profile.getGender()).aboutMe(profile.getAboutMe()).interest(profile.getInterest())
-				.photoProfileUrl(photoProfileUrl).build();
+				.photoProfileUrl(photoProfileUrl).ratingData(rating).build();
 	}
 
 }

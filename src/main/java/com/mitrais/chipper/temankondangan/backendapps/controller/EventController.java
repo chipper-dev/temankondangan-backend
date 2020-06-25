@@ -236,14 +236,16 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input date with dd-mm-yyyy format") @RequestParam(required = false) String finishDate,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> startHour,
 			@ApiParam(value = "input 00-12, 12-18, 18-00") @RequestParam(required = false) List<String> finishHour,
-			@ApiParam(value = "input city") @RequestParam (required = false)List<String> city, HttpServletRequest request) {
+			@ApiParam(value = "input city") @RequestParam(required = false) List<String> city,
+			@ApiParam(value = "input zone offset, input 4.5 for 4:30 and 5.75 for 5:45 (and other cases with x:30 or x:45)") @RequestParam(defaultValue = "0", required = false) Double zoneOffset,
+			HttpServletRequest request) {
 		LOGGER.info("Search Event");
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
 		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
-				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
-				city);
+				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour, city,
+				zoneOffset);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
