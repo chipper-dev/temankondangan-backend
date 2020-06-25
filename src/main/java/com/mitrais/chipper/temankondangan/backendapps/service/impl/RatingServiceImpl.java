@@ -104,4 +104,9 @@ public class RatingServiceImpl implements RatingService {
 
         return ratingData;
     }
+
+    @Override
+    public boolean isRated(Long userId, Long eventId) {
+        return !ratingRepository.findByUserAndEventId(userId, eventId).isEmpty();
+    }
 }
