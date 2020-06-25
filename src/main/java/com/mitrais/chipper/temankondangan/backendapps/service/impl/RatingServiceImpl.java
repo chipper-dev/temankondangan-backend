@@ -1,12 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import com.mitrais.chipper.temankondangan.backendapps.common.Constants;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Rating;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.RatingType;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RatingWrapper;
@@ -18,7 +18,9 @@ import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RatingServiceImpl implements RatingService {
@@ -79,5 +81,24 @@ public class RatingServiceImpl implements RatingService {
                 .build();
 
         ratingRepository.save(rating);
+    }
+
+    @Override
+    public HashMap<String, Double> getUserRating(Long userId) {
+        HashMap<String, Double> ratingData = new HashMap<>();
+
+        List ratingList = ratingRepository.findByUserId(userId);
+        if(!ratingList.isEmpty()) {
+            Double average = (Double) ratingList.stream().collect(Collectors.averagingDouble(Rating::getScore));
+            Double total = Double.valueOf(ratingList.size());
+
+            ratingData.put(Constants.RatingDataKey.TOT, total);
+            ratingData.put(Constants.RatingDataKey.AVG, average);
+        } else {
+            ratingData.put(Constants.RatingDataKey.TOT, 0.0);
+            ratingData.put(Constants.RatingDataKey.AVG, 0.0);
+        }
+
+        return ratingData;
     }
 }
