@@ -1,4 +1,3 @@
-
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import java.math.BigInteger;
@@ -17,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.IntFunction;
+import java.util.function.UnaryOperator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -369,7 +370,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You cannot apply to your own event!");
 		}
 
-		if(Boolean.TRUE.equals(event.getCancelled())) {
+		if (Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: You cannot applied to cancelled event");
 		}
 
@@ -411,7 +412,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You are already rejected. You don't need to cancel it anymore.");
 		}
 
-		if(Boolean.TRUE.equals(event.getCancelled())) {
+		if (Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: You cannot cancel to cancelled event");
 		}
 
@@ -441,7 +442,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You already have canceled this event");
 		}
 
-		if(LocalDateTime.now().isAfter(event.getStartDateTime())) {
+		if (LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException("Error: Past event cannot be canceled");
 		}
 
@@ -546,7 +547,8 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
 			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
-			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city) {
+			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
+			Double zoneOffset) {
 		// check sortBy and direction
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
@@ -573,6 +575,14 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 
+		List<String> zoneOffset45 = Arrays.asList("12.75", "8.75", "5.75");
+		List<String> zoneOffset30 = Arrays.asList("-9.5", "-3.5", "3.5", "4.5", "5.5", "6.5", "9.5", "10.5");
+		if ((!zoneOffset45.contains(zoneOffset.toString()) || zoneOffset % 0.25 != 0)
+				&& (!zoneOffset30.contains(zoneOffset.toString()) || zoneOffset % 0.5 != 0)
+				&& (zoneOffset < -12 || zoneOffset > 14 || zoneOffset % 1 != 0)) {
+			throw new BadRequestException("Error: Please input a valid zone offset");
+		}
+
 		// check user profile who is searching
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
@@ -581,16 +591,16 @@ public class EventServiceImpl implements EventService {
 
 		// check inputted gender in search
 		List<String> creatorGenderSearch = new ArrayList<>();
-		
+
 		if (creatorGender.equalsIgnoreCase("B")) {
 			creatorGenderSearch.add("L");
 			creatorGenderSearch.add("P");
-		} else if (creatorGender.equalsIgnoreCase("L") || creatorGender.equalsIgnoreCase("P")){
+		} else if (creatorGender.equalsIgnoreCase("L") || creatorGender.equalsIgnoreCase("P")) {
 			creatorGenderSearch.add(creatorGender);
 		} else {
 			throw new BadRequestException("Error: Can only input L, P or B for creatorGender!");
 		}
-		
+
 		// check inputted city in search
 		String eventCity = "%%";
 		StringBuilder builder = new StringBuilder();
@@ -610,19 +620,25 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: startDate and finishDate must be all empty or all filled!");
 		}
 
-		LocalDateTime currentTime = LocalDateTime.now();
+		long zoneOffsetInMinutes = (long) (zoneOffset * 60L);
+		LocalDateTime currentDateTime = LocalDateTime.now().minusMinutes(zoneOffsetInMinutes);
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime startDateSearch = currentTime;
-		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX);
+		LocalDateTime startDateSearch = currentDateTime;
+		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX)
+				.minusMinutes(zoneOffsetInMinutes);
 
 		if ((StringUtils.isNotEmpty(startDate))) {
-			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay();
-			if (startDateSearch.toLocalDate().equals(LocalDate.now())) {
-				startDateSearch = currentTime;
+			startDateSearch = LocalDate.parse(startDate, dfDate).atTime(LocalTime.now())
+					.minusMinutes(zoneOffsetInMinutes);
+			if (startDateSearch.toLocalDate().equals(currentDateTime.toLocalDate())) {
+				startDateSearch = currentDateTime;
+			} else {
+				startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay().minusMinutes(zoneOffsetInMinutes);
 			}
-			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX);
+			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX)
+					.minusMinutes(zoneOffsetInMinutes);
 
-			if (startDateSearch.isBefore(currentTime)) {
+			if (startDateSearch.isBefore(currentDateTime)) {
 				throw new BadRequestException("Error: Date inputted have to be today or after!");
 			}
 
@@ -631,85 +647,108 @@ public class EventServiceImpl implements EventService {
 			}
 		}
 
-		Integer startHourLowerRange = 0;
-		Integer startHourUpperRange = 24;
-		Integer finishHourLowerRange = 0;
-		Integer finishHourUpperRange = 0;
-
-		// maximum hour is 24, initialized in 25 so it won't get any event if not needed
-		Integer secondStartHourLowerRange = 25;
-		Integer secondStartHourUpperRange = 25;
-		Integer secondFinishHourLowerRange = 25;
-		Integer secondFinishHourUpperRange = 25;
-
 		String hour1 = "00-12";
 		String hour2 = "12-18";
 		String hour3 = "18-00";
 
-		// check startHour and finishHour
+		LocalTime startHourLowerRange = LocalTime.MIN;
+		LocalTime startHourUpperRange = LocalTime.MAX;
+		LocalTime finishHourLowerRange = LocalTime.MIN;
+		LocalTime finishHourUpperRange = LocalTime.MIN;
+
+		LocalTime secondStartHourLowerRange = LocalTime.MIN;
+		LocalTime secondStartHourUpperRange = LocalTime.MIN;
+		LocalTime secondFinishHourLowerRange = LocalTime.MIN;
+		LocalTime secondFinishHourUpperRange = LocalTime.MIN;
+
+		IntFunction<LocalTime> intToLocalTime = x -> {
+			if (x - zoneOffset == 24) {
+				return LocalTime.MAX;
+			}
+			return LocalTime.of(0, 0, 0).plusMinutes((x * 60) - zoneOffsetInMinutes);
+		};
+
+		// check starthour
 		if (!(startHour == null || startHour.isEmpty())) {
 			int startHourSize = startHour.size();
 			Collections.sort(startHour);
 
-//					if startHour only contains "00-12", "18-24"
-			if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
-					&& startHour.get(1).equalsIgnoreCase(hour3)) {
-				startHourLowerRange = 0;
-				startHourUpperRange = 12;
-				secondStartHourLowerRange = 18;
-				secondStartHourUpperRange = 24;
-
-			} else {
-				for (int i = 0; i < startHourSize; i++) {
-					if (startHour.get(i).equalsIgnoreCase(hour1)) {
-						startHourLowerRange = 0;
-						startHourUpperRange = 12;
-					} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
-						if (i == 0)
-							startHourLowerRange = 12;
-						startHourUpperRange = 18;
-					} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
-						if (i == 0)
-							startHourLowerRange = 18;
-						startHourUpperRange = 24;
-					} else {
-						throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+			for (int i = 0; i < startHourSize; i++) {
+				if (startHour.get(i).equalsIgnoreCase(hour1)) {
+					startHourLowerRange = intToLocalTime.apply(0);
+					startHourUpperRange = intToLocalTime.apply(12);
+				} else if (startHour.get(i).equalsIgnoreCase(hour2)) {
+					if (i == 0) {
+						startHourLowerRange = intToLocalTime.apply(12);
 					}
+					startHourUpperRange = intToLocalTime.apply(18);
+				} else if (startHour.get(i).equalsIgnoreCase(hour3)) {
+					if (i == 0) {
+						startHourLowerRange = intToLocalTime.apply(18);
+					}
+					startHourUpperRange = intToLocalTime.apply(24);
+				} else {
+					throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
 				}
+			}
+
+			if (startHourSize == 3) {
+				secondStartHourLowerRange = LocalTime.MIN;
+				secondStartHourUpperRange = LocalTime.MIN;
+				startHourLowerRange = LocalTime.MIN;
+				startHourUpperRange = LocalTime.MAX;
+			} else if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+					&& startHour.get(1).equalsIgnoreCase(hour3)) {
+				startHourUpperRange = startHourUpperRange.plusHours(12);
+				startHourLowerRange = startHourLowerRange.plusHours(18);
+			}
+
+			if (startHourLowerRange.isAfter(startHourUpperRange)) {
+				secondStartHourLowerRange = startHourLowerRange;
+				secondStartHourUpperRange = LocalTime.MAX;
+				startHourLowerRange = LocalTime.MIN;
 			}
 		}
 
+		// check finishhour
 		if (!(finishHour == null || finishHour.isEmpty())) {
-			if (startHour == null || startHour.isEmpty())
-				startHourUpperRange = 0;
-
 			int finishHourSize = finishHour.size();
 			Collections.sort(finishHour);
-//					if finishHour only contains "00-12", "18-24"
-			if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
-					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
-				finishHourLowerRange = 0;
-				finishHourUpperRange = 12;
-				secondFinishHourLowerRange = 18;
-				secondFinishHourUpperRange = 24;
 
-			} else {
-				for (int i = 0; i < finishHourSize; i++) {
-					if (finishHour.get(i).equalsIgnoreCase(hour1)) {
-						finishHourLowerRange = 0;
-						finishHourUpperRange = 12;
-					} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
-						if (i == 0)
-							finishHourLowerRange = 12;
-						finishHourUpperRange = 18;
-					} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
-						if (i == 0)
-							finishHourLowerRange = 18;
-						finishHourUpperRange = 24;
-					} else {
-						throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
+			for (int i = 0; i < finishHourSize; i++) {
+				if (finishHour.get(i).equalsIgnoreCase(hour1)) {
+					finishHourLowerRange = intToLocalTime.apply(0);
+					finishHourUpperRange = intToLocalTime.apply(12);
+				} else if (finishHour.get(i).equalsIgnoreCase(hour2)) {
+					if (i == 0) {
+						finishHourLowerRange = intToLocalTime.apply(12);
 					}
+					finishHourUpperRange = intToLocalTime.apply(18);
+				} else if (finishHour.get(i).equalsIgnoreCase(hour3)) {
+					if (i == 0) {
+						finishHourLowerRange = intToLocalTime.apply(18);
+					}
+					finishHourUpperRange = intToLocalTime.apply(24);
+				} else {
+					throw new BadRequestException("Error: Please use 00-12, 12-18 or 18-00 for hour value");
 				}
+			}
+
+			if (finishHourSize == 3) {
+				secondFinishHourLowerRange = LocalTime.MIN;
+				secondFinishHourUpperRange = LocalTime.MIN;
+				finishHourLowerRange = LocalTime.MIN;
+				finishHourUpperRange = LocalTime.MAX;
+			} else if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
+					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
+				finishHourUpperRange = finishHourUpperRange.plusHours(12);
+				finishHourLowerRange = finishHourLowerRange.plusHours(18);
+			}
+
+			if (finishHourLowerRange.isAfter(finishHourUpperRange)) {
+				secondFinishHourLowerRange = finishHourLowerRange;
+				secondFinishHourUpperRange = LocalTime.MAX;
+				finishHourLowerRange = LocalTime.MIN;
 			}
 		}
 
@@ -718,6 +757,10 @@ public class EventServiceImpl implements EventService {
 				finishHourUpperRange, secondStartHourLowerRange, secondStartHourUpperRange, secondFinishHourLowerRange,
 				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
 				paging);
+
+		UnaryOperator<LocalDateTime> localDateTimeConvert = x -> {
+			return x.minusMinutes(zoneOffsetInMinutes);
+		};
 
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
@@ -731,11 +774,13 @@ public class EventServiceImpl implements EventService {
 			responseWrapper.setCreatorGender(Gender.valueOf((String) eventWrap.get("gender")));
 			responseWrapper.setEventId(((BigInteger) eventWrap.get("event_id")).longValue());
 			if (((Timestamp) eventWrap.get("finish_date_time")) != null)
-				responseWrapper.setFinishDateTime(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime());
+				responseWrapper.setFinishDateTime(
+						localDateTimeConvert.apply(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime()));
 			responseWrapper.setMaximumAge((Integer) eventWrap.get("maximum_age"));
 			responseWrapper.setMinimumAge((Integer) eventWrap.get("minimum_age"));
 			responseWrapper.setProfileId(((BigInteger) eventWrap.get("profile_id")).longValue());
-			responseWrapper.setStartDateTime(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime());
+			responseWrapper.setStartDateTime(
+					localDateTimeConvert.apply(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime()));
 			responseWrapper.setTitle((String) eventWrap.get("title"));
 			responseWrapper.setCancelled((Boolean) eventWrap.get("cancelled"));
 
