@@ -48,15 +48,15 @@ app:
   verificationExpirationMsec: 300000 #5 mins
   eventCancelationValidMaxMsec: 86400000 #24 hours
 
-#eureka:
-#  instance:
-#    leaseRenewalIntervalInSeconds: 5
-#    leaseExpirationDurationInSeconds: 2
-#    prefer-ip-address: true
-#  client:
-#    serviceUrl:
-#      defaultZone: ${EUREKA_SERVER_URL}/eureka/
-#    healthcheck:
-#      enabled: true
-#    lease:
-#      duration: 5
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 2
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL}/eureka/
+    healthcheck:
+      enabled: true
+    lease:
+      duration: 5

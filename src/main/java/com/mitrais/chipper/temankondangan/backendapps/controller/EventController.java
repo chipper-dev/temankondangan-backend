@@ -4,26 +4,18 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 
@@ -42,6 +34,9 @@ public class EventController extends CommonResource {
 
 	@Autowired
 	private EventService eventService;
+
+	@Autowired
+	private RatingService ratingService;
 
 	@Autowired
 	private TokenProvider tokenProvider;
@@ -252,5 +247,16 @@ public class EventController extends CommonResource {
 				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour, city,
 				zoneOffset);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "Give rate to accepted applicant", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@PostMapping("/{eventId}/rate")
+	public ResponseEntity<ResponseBody> sendRating(@RequestBody RatingWrapper ratingWrapper, @PathVariable Long eventId, HttpServletRequest request){
+		String token = getToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		ratingService.sendRating(eventId, userId, ratingWrapper);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Rating has been given successfully", request.getRequestURI()));
 	}
 }
