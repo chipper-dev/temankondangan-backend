@@ -15,6 +15,7 @@ import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
@@ -1083,267 +1084,279 @@ public class EventServiceTest {
 	}
 
 	// search event service
-//	@Test
-//	public void searchEventDefaultTest() {
-//		Profile profile1 = new Profile();
-//		profile1.setGender(Gender.P);
-//		profile1.setDob(LocalDate.now().minusYears(19));
-//
-//		Optional<Profile> profileOptional = Optional.of(profile1);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
-//
-//		Map<String, Object> eventSearch = new HashMap<String, Object>();
-//		eventSearch.put("status", "APPLIED");
-//		eventSearch.put("city", "Klaten");
-//		eventSearch.put("companion_gender", "L");
-//		eventSearch.put("created_by", "tester");
-//		eventSearch.put("full_name", "full name tester");
-//		eventSearch.put("gender", "P");
-//		eventSearch.put("event_id", BigInteger.valueOf(1));
-//		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("maximum_age", 40);
-//		eventSearch.put("minimum_age", 18);
-//		eventSearch.put("profile_id", BigInteger.valueOf(1));
-//		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("title", "Kondangan test");
-//		eventSearch.put("cancelled", false);
-//
-//		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
-//		eventSearchs.add(eventSearch);
-//		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
-//
-//		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
-//				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
-//				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
-//				.thenReturn(eventSearchPage);
-//
-//		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
-//		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
-//		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-//
-//		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
-//				"", "", Arrays.asList(), Arrays.asList(), Arrays.asList());
-//
-//		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
-//	}
-//
-//	@Test
-//	public void searchEvent_WithSortByAndDirectionAndCreatorGenderAndDateAndHourFilledTest() {
-//		Long userId = 1L;
-//		Integer pageNumber = 0;
-//		Integer pageSize = 10;
-//		String sortBy = "startDateTime";
-//		String direction = "ASC";
-//		String creatorGender = Gender.L.toString();
-//		Integer creatorMaximumAge = 150;
-//		Integer creatorMinimumAge = 18;
-//		String startDate = LocalDate.now().format(dfDate);
-//		String finishDate = LocalDate.now().format(dfDate);
-//		List<String> startHour = Arrays.asList("00-12", "12-18", "18-00");
-//		List<String> finishHour = Arrays.asList("00-12", "12-18", "18-00");
-//		List<String> city = Arrays.asList("Klaten", "Jogja");
-//
-//		Profile profile1 = new Profile();
-//		profile1.setGender(Gender.P);
-//		profile1.setDob(LocalDate.now().minusYears(19));
-//
-//		Optional<Profile> profileOptional = Optional.of(profile1);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
-//
-//		Map<String, Object> eventSearch = new HashMap<String, Object>();
-//		eventSearch.put("status", "APPLIED");
-//		eventSearch.put("city", "Klaten");
-//		eventSearch.put("companion_gender", "L");
-//		eventSearch.put("created_by", "tester");
-//		eventSearch.put("full_name", "full name tester");
-//		eventSearch.put("gender", "P");
-//		eventSearch.put("event_id", BigInteger.valueOf(1));
-//		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("maximum_age", 40);
-//		eventSearch.put("minimum_age", 18);
-//		eventSearch.put("profile_id", BigInteger.valueOf(1));
-//		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("title", "Kondangan test");
-//		eventSearch.put("cancelled", false);
-//
-//		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
-//		eventSearchs.add(eventSearch);
-//		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
-//
-//		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
-//				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
-//				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
-//				.thenReturn(eventSearchPage);
-//
-//		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
-//		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
-//		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-//
-//		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
-//				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
-//				city);
-//		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
-//	}
-//
-//	@Test
-//	public void searchEvent_Without1218HourRangeTest() {
-//		Profile profile1 = new Profile();
-//		profile1.setGender(Gender.P);
-//		profile1.setDob(LocalDate.now().minusYears(19));
-//
-//		Optional<Profile> profileOptional = Optional.of(profile1);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
-//
-//		Map<String, Object> eventSearch = new HashMap<String, Object>();
-//		eventSearch.put("status", "APPLIED");
-//		eventSearch.put("city", "Klaten");
-//		eventSearch.put("companion_gender", "L");
-//		eventSearch.put("created_by", "tester");
-//		eventSearch.put("full_name", "full name tester");
-//		eventSearch.put("gender", "P");
-//		eventSearch.put("event_id", BigInteger.valueOf(1));
-//		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("maximum_age", 40);
-//		eventSearch.put("minimum_age", 18);
-//		eventSearch.put("profile_id", BigInteger.valueOf(1));
-//		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
-//		eventSearch.put("title", "Kondangan test");
-//		eventSearch.put("cancelled", false);
-//
-//		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
-//		eventSearchs.add(eventSearch);
-//		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
-//
-//		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(), any(LocalDateTime.class),
-//				any(LocalDateTime.class), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(), anyInt(),
-//				anyInt(), anyInt(), anyInt(), Mockito.<String>anyList(), any(String.class), any(Pageable.class)))
-//				.thenReturn(eventSearchPage);
-//
-//		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
-//		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
-//		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
-//
-//		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
-//				"", "", Arrays.asList("00-12", "18-00"), Arrays.asList("00-12", "18-00"), Arrays.asList());
-//
-//		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B.toString(), 150, 18, "", "",
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenDirectionNotFilledWithCorrectValueInSearchEvent() {
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "wrong direction", Gender.B.toString(), 150, 18, "",
-//				"", Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsInvalidInSearchEvent() {
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 17, "", "",
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsMoreThanCreatorMaximumAgeInSearchEvent() {
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 19, 20, "", "",
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Inputted age is not valid!")
-//						.isInstanceOf(BadRequestException.class);
-//	}	
-//	
-//	@Test
-//	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInSearchEvent() {
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
-//				Arrays.asList(), Arrays.asList(), Arrays.asList())).isInstanceOf(ResourceNotFoundException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenCreatorGenderIsNotValidInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", "wrong gender", 29, 20, "", "",
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Can only input L, P or B for creatorGender!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenDateIsNotFilledTogetherInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
-//				LocalDateTime.now().plusDays(10).format(dfDate), "", Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenStartDateIsBeforeNowInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
-//				LocalDateTime.now().minusDays(1).format(dfDate), LocalDateTime.now().minusDays(1).format(dfDate),
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Date inputted have to be today or after!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenStartDateIsAfterFinishDateInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
-//				LocalDateTime.now().plusDays(10).format(dfDate), LocalDateTime.now().plusDays(9).format(dfDate),
-//				Arrays.asList(), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: startDate must be earlier than finishDate!")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenStartHourFormatIsWrongInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
-//				Arrays.asList("wrong format"), Arrays.asList(), Arrays.asList()))
-//						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
-//						.isInstanceOf(BadRequestException.class);
-//	}
-//
-//	@Test
-//	public void shouldThrowBadRequestException_WhenFinishHourFormatIsWrongInSearchEvent() {
-//		Profile profileMock = new Profile();
-//		profileMock.setDob(LocalDate.now().minusYears(20));
-//		profileMock.setGender(Gender.L);
-//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
-//
-//		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
-//				Arrays.asList(), Arrays.asList("wrong format"), Arrays.asList()))
-//						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
-//						.isInstanceOf(BadRequestException.class);
-//	}
+	@Test
+	public void searchEventDefaultTest() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
+
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(),
+				any(LocalDateTime.class), any(LocalDateTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), anyInt(), anyInt(), Mockito.<String>anyList(),
+				any(String.class), any(Pageable.class))).thenReturn(eventSearchPage);
+
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
+
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(),
+				150, 18, "", "", Arrays.asList(), Arrays.asList(), Arrays.asList(), any(Double.class));
+
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
+	}
+
+	@Test
+	public void searchEvent_WithSortByAndDirectionAndCreatorGenderAndDateAndHourFilledTest() {
+		Long userId = 1L;
+		Integer pageNumber = 0;
+		Integer pageSize = 10;
+		String sortBy = "startDateTime";
+		String direction = "ASC";
+		String creatorGender = Gender.L.toString();
+		Integer creatorMaximumAge = 150;
+		Integer creatorMinimumAge = 18;
+		String startDate = LocalDate.now().format(dfDate);
+		String finishDate = LocalDate.now().format(dfDate);
+		List<String> startHour = Arrays.asList("00-12", "12-18", "18-00");
+		List<String> finishHour = Arrays.asList("00-12", "12-18", "18-00");
+		List<String> city = Arrays.asList("Klaten", "Jogja");
+		Double zoneOffset = 9.0;
+
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
+
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(),
+				any(LocalDateTime.class), any(LocalDateTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), anyInt(), anyInt(), Mockito.<String>anyList(),
+				any(String.class), any(Pageable.class))).thenReturn(eventSearchPage);
+
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
+
+		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
+				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour,
+				city, zoneOffset);
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
+	}
+
+	@Test
+	public void searchEvent_Without1218HourRangeTest() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
+
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(),
+				any(LocalDateTime.class), any(LocalDateTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), anyInt(), anyInt(), Mockito.<String>anyList(),
+				any(String.class), any(Pageable.class))).thenReturn(eventSearchPage);
+
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
+
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
+				"", "", Arrays.asList("00-12", "18-00"), Arrays.asList("00-12", "18-00"), Arrays.asList(), -9.0);
+
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B.toString(), 150, 18, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenDirectionNotFilledWithCorrectValueInSearchEvent() {
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "wrong direction", Gender.B.toString(), 150, 18, "",
+				"", Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsInvalidInSearchEvent() {
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 17, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Minimum age must be 18!").isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCreatorMinimumAgeIsMoreThanCreatorMaximumAgeInSearchEvent() {
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 19, 20, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Inputted age is not valid!")
+						.isInstanceOf(BadRequestException.class);
+	}	
+	
+	@Test
+	public void shouldThrowBadRequestException_WhenOffsetZoneIsNotValidInSearchEvent() {
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 25, 20, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 15.0))
+						.hasMessageContaining("Error: Please input a valid zone offset")
+						.isInstanceOf(BadRequestException.class);
+	}	
+	
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInSearchEvent() {
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCreatorGenderIsNotValidInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", "wrong gender", 29, 20, "", "",
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Can only input L, P or B for creatorGender!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenDateIsNotFilledTogetherInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
+				LocalDateTime.now().plusDays(10).format(dfDate), "", Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateIsBeforeNowInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
+				LocalDateTime.now().minusDays(1).format(dfDate), LocalDateTime.now().minusDays(1).format(dfDate),
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Date inputted have to be today or after!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateIsAfterFinishDateInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
+				LocalDateTime.now().plusDays(10).format(dfDate), LocalDateTime.now().plusDays(9).format(dfDate),
+				Arrays.asList(), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: startDate must be earlier than finishDate!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartHourFormatIsWrongInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
+				Arrays.asList("wrong format"), Arrays.asList(), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenFinishHourFormatIsWrongInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "", "",
+				Arrays.asList(), Arrays.asList("wrong format"), Arrays.asList(), 0.0))
+						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
+						.isInstanceOf(BadRequestException.class);
+	}
 }

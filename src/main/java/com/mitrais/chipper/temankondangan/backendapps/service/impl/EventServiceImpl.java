@@ -575,6 +575,14 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 
+		List<String> zoneOffset45 = Arrays.asList("12.75", "8.75", "5.75");
+		List<String> zoneOffset30 = Arrays.asList("-9.5", "-3.5", "3.5", "4.5", "5.5", "6.5", "9.5", "10.5");
+		if ((!zoneOffset45.contains(zoneOffset.toString()) || zoneOffset % 0.25 != 0)
+				&& (!zoneOffset30.contains(zoneOffset.toString()) || zoneOffset % 0.5 != 0)
+				&& (zoneOffset < -12 || zoneOffset > 14 || zoneOffset % 1 != 0)) {
+			throw new BadRequestException("Error: Please input a valid zone offset");
+		}
+
 		// check user profile who is searching
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
@@ -613,21 +621,24 @@ public class EventServiceImpl implements EventService {
 		}
 
 		long zoneOffsetInMinutes = (long) (zoneOffset * 60L);
-		LocalDateTime currentTime = LocalDateTime.now().minusMinutes(zoneOffsetInMinutes);
+		LocalDateTime currentDateTime = LocalDateTime.now().minusMinutes(zoneOffsetInMinutes);
 		DateTimeFormatter dfDate = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
-		LocalDateTime startDateSearch = currentTime;
+		LocalDateTime startDateSearch = currentDateTime;
 		LocalDateTime finishDateSearch = LocalDate.now().plusDays(90).atTime(LocalTime.MAX)
 				.minusMinutes(zoneOffsetInMinutes);
 
 		if ((StringUtils.isNotEmpty(startDate))) {
-			startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay().minusMinutes(zoneOffsetInMinutes);
-			if (startDateSearch.toLocalDate().equals(currentTime.toLocalDate())) {
-				startDateSearch = currentTime;
+			startDateSearch = LocalDate.parse(startDate, dfDate).atTime(LocalTime.now())
+					.minusMinutes(zoneOffsetInMinutes);
+			if (startDateSearch.toLocalDate().equals(currentDateTime.toLocalDate())) {
+				startDateSearch = currentDateTime;
+			} else {
+				startDateSearch = LocalDate.parse(startDate, dfDate).atStartOfDay().minusMinutes(zoneOffsetInMinutes);
 			}
 			finishDateSearch = LocalDate.parse(finishDate, dfDate).atTime(LocalTime.MAX)
 					.minusMinutes(zoneOffsetInMinutes);
 
-			if (startDateSearch.isBefore(currentTime)) {
+			if (startDateSearch.isBefore(currentDateTime)) {
 				throw new BadRequestException("Error: Date inputted have to be today or after!");
 			}
 
@@ -686,8 +697,7 @@ public class EventServiceImpl implements EventService {
 				secondStartHourUpperRange = LocalTime.MIN;
 				startHourLowerRange = LocalTime.MIN;
 				startHourUpperRange = LocalTime.MAX;
-			}
-			else if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
+			} else if (startHourSize == 2 && startHour.get(0).equalsIgnoreCase(hour1)
 					&& startHour.get(1).equalsIgnoreCase(hour3)) {
 				startHourUpperRange = startHourUpperRange.plusHours(12);
 				startHourLowerRange = startHourLowerRange.plusHours(18);
@@ -729,8 +739,7 @@ public class EventServiceImpl implements EventService {
 				secondFinishHourUpperRange = LocalTime.MIN;
 				finishHourLowerRange = LocalTime.MIN;
 				finishHourUpperRange = LocalTime.MAX;
-			}
-			else if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
+			} else if (finishHourSize == 2 && finishHour.get(0).equalsIgnoreCase(hour1)
 					&& finishHour.get(1).equalsIgnoreCase(hour3)) {
 				finishHourUpperRange = finishHourUpperRange.plusHours(12);
 				finishHourLowerRange = finishHourLowerRange.plusHours(18);
