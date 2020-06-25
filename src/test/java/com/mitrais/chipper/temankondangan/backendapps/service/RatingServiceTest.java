@@ -33,6 +33,7 @@ import static java.lang.Math.round;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 @SpringBootTest
@@ -44,8 +45,6 @@ public class RatingServiceTest {
     EventRepository eventRepository;
     @Mock
     ApplicantRepository applicantRepository;
-    @Mock
-    ProfileRepository profileRepository;
 
     @InjectMocks
     RatingServiceImpl ratingService;
@@ -102,7 +101,6 @@ public class RatingServiceTest {
 
     @Test
     public void getUserRatingDataTest() {
-        Rating rating = Rating.builder().userId(1L).score(3).build();
         List<Rating> ratingList = Arrays.asList(
                 Rating.builder().userId(1L).score(3).build(),
                 Rating.builder().userId(1L).score(4).build(),
@@ -115,5 +113,16 @@ public class RatingServiceTest {
 
         assertEquals(3.5, dataRating.get(Constants.RatingDataKey.AVG));
         assertEquals(4.0, dataRating.get(Constants.RatingDataKey.TOT));
+    }
+
+    @Test
+    public void isRatedTrueTest() {
+        List<Rating> ratingList = Arrays.asList(
+                Rating.builder().userId(1L).eventId(2L).score(3).build()
+        );
+
+        Mockito.when(ratingRepository.findByUserAndEventId(anyLong(), anyLong())).thenReturn(ratingList);
+
+        assertTrue(ratingService.isRated(1L, 2L));
     }
 }
