@@ -44,7 +44,7 @@ public class RatingServiceTest {
     ApplicantRepository applicantRepository;
 
     @InjectMocks
-    RatingService ratingService;
+    RatingServiceImpl ratingService;
 
     @BeforeEach
     public void setup() {
