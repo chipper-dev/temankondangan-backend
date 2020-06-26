@@ -12,7 +12,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.RatingType;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RatingWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.RatingRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,17 +21,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.util.AssertionErrors;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
-import static java.lang.Math.round;
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 
 @SpringBootTest
@@ -44,8 +40,6 @@ public class RatingServiceTest {
     EventRepository eventRepository;
     @Mock
     ApplicantRepository applicantRepository;
-    @Mock
-    ProfileRepository profileRepository;
 
     @InjectMocks
     RatingServiceImpl ratingService;
@@ -102,7 +96,6 @@ public class RatingServiceTest {
 
     @Test
     public void getUserRatingDataTest() {
-        Rating rating = Rating.builder().userId(1L).score(3).build();
         List<Rating> ratingList = Arrays.asList(
                 Rating.builder().userId(1L).score(3).build(),
                 Rating.builder().userId(1L).score(4).build(),
@@ -115,5 +108,29 @@ public class RatingServiceTest {
 
         assertEquals(3.5, dataRating.get(Constants.RatingDataKey.AVG));
         assertEquals(4.0, dataRating.get(Constants.RatingDataKey.TOT));
+    }
+
+    @Test
+    public void isRatedTrueTest() {
+        List<Rating> ratingList = Arrays.asList(
+                Rating.builder().userId(1L).eventId(2L).score(3).build()
+        );
+
+        Mockito.when(ratingRepository.findByUserAndEventId(anyLong(), anyLong())).thenReturn(ratingList);
+
+        assertTrue(ratingService.isRated(1L, 2L));
+    }
+
+
+    @Test
+    public void showRatingTest() {
+        List<Rating> ratingList = Arrays.asList(
+                Rating.builder().userId(1L).eventId(2L).userVoterId(3L).score(3).build()
+        );
+
+        Mockito.when(ratingRepository.findByUserVoterAndEventId(anyLong(), anyLong())).thenReturn(ratingList);
+        RatingWrapper ratingWrapper = ratingService.showRating(2L, 3L);
+        assertSame(3, ratingWrapper.getScore());
+        assertSame(1L, ratingWrapper.getUserId());
     }
 }
