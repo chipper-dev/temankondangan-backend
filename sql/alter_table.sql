@@ -67,11 +67,11 @@ ADD COLUMN cancelled BOOLEAN;
 ALTER TABLE applicants
 	ADD COLUMN created_by varchar NOT NULL DEFAULT 'user',
     ADD COLUMN created_date timestamp NOT NULL DEFAULT NOW(),
-    ADD COLUMN modified_by varchar NOT NULL DEFAULT 'user',
-    ADD COLUMN modified_date timestamp NOT NULL DEFAULT NOW();
+    ADD COLUMN last_modified_by varchar NOT NULL DEFAULT 'user',
+    ADD COLUMN last_modified_date timestamp NOT NULL DEFAULT NOW();
 
 ALTER TABLE applicants
 	ALTER COLUMN created_by DROP DEFAULT,
     ALTER COLUMN created_date DROP DEFAULT,
-    ALTER COLUMN modified_by DROP DEFAULT,
-    ALTER COLUMN modified_date DROP DEFAULT;
+    ALTER COLUMN last_modified_by DROP DEFAULT,
+    ALTER COLUMN last_modified_date DROP DEFAULT;

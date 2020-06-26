@@ -56,10 +56,10 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 			+ "AND e.dataState = :dataStateEvent "
 			+ "AND (((e.startDateTime >= :now AND e.cancelled = FALSE) AND :current = 1) "
 			+ "OR ((e.startDateTime < :now OR e.cancelled = TRUE) AND :current = 0)) "
-			+ "AND (a.status = :applicantStatus OR :allStatus = 1")
+			+ "AND (a.status = :applicantStatus OR :allStatus = 1)")
 	List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState,
 			@Param("now") LocalDateTime now, @Param("current") Integer current,
-			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") Integer allStatus,
+			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") int allStatus,
 			Sort sort);
 
 	@Query(nativeQuery = true, value = "SELECT e.event_id, p.profile_id, p.full_name, e.created_by, "

@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -453,16 +454,25 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, ApplicantStatus applicantStatus) {
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
 		int allStatus = 1;
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
 		} else if ("latestApplied".equals(sortBy)) {
-			allStatus = 0;
 			sortBy = "a.createdDate";
 		}
-
+		
+		ApplicantStatus applicantStatus; 
+		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
+			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
+			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS))
+				allStatus = 0;
+		}
+		else {
+			throw new BadRequestException("Error: Please input a valid applicant status");
+		}
+				
 		Sort sort;
 		if (direction.equalsIgnoreCase("DESC")) {
 			sort = Sort.by(sortBy).descending();
@@ -471,7 +481,6 @@ public class EventServiceImpl implements EventService {
 		} else {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
-
 		
 		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, applicantStatus, allStatus, sort).forEach(event -> {
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
@@ -498,11 +507,23 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,ApplicantStatus applicantStatus) {
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
 		int allStatus = 1;
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+		} else if ("latestApplied".equals(sortBy)) {
+			sortBy = "a.createdDate";
+		}
+		
+		ApplicantStatus applicantStatus; 
+		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
+			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
+			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS))
+				allStatus = 0;
+		}
+		else {
+			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
 
 		Sort sort;
@@ -514,7 +535,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0,applicantStatus,allStatus, sort).forEach(event -> {
+		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, applicantStatus, allStatus, sort).forEach(event -> {
 			logger.info(event.toString());
 
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
