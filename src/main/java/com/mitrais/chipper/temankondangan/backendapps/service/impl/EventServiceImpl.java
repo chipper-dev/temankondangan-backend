@@ -292,6 +292,7 @@ public class EventServiceImpl implements EventService {
 	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		boolean isApplied = false;
+		boolean isCreatorRated = false;
 		Long id;
 		ApplicantStatus applicantStatus = null;
 		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
@@ -320,11 +321,11 @@ public class EventServiceImpl implements EventService {
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
 
-				boolean isRated = ratingService.isRated(userId, event.getEventId());
+				boolean isApplicantRated = ratingService.isRated(applicant.getApplicantUser().getUserId(), event.getEventId());
 
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
-						.status(applicant.getStatus()).isRated(isRated).build());
+						.status(applicant.getStatus()).isRated(isApplicantRated).build());
 
 				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
@@ -337,6 +338,7 @@ public class EventServiceImpl implements EventService {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
+			isCreatorRated = ratingService.isRated(userId, event.getEventId());
 			Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
 			if (applicantOpt.isPresent()) {
 				applicantStatus = applicantOpt.get().getStatus();
@@ -356,7 +358,7 @@ public class EventServiceImpl implements EventService {
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
 				.isApplied(isApplied).applicantStatus(applicantStatus).hasAcceptedApplicant(hasAcceptedApplicant)
-				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).build();
+				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).isRated(isCreatorRated).build();
 	}
 
 	@Override
