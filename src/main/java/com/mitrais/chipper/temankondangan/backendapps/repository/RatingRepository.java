@@ -16,5 +16,5 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     List<Rating> findByUserAndEventId(@Param("userId") Long userId, @Param("eventId") Long eventId);
 
     @Query("SELECT r FROM Rating r WHERE r.userVoterId = :userVoterId AND r.eventId = :eventId")
-    List<Rating> findByUserVoterAndEventId(@Param("userId") Long userVoterId, @Param("eventId") Long eventId);
+    List<Rating> findByUserVoterAndEventId(@Param("userVoterId") Long userVoterId, @Param("eventId") Long eventId);
 }
