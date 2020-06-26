@@ -8,4 +8,5 @@ public interface RatingService {
     void sendRating(Long eventId, Long userCreatorid, RatingWrapper ratingWrapper);
     HashMap<String, Double> getUserRating(Long userId);
     boolean isRated(Long userId, Long eventId);
+    RatingWrapper showRating(Long eventId, Long userVoterId);
 }
