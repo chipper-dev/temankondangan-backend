@@ -126,13 +126,14 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public boolean isRated(Long userId, Long eventId) {
-        return !ratingRepository.findByUserAndEventId(userId, eventId).isEmpty();
+    public boolean isRated(Long userVoterId, Long eventId) {
+        return !ratingRepository.findByUserVoterAndEventId(userVoterId, eventId).isEmpty();
     }
 
     @Override
     public RatingWrapper showRating(Long eventId, Long userVoterId) {
-        List<Rating> ratingList = ratingRepository.findByUserVoterAndEventId(eventId, userVoterId);
+        List<Rating> ratingList = ratingRepository.findByUserVoterAndEventId(userVoterId, eventId);
+
         if(!ratingList.isEmpty()) {
             Rating ratingData = ratingList.get(0);
             return RatingWrapper.builder().score(ratingData.getScore()).userId(ratingData.getUserId()).build();
