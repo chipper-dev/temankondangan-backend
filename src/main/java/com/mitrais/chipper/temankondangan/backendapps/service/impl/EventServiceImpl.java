@@ -321,7 +321,7 @@ public class EventServiceImpl implements EventService {
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
 
-				boolean isApplicantRated = ratingService.isRated(applicant.getApplicantUser().getUserId(), event.getEventId());
+				boolean isApplicantRated = ratingService.isRated(userId, event.getEventId());
 
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
