@@ -21,12 +21,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -46,9 +49,11 @@ public class RatingServiceTest {
 
     @BeforeEach
     public void setup() {
+        ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
+
         User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
         User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
-        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false).build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").startDateTime(LocalDateTime.now().minusHours(36)).cancelled(false).build();
 
         List<Applicant> applicantList = Arrays.asList(
                 Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
@@ -59,7 +64,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    public void scoreRatingMoreThanFive() throws Exception {
+    public void scoreRatingMoreThanFive() {
         RatingWrapper ratingWrapper = RatingWrapper.builder().score(7).userId(1L).ratingType(RatingType.APPLICANT).build();
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
@@ -68,7 +73,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    public void scoreRatingLowerThanOne() throws Exception {
+    public void scoreRatingLowerThanOne() {
         RatingWrapper ratingWrapper = RatingWrapper.builder().score(0).userId(2L).ratingType(RatingType.APPLICANT).build();
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
@@ -77,7 +82,7 @@ public class RatingServiceTest {
     }
 
     @Test
-    public void scoreRatingApplicantNotMatch() throws Exception {
+    public void scoreRatingApplicantNotMatch() {
         RatingWrapper ratingWrapper = RatingWrapper.builder().score(4).userId(1L).ratingType(RatingType.APPLICANT).build();
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
@@ -86,12 +91,54 @@ public class RatingServiceTest {
     }
 
     @Test
-    public void scoreRatingCreatorNotMatch() throws Exception {
+    public void scoreRatingCreatorNotMatch() {
         RatingWrapper ratingWrapper = RatingWrapper.builder().score(4).userId(2L).ratingType(RatingType.APPLICANT).build();
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 2L, ratingWrapper))
                 .hasMessageContaining("Error: Event creator doesn't match!")
                 .isInstanceOf(UnauthorizedException.class);
+    }
+
+    @Test
+    public void ratingValidWithStartDateTimeTest() throws Exception {
+        ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
+
+        RatingWrapper ratingWrapper = RatingWrapper.builder().score(2).userId(2L).ratingType(RatingType.APPLICANT).build();
+        User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
+        User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false).startDateTime(LocalDateTime.now().minusHours(72)).build();
+
+        List<Applicant> applicantList = Arrays.asList(
+                Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
+        );
+
+        Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+        Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
+
+        assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
+                .hasMessageContaining("You cannot rate a user after 48 hours")
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    public void ratingValidWithFinishDateTimeSuccessTest() throws Exception {
+        ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
+
+        RatingWrapper ratingWrapper = RatingWrapper.builder().score(2).userId(2L).ratingType(RatingType.APPLICANT).build();
+        User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
+        User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false)
+                .startDateTime(LocalDateTime.now().minusHours(50))
+                .finishDateTime(LocalDateTime.now().minusHours(44)).build();
+
+        List<Applicant> applicantList = Arrays.asList(
+                Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
+        );
+
+        Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+        Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
+
+        assertDoesNotThrow(() -> ratingService.sendRating(3L, 1L, ratingWrapper));
     }
 
     @Test

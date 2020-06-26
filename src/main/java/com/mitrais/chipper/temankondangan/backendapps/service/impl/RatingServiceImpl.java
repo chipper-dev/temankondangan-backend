@@ -16,9 +16,11 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileReposito
 import com.mitrais.chipper.temankondangan.backendapps.repository.RatingRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,23 +28,29 @@ import java.util.stream.Collectors;
 @Service
 public class RatingServiceImpl implements RatingService {
 
+    @Value("${app.rateUserValidMaxMsec}")
+    Long ratingValidMax;
+
     RatingRepository ratingRepository;
     EventRepository eventRepository;
     ApplicantRepository applicantRepository;
-    ProfileRepository profileRepository;
 
     @Autowired
-    public RatingServiceImpl(RatingRepository ratingRepository, EventRepository eventRepository, ApplicantRepository applicantRepository, ProfileRepository profileRepository) {
+    public RatingServiceImpl(RatingRepository ratingRepository, EventRepository eventRepository, ApplicantRepository applicantRepository) {
         this.ratingRepository = ratingRepository;
         this.eventRepository = eventRepository;
         this.applicantRepository = applicantRepository;
-        this.profileRepository = profileRepository;
     }
 
     @Override
     public void sendRating(Long eventId, Long userVoterId, RatingWrapper ratingWrapper) {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
+
+        if(!isRatingValid(event)) {
+            String durationValid = String.valueOf(ratingValidMax / 3600000L);
+            throw new BadRequestException(String.format("You cannot rate a user after %s hours", durationValid));
+        }
 
         if (ratingWrapper.getScore() < 1 || ratingWrapper.getScore() > 5) {
             throw new BadRequestException("Error: Rating score is out of scope. Please use score from 1 to 5");
@@ -83,6 +91,17 @@ public class RatingServiceImpl implements RatingService {
                 .build();
 
         ratingRepository.save(rating);
+    }
+
+    private boolean isRatingValid(Event event) {
+        Duration duration;
+        if(event.getFinishDateTime() != null) {
+            duration = Duration.between(LocalDateTime.now(), event.getFinishDateTime());
+        } else {
+            duration = Duration.between(event.getStartDateTime(), LocalDateTime.now());
+        }
+
+        return duration.getSeconds() * 1000 < ratingValidMax;
     }
 
     @Override
