@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -82,6 +83,9 @@ public class EventServiceTest {
 
 	@Mock
 	ImageFileServiceImpl imageFileService;
+
+	@Mock
+	RatingServiceImpl ratingService;
 
 	@InjectMocks
 	EventServiceImpl eventService;
@@ -344,7 +348,8 @@ public class EventServiceTest {
 		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
 				.thenReturn(Optional.of(profileApplicant));
 
-		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn(Mockito.anyString());
+		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn("");
+		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
 
 		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
 
