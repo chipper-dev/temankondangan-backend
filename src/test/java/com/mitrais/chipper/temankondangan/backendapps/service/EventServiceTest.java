@@ -616,7 +616,7 @@ public class EventServiceTest {
 				.thenReturn(Optional.of(applicant));
 
 		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC",
-				"ALLSTATUS");
+				"APPLIED");
 
 		assertFalse(resultList.isEmpty());
 		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
