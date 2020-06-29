@@ -2,8 +2,6 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.google.firebase.messaging.*;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.NotificationRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class NotificationServiceImpl implements NotificationService {
@@ -85,6 +84,21 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public List<com.mitrais.chipper.temankondangan.backendapps.model.Notification> getNotifications(Long userId) {
         return notificationRepository.findByUserId(userId);
+    }
+
+    @Override
+    public void setReadNotification(List<Long> notificationIds, Long userId) {
+        if(notificationIds.isEmpty()) {
+            notificationRepository.changeAllNotificationToReadByUserId(userId);
+        } else {
+            notificationIds.forEach((notificationId) -> {
+                com.mitrais.chipper.temankondangan.backendapps.model.Notification notification = notificationRepository.findById(notificationId).orElse(null);
+                if(notification != null) {
+                    notification.setIsRead(true);
+                    notificationRepository.save(notification);
+                }
+            });
+        }
     }
 
     private void saveNotificationData(String title, String body, Long userId) {

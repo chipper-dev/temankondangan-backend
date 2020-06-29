@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Notification;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 
@@ -15,4 +14,6 @@ public interface NotificationService {
     void sendMultiple(String title, String body, List<User> Users, @NotNull Map<String, String> data);
 
     List<Notification> getNotifications(Long userId);
+
+    void setReadNotification(List<Long> notificationIds, Long userId);
 }
