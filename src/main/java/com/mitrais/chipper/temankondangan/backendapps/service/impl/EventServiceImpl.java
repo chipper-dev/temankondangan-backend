@@ -9,16 +9,13 @@ import java.time.LocalTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 import java.util.function.UnaryOperator;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +65,7 @@ public class EventServiceImpl implements EventService {
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
+	private NotificationService notificationService;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
@@ -75,12 +73,13 @@ public class EventServiceImpl implements EventService {
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
-			ImageFileService imageFileService) {
+			ImageFileService imageFileService, NotificationService notificationService) {
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
 		this.imageFileService = imageFileService;
+		this.notificationService = notificationService;
 	}
 
 	@Override
@@ -399,6 +398,16 @@ public class EventServiceImpl implements EventService {
 		applicant.setDataState(DataState.ACTIVE);
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
+
+		try{
+			String title = "Someone applied to your event";
+			String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+			Map<String, String> data = new HashMap<>();
+
+			notificationService.send(title, body, event.getUser(), data);
+		} catch (FirebaseMessagingException e) {
+
+		}
 	}
 
 	@Override
@@ -420,6 +429,18 @@ public class EventServiceImpl implements EventService {
 			applicantRepository.delete(applicant);
 		} else {
 			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+		}
+
+		try{
+			Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
+			String name = profile == null ? "Someone" : profile.getFullName();
+			String title = "Someone cancel application to your event";
+			String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+			Map<String, String> data = new HashMap<>();
+
+			notificationService.send(title, body, event.getUser(), data);
+		} catch (FirebaseMessagingException e) {
+
 		}
 
 	}
