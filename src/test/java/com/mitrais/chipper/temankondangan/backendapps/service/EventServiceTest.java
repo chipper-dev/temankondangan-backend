@@ -21,6 +21,7 @@ import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -534,6 +535,7 @@ public class EventServiceTest {
 		applicant.setApplicantUser(user2);
 		applicant.setEvent(event);
 		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setCreatedDate(new Date());
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findActiveAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
@@ -550,6 +552,28 @@ public class EventServiceTest {
 		assertEquals("title test", resultList.get(0).getTitle());
 	}
 
+	@Test
+	public void shouldThrowBadRequestException_WhenSortByIsNotValidActiveAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "wrong sort by", "DESC", "ALLSTATUS"))
+				.hasMessageContaining("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInActiveAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+				.hasMessageContaining("Error: Please input a valid applicant status")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenDirectionNotValidInActiveAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "wrong direction", "ALLSTATUS"))
+				.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
+				.isInstanceOf(BadRequestException.class);
+	}
+	
+	// find past events service
 	@Test
 	public void findPastAppliedEventTest() {
 		event = new Event();
@@ -582,6 +606,7 @@ public class EventServiceTest {
 		applicant.setApplicantUser(user2);
 		applicant.setEvent(event);
 		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setCreatedDate(new Date());
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
@@ -598,6 +623,28 @@ public class EventServiceTest {
 		assertEquals("title test", resultList.get(0).getTitle());
 	}
 
+	@Test
+	public void shouldThrowBadRequestException_WhenSortByIsNotValidPastAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findPastAppliedEvent(2L, "wrong sort by", "DESC", "ALLSTATUS"))
+				.hasMessageContaining("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInPastAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findPastAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+				.hasMessageContaining("Error: Please input a valid applicant status")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenDirectionNotValidInPastAppliedEvent() {
+		assertThatThrownBy(() -> eventService.findPastAppliedEvent(2L, "latestApplied", "wrong direction", "ALLSTATUS"))
+				.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	//edit event service
 	@Test
 	public void editEventSuccess() {
 		event = new Event();
