@@ -64,6 +64,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
+	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
@@ -87,19 +88,24 @@ public class EventServiceImpl implements EventService {
 		this.ratingService = ratingService;
 	}
 
+	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
+
+		if (minimumAge < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
+
+		if (maximumAge < minimumAge) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+	}
+	
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
-		if (wrapper.getMinimumAge() < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-
-		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
-
+		checkValidAge(wrapper.getMinimumAge(), wrapper.getMaximumAge());
+		
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime startDateTime;
@@ -144,6 +150,12 @@ public class EventServiceImpl implements EventService {
 
 	}
 
+	private void checkValidSortBy(String sortBy) {
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+	}
+	
 	@Override
 	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
 			Long userId) {
@@ -155,9 +167,7 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
+		checkValidSortBy(sortBy);
 
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -195,9 +205,7 @@ public class EventServiceImpl implements EventService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
+		checkValidSortBy(sortBy);
 
 		Sort sort;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -234,7 +242,7 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", wrapper.getEventId()));
 
 		if (!isCancelationValid(event.getStartDateTime())) {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
 		if (!event.getUser().getUserId().equals(userId)) {
@@ -242,13 +250,7 @@ public class EventServiceImpl implements EventService {
 					"Error: Users are not authorized to edit this event");
 		}
 
-		if (wrapper.getMinimumAge() < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-
-		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
+		checkValidAge(wrapper.getMinimumAge(), wrapper.getMaximumAge());
 
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
@@ -427,7 +429,7 @@ public class EventServiceImpl implements EventService {
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
 	}
@@ -457,7 +459,7 @@ public class EventServiceImpl implements EventService {
 			event.setCancelled(true);
 			eventRepository.save(event);
 		} else {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 	}
 
@@ -619,12 +621,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		// check age inputted
-		if (creatorMinimumAge < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-		if (creatorMaximumAge < creatorMinimumAge) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
+		checkValidAge(creatorMinimumAge, creatorMaximumAge);
 
 		List<String> zoneOffset45 = Arrays.asList("12.75", "8.75", "5.75");
 		List<String> zoneOffset30 = Arrays.asList("-9.5", "-3.5", "3.5", "4.5", "5.5", "6.5", "9.5", "10.5");
