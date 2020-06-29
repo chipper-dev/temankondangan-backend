@@ -19,6 +19,7 @@ public class Rating extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private Long eventId;
+    private Long userVoterId;
     private Long userId;
     private Integer score;
 }

@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import io.swagger.annotations.ApiModel;
@@ -28,7 +29,7 @@ import javax.validation.constraints.NotNull;
 @ApiModel(description = "All details about Applicant. ")
 @SQLDelete(sql = "UPDATE applicants SET data_state = 'DELETED' WHERE id = ?", check = ResultCheckStyle.COUNT)
 @Where(clause = "data_state <> 'DELETED'")
-public class Applicant {
+public class Applicant extends Auditable<String>{
     @Id
     @NotNull
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "applicant_id_seq_gen")

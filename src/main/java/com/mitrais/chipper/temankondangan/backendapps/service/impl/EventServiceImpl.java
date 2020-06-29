@@ -7,15 +7,17 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
-import java.util.function.UnaryOperator;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
+import org.apache.commons.lang3.EnumUtils;
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +61,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
+	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
@@ -66,6 +69,7 @@ public class EventServiceImpl implements EventService {
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
 	private NotificationService notificationService;
+	private RatingService ratingService;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
@@ -73,28 +77,36 @@ public class EventServiceImpl implements EventService {
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
-			ImageFileService imageFileService, NotificationService notificationService) {
+			ImageFileService imageFileService, NotificationService notificationService,
+			RatingService ratingService) {
+
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
 		this.imageFileService = imageFileService;
 		this.notificationService = notificationService;
+		this.ratingService = ratingService;
 	}
 
+	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
+
+		if (minimumAge < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
+
+		if (maximumAge < minimumAge) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+	}
+	
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
-		if (wrapper.getMinimumAge() < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-
-		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
-
+		checkValidAge(wrapper.getMinimumAge(), wrapper.getMaximumAge());
+		
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime startDateTime;
@@ -139,6 +151,12 @@ public class EventServiceImpl implements EventService {
 
 	}
 
+	private void checkValidSortBy(String sortBy) {
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+	}
+	
 	@Override
 	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
 			Long userId) {
@@ -150,9 +168,7 @@ public class EventServiceImpl implements EventService {
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
+		checkValidSortBy(sortBy);
 
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -190,9 +206,7 @@ public class EventServiceImpl implements EventService {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
+		checkValidSortBy(sortBy);
 
 		Sort sort;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -229,7 +243,7 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", wrapper.getEventId()));
 
 		if (!isCancelationValid(event.getStartDateTime())) {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
 		if (!event.getUser().getUserId().equals(userId)) {
@@ -237,13 +251,7 @@ public class EventServiceImpl implements EventService {
 					"Error: Users are not authorized to edit this event");
 		}
 
-		if (wrapper.getMinimumAge() < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-
-		if (wrapper.getMaximumAge() < wrapper.getMinimumAge()) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
+		checkValidAge(wrapper.getMinimumAge(), wrapper.getMaximumAge());
 
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
@@ -289,6 +297,7 @@ public class EventServiceImpl implements EventService {
 	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		boolean isApplied = false;
+		boolean isCreatorRated = false;
 		Long id;
 		ApplicantStatus applicantStatus = null;
 		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
@@ -317,9 +326,11 @@ public class EventServiceImpl implements EventService {
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
 
+				boolean isApplicantRated = ratingService.isRated(userId, event.getEventId());
+
 				applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
 						.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
-						.status(applicant.getStatus()).build());
+						.status(applicant.getStatus()).isRated(isApplicantRated).build());
 
 				if (applicant.getStatus().compareTo(ApplicantStatus.ACCEPTED) == 0) {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
@@ -332,6 +343,7 @@ public class EventServiceImpl implements EventService {
 			User userApplicant = userRepository.findById(userId).orElseThrow(
 					() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 			isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
+			isCreatorRated = ratingService.isRated(userId, event.getEventId());
 			Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
 			if (applicantOpt.isPresent()) {
 				applicantStatus = applicantOpt.get().getStatus();
@@ -351,7 +363,7 @@ public class EventServiceImpl implements EventService {
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
 				.isApplied(isApplied).applicantStatus(applicantStatus).hasAcceptedApplicant(hasAcceptedApplicant)
-				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).build();
+				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).isRated(isCreatorRated).build();
 	}
 
 	@Override
@@ -428,7 +440,7 @@ public class EventServiceImpl implements EventService {
 		if (isCancelationValid(event.getStartDateTime())) {
 			applicantRepository.delete(applicant);
 		} else {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
 		try{
@@ -446,7 +458,6 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-
 	public void creatorCancelEvent(Long userId, Long eventId) {
 		if (eventId == null) {
 			throw new BadRequestException("Error: eventId cannot null");
@@ -471,16 +482,29 @@ public class EventServiceImpl implements EventService {
 			event.setCancelled(true);
 			eventRepository.save(event);
 		} else {
-			throw new BadRequestException("Error: The event will be started in less than 24 hours");
+			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction) {
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction,
+			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
+		boolean allStatus = true;
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+			throw new BadRequestException(
+					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+		} else if ("latestApplied".equals(sortBy)) {
+			sortBy = "a.createdDate";
+		}
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		ApplicantStatus applicantStatus;
+		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
+			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
+			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS))
+				allStatus = false;
+		} else {
+			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
 
 		Sort sort;
@@ -492,7 +516,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, sort).forEach(event -> {
+		eventRepository.findActiveAppliedEvent(userId, applicantStatus, allStatus, sort).forEach(event -> {
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
 			wrapper.setEventId(event.getEventId());
 			wrapper.setTitle(event.getTitle());
@@ -507,8 +531,11 @@ public class EventServiceImpl implements EventService {
 				wrapper.setCreatorGender(profile.getGender());
 			});
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId()).ifPresent(applicant -> {
+				wrapper.setApplicantStatus(applicant.getStatus());
+				wrapper.setAppliedDateTime(
+						LocalDateTime.ofInstant(applicant.getCreatedDate().toInstant(), ZoneId.systemDefault()));
+			});
 
 			resultList.add(wrapper);
 		});
@@ -517,11 +544,34 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction) {
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,
+			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+			throw new BadRequestException(
+					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+		} else if ("latestApplied".equals(sortBy)) {
+			sortBy = "a.createdDate";
+		}
 
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		ApplicantStatus applicantStatus = ApplicantStatus.APPLIED;
+		// value for ALL STATUS
+		boolean allStatus = true;
+		boolean pastTimeOnly = true;
+		List<Boolean> isCancelled = Arrays.asList(true, false);
+
+		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
+			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
+//			if any applicant status besides ALLSTATUS
+			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+				allStatus = false;
+				isCancelled.remove(true);
+			}
+		} else if (applicantStatusStr.equals("CANCELED")) {
+			isCancelled.remove(false);
+			pastTimeOnly = false;
+		} else {
+			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
 
 		Sort sort;
@@ -533,28 +583,33 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, sort).forEach(event -> {
-			logger.info(event.toString());
+		eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCancelled, sort)
+				.forEach(event -> {
+					logger.info(event.toString());
 
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
-			wrapper.setCancelled(event.getCancelled());
+					AppliedEventWrapper wrapper = new AppliedEventWrapper();
+					wrapper.setEventId(event.getEventId());
+					wrapper.setTitle(event.getTitle());
+					wrapper.setCity(event.getCity());
+					wrapper.setStartDateTime(event.getStartDateTime());
+					wrapper.setFinishDateTime(event.getFinishDateTime());
+					wrapper.setCancelled(event.getCancelled());
 
-			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
-				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-				wrapper.setCreatorFullName(profile.getFullName());
-				wrapper.setCreatorGender(profile.getGender());
-			});
+					profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+						wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+						wrapper.setCreatorFullName(profile.getFullName());
+						wrapper.setCreatorGender(profile.getGender());
+					});
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+					applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+							.ifPresent(applicant -> {
+								wrapper.setApplicantStatus(applicant.getStatus());
+								wrapper.setAppliedDateTime(LocalDateTime
+										.ofInstant(applicant.getCreatedDate().toInstant(), ZoneId.systemDefault()));
+							});
 
-			resultList.add(wrapper);
-		});
+					resultList.add(wrapper);
+				});
 
 		return resultList;
 	}
@@ -589,12 +644,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		// check age inputted
-		if (creatorMinimumAge < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-		if (creatorMaximumAge < creatorMinimumAge) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
+		checkValidAge(creatorMinimumAge, creatorMaximumAge);
 
 		List<String> zoneOffset45 = Arrays.asList("12.75", "8.75", "5.75");
 		List<String> zoneOffset30 = Arrays.asList("-9.5", "-3.5", "3.5", "4.5", "5.5", "6.5", "9.5", "10.5");
@@ -779,10 +829,6 @@ public class EventServiceImpl implements EventService {
 				secondFinishHourUpperRange, creatorMaximumAge, creatorMinimumAge, creatorGenderSearch, eventCity,
 				paging);
 
-		UnaryOperator<LocalDateTime> localDateTimeConvert = x -> {
-			return x.minusMinutes(zoneOffsetInMinutes);
-		};
-
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
 			EventFindAllListDBResponseWrapper responseWrapper = new EventFindAllListDBResponseWrapper();
@@ -795,13 +841,11 @@ public class EventServiceImpl implements EventService {
 			responseWrapper.setCreatorGender(Gender.valueOf((String) eventWrap.get("gender")));
 			responseWrapper.setEventId(((BigInteger) eventWrap.get("event_id")).longValue());
 			if (((Timestamp) eventWrap.get("finish_date_time")) != null)
-				responseWrapper.setFinishDateTime(
-						localDateTimeConvert.apply(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime()));
+				responseWrapper.setFinishDateTime(((Timestamp) eventWrap.get("finish_date_time")).toLocalDateTime());
 			responseWrapper.setMaximumAge((Integer) eventWrap.get("maximum_age"));
 			responseWrapper.setMinimumAge((Integer) eventWrap.get("minimum_age"));
 			responseWrapper.setProfileId(((BigInteger) eventWrap.get("profile_id")).longValue());
-			responseWrapper.setStartDateTime(
-					localDateTimeConvert.apply(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime()));
+			responseWrapper.setStartDateTime(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime());
 			responseWrapper.setTitle((String) eventWrap.get("title"));
 			responseWrapper.setCancelled((Boolean) eventWrap.get("cancelled"));
 

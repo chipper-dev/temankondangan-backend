@@ -4,20 +4,32 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
-import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.RatingWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
+import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -179,12 +191,13 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-current")
 	public ResponseEntity<ResponseBody> findActiveAppliedEvent(
-			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction);
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction, applicantStatus);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
@@ -192,12 +205,13 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-past")
 	public ResponseEntity<ResponseBody> findPastAppliedEvent(
-			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "createdDate") String sortBy,
+			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
+			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction);
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction, applicantStatus);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
@@ -258,5 +272,16 @@ public class EventController extends CommonResource {
 
 		ratingService.sendRating(eventId, userId, ratingWrapper);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Rating has been given successfully", request.getRequestURI()));
+	}
+
+	@ApiOperation(value = "Show Rating that has been submitted", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@GetMapping("/{eventId}/rate")
+	public ResponseEntity<ResponseBody> showRating(@PathVariable Long eventId, HttpServletRequest request){
+		String token = getToken(request.getHeader(HttpHeaders.AUTHORIZATION));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		RatingWrapper ratingWrapper = ratingService.showRating(eventId, userId);
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), ratingWrapper, request.getRequestURI()));
 	}
 }
