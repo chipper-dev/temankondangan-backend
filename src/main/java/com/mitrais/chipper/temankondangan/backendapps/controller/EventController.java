@@ -192,7 +192,7 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-current")
 	public ResponseEntity<ResponseBody> findActiveAppliedEvent(
-			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
+			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
@@ -206,7 +206,7 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/my-applied-event-past")
 	public ResponseEntity<ResponseBody> findPastAppliedEvent(
-			@ApiParam(value = "input createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
+			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
