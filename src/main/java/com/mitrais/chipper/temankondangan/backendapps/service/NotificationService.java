@@ -10,9 +10,9 @@ import java.util.Map;
 
 public interface NotificationService {
 
-    void send(String title, String body, User user, @NotNull Map<String, String> data) throws FirebaseMessagingException;
+    void send(String title, String body, User user, @NotNull Map<String, String> data);
 
-    void sendMultiple(String title, String body, List<User> Users, @NotNull Map<String, String> data) throws FirebaseMessagingException;
+    void sendMultiple(String title, String body, List<User> Users, @NotNull Map<String, String> data);
 
     List<Notification> getNotifications(Long userId);
 }

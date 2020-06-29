@@ -26,49 +26,60 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void send(String title, String body, User user, @NotNull Map<String, String> data) throws FirebaseMessagingException {
-        Notification notification = Notification.builder()
-                .setTitle(title)
-                .setBody(body)
-                .build();
+    public void send(String title, String body, User user, @NotNull Map<String, String> data) {
+        new Thread(() -> {
+            try {
+                Notification notification = Notification.builder()
+                        .setTitle(title)
+                        .setBody(body)
+                        .build();
 
-        saveNotificationData(title, body, user.getUserId());
-        if(!StringUtils.isEmpty(user.getMessagingToken())) {
-            Message message = Message.builder()
-                    .putAllData(data)
-                    .setNotification(notification)
-                    .setToken(user.getMessagingToken())
-                    .build();
+                saveNotificationData(title, body, user.getUserId());
+                if(!StringUtils.isEmpty(user.getMessagingToken())) {
+                    Message message = Message.builder()
+                            .putAllData(data)
+                            .setNotification(notification)
+                            .setToken(user.getMessagingToken())
+                            .build();
 
-            FirebaseMessaging.getInstance().send(message);
-        }
+                    FirebaseMessaging.getInstance().send(message);
+                }
+            } catch (FirebaseMessagingException e) {
 
+            }
+        });
     }
 
     @Override
-    public void sendMultiple(String title, String body, List<User> users, @NotNull Map<String, String> data) throws FirebaseMessagingException {
-        Notification notification = Notification.builder()
-                .setTitle(title)
-                .setBody(body)
-                .build();
+    public void sendMultiple(String title, String body, List<User> users, @NotNull Map<String, String> data) {
+        new Thread(() -> {
+            try {
+                Notification notification = Notification.builder()
+                        .setTitle(title)
+                        .setBody(body)
+                        .build();
 
-        List<String> messagingTokens = new ArrayList<>();
-        users.forEach(user -> {
-            if(!StringUtils.isEmpty(user.getMessagingToken())) {
-                messagingTokens.add(user.getMessagingToken());
+                List<String> messagingTokens = new ArrayList<>();
+                users.forEach(user -> {
+                    if(!StringUtils.isEmpty(user.getMessagingToken())) {
+                        messagingTokens.add(user.getMessagingToken());
+                    }
+                    saveNotificationData(title, body, user.getUserId());
+                });
+
+                if(!messagingTokens.isEmpty()) {
+                    MulticastMessage message = MulticastMessage.builder()
+                            .putAllData(data)
+                            .setNotification(notification)
+                            .addAllTokens(messagingTokens)
+                            .build();
+
+                    FirebaseMessaging.getInstance().sendMulticast(message);
+                }
+            } catch (FirebaseMessagingException e) {
+
             }
-            saveNotificationData(title, body, user.getUserId());
         });
-
-        if(!messagingTokens.isEmpty()) {
-            MulticastMessage message = MulticastMessage.builder()
-                    .putAllData(data)
-                    .setNotification(notification)
-                    .addAllTokens(messagingTokens)
-                    .build();
-
-            FirebaseMessaging.getInstance().sendMulticast(message);
-        }
     }
 
     @Override

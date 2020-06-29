@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,17 +86,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 
-		try {
-			Profile profile = profileRepository.findByUserId(applicant.getEvent().getUser().getUserId()).orElse(null);
-			String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
-			String title = "Your event application was accepted";
-			String body =  name + " accept acceptance of your application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
-			Map<String, String> data = new HashMap<>();
-
-			notificationService.send(title, body, applicant.getApplicantUser(), data);
-		} catch (FirebaseMessagingException e) {
-
-		}
+		sendNotification(applicant.getEvent().getUser().getUserId(), "accepted", "accept", applicant.getEvent().getTitle(), applicant.getApplicantUser());
 
 	}
 
@@ -120,18 +111,9 @@ public class ApplicantServiceImpl implements ApplicantService {
 
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
-		
-		try{
-			Profile profile = profileRepository.findByUserId(applicant.getEvent().getUser().getUserId()).orElse(null);
-			String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
-			String title = "Your event application was cancelled";
-			String body =  name + " cancelling acceptance of your application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
-			Map<String, String> data = new HashMap<>();
 
-			notificationService.send(title, body, applicant.getApplicantUser(), data);
-		} catch (FirebaseMessagingException e) {
+		sendNotification(applicant.getEvent().getUser().getUserId(), "cancelled", "cancelling", applicant.getEvent().getTitle(), applicant.getApplicantUser());
 
-		}
 	}
 	
 	@Override
@@ -154,18 +136,18 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 
-		try{
-			Profile profile = profileRepository.findByUserId(applicant.getEvent().getUser().getUserId()).orElse(null);
-			String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
-			String title = "Your event application was rejected";
-			String body =  name + " reject acceptance of your application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
-			Map<String, String> data = new HashMap<>();
+		sendNotification(applicant.getEvent().getUser().getUserId(), "rejected", "reject", applicant.getEvent().getTitle(), applicant.getApplicantUser());
 
-			notificationService.send(title, body, applicant.getApplicantUser(), data);
-		} catch (FirebaseMessagingException e) {
+	}
 
-		}
+	private void sendNotification(Long userId, String eventVerbTitle, String eventVerbBody, String eventTitle, User userDestination) {
+		Profile profile = profileRepository.findByUserId(userId).orElse(null);
+		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
+		String title = "Your event application was " + eventVerbTitle;
+		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
 
+		notificationService.send(title, body, userDestination, data);
 	}
 
 }
