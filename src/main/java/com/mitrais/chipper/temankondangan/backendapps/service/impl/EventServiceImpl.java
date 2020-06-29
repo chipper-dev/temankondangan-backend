@@ -454,25 +454,26 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr) {
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction,
+			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
-		int allStatus = 1;
+		boolean allStatus = true;
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+			throw new BadRequestException(
+					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
 		} else if ("latestApplied".equals(sortBy)) {
 			sortBy = "a.createdDate";
 		}
-		
-		ApplicantStatus applicantStatus; 
+
+		ApplicantStatus applicantStatus;
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS))
-				allStatus = 0;
-		}
-		else {
+				allStatus = false;
+		} else {
 			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
-				
+
 		Sort sort;
 		if (direction.equalsIgnoreCase("DESC")) {
 			sort = Sort.by(sortBy).descending();
@@ -481,8 +482,8 @@ public class EventServiceImpl implements EventService {
 		} else {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
-		
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 1, applicantStatus, allStatus, sort).forEach(event -> {
+
+		eventRepository.findActiveAppliedEvent(userId, applicantStatus, allStatus, sort).forEach(event -> {
 			AppliedEventWrapper wrapper = new AppliedEventWrapper();
 			wrapper.setEventId(event.getEventId());
 			wrapper.setTitle(event.getTitle());
@@ -507,22 +508,33 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr) {
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,
+			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
-		int allStatus = 1;
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
+			throw new BadRequestException(
+					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
 		} else if ("latestApplied".equals(sortBy)) {
 			sortBy = "a.createdDate";
 		}
-		
-		ApplicantStatus applicantStatus; 
+
+		ApplicantStatus applicantStatus = ApplicantStatus.APPLIED;
+		// value for ALL STATUS
+		boolean allStatus = true;
+		boolean pastTimeOnly = true;
+		List<Boolean> isCancelled  = Arrays.asList(true, false);
+						
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
-			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS))
-				allStatus = 0;
-		}
-		else {
+//			if any applicant status besides ALLSTATUS
+			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+				allStatus = false;
+				isCancelled.remove(true);
+			}
+		} else if (applicantStatusStr.equals("CANCELED")) {
+			isCancelled.remove(false);
+			pastTimeOnly = false;			
+		} else {
 			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
 
@@ -535,28 +547,29 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_SORT_DIRECTION);
 		}
 
-		eventRepository.findAppliedEvent(userId, DataState.ACTIVE, LocalDateTime.now(), 0, applicantStatus, allStatus, sort).forEach(event -> {
-			logger.info(event.toString());
+		eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCancelled, sort)
+				.forEach(event -> {
+					logger.info(event.toString());
 
-			AppliedEventWrapper wrapper = new AppliedEventWrapper();
-			wrapper.setEventId(event.getEventId());
-			wrapper.setTitle(event.getTitle());
-			wrapper.setCity(event.getCity());
-			wrapper.setStartDateTime(event.getStartDateTime());
-			wrapper.setFinishDateTime(event.getFinishDateTime());
-			wrapper.setCancelled(event.getCancelled());
+					AppliedEventWrapper wrapper = new AppliedEventWrapper();
+					wrapper.setEventId(event.getEventId());
+					wrapper.setTitle(event.getTitle());
+					wrapper.setCity(event.getCity());
+					wrapper.setStartDateTime(event.getStartDateTime());
+					wrapper.setFinishDateTime(event.getFinishDateTime());
+					wrapper.setCancelled(event.getCancelled());
 
-			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
-				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
-				wrapper.setCreatorFullName(profile.getFullName());
-				wrapper.setCreatorGender(profile.getGender());
-			});
+					profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+						wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
+						wrapper.setCreatorFullName(profile.getFullName());
+						wrapper.setCreatorGender(profile.getGender());
+					});
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+					applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
+							.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
 
-			resultList.add(wrapper);
-		});
+					resultList.add(wrapper);
+				});
 
 		return resultList;
 	}

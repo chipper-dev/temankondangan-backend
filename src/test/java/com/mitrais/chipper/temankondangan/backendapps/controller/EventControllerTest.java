@@ -96,7 +96,7 @@ public class EventControllerTest {
 
         List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
 
-        Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
+        Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-current")
                 .header("Authorization", "Bearer " + token)
@@ -123,7 +123,7 @@ public class EventControllerTest {
 
         List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
 
-        Mockito.when(eventService.findPastAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
+        Mockito.when(eventService.findPastAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(wrapperList);
 
         RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-past")
                 .header("Authorization", "Bearer " + token)

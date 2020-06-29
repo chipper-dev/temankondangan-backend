@@ -17,7 +17,6 @@ import org.springframework.stereotype.Repository;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 
@@ -51,16 +50,21 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 	List<EventFindAllListDBResponseWrapper> findAllMyEvent(@Param("userId") Long userId,
 			@Param("now") LocalDateTime now, @Param("current") int current, Sort sort);
 
-	@Query("SELECT e FROM Event e " + "JOIN Applicant a ON a.event.eventId = e.eventId "
-			+ "WHERE a.applicantUser.userId = :userId " + "AND a.dataState = 'ACTIVE' "
-			+ "AND e.dataState = :dataStateEvent "
-			+ "AND (((e.startDateTime >= :now AND e.cancelled = FALSE) AND :current = 1) "
-			+ "OR ((e.startDateTime < :now OR e.cancelled = TRUE) AND :current = 0)) "
-			+ "AND (a.status = :applicantStatus OR :allStatus = 1)")
-	List<Event> findAppliedEvent(@Param("userId") Long userId, @Param("dataStateEvent") DataState dataState,
-			@Param("now") LocalDateTime now, @Param("current") Integer current,
-			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") int allStatus,
+	@Query("SELECT e FROM Event e JOIN Applicant a ON a.event.eventId = e.eventId "
+			+ "WHERE a.applicantUser.userId = :userId AND a.dataState = 'ACTIVE' "
+			+ "AND e.startDateTime >= NOW() AND e.cancelled = FALSE "
+			+ "AND (a.status = :applicantStatus OR true = :allStatus)")
+	List<Event> findActiveAppliedEvent(@Param("userId") Long userId,
+			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") boolean allStatus,
 			Sort sort);
+
+	@Query("SELECT e FROM Event e JOIN Applicant a ON a.event.eventId = e.eventId "
+			+ "WHERE a.applicantUser.userId = :userId AND a.dataState = 'ACTIVE' "
+			+ "AND (e.startDateTime < NOW() OR false = :pastTimeOnly) AND e.cancelled in :isCancelled "
+			+ "AND (a.status = :applicantStatus OR true = :allStatus)")
+	List<Event> findPastAppliedEvent(@Param("userId") Long userId,
+			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") boolean allStatus,
+			@Param("pastTimeOnly") boolean pastTimeOnly, @Param("isCancelled") List<Boolean> isCancelled, Sort sort);
 
 	@Query(nativeQuery = true, value = "SELECT e.event_id, p.profile_id, p.full_name, e.created_by, "
 			+ "e.title, e.city , e.start_date_time, e.finish_date_time, e.minimum_age, e.maximum_age, "
