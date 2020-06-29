@@ -105,6 +105,7 @@ public class EventServiceTest {
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
 
+<<<<<<< Updated upstream
 		event = new Event();
 		event.setUser(user);
 		event.setAdditionalInfo("info test");
@@ -116,6 +117,24 @@ public class EventServiceTest {
 		event.setTitle("title test");
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
+=======
+		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
+		Event result = eventService.create(1L, wrapper);
+		assertEquals("title test", result.getTitle());
+	}
+
+	@Test
+	public void createEventTestWhenAge40() {
+
+		wrapper = new CreateEventWrapper();
+		wrapper.setAdditionalInfo("info test");
+		wrapper.setCompanionGender(Gender.P);
+		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
+		wrapper.setMaximumAge(40);
+		wrapper.setMinimumAge(18);
+		wrapper.setTitle("title test");
+		wrapper.setCity("Test City");
+>>>>>>> Stashed changes
 
 		Mockito.when(eventRepository.save(any(Event.class))).thenReturn(event);
 		Event result = eventService.create(1L, wrapper);
@@ -210,7 +229,15 @@ public class EventServiceTest {
 		event2.setMaximumAge(25);
 		event2.setMinimumAge(18);
 		event2.setTitle("title test 2");
+<<<<<<< Updated upstream
 		event2.setCity("Test City");
+=======
+		event2.setCreatorFullName("creator name test");
+		event2.setCreatedBy("system");
+		event2.setCity("city test");
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
+>>>>>>> Stashed changes
 
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setCompanionGender(Gender.P);
@@ -219,7 +246,19 @@ public class EventServiceTest {
 		event3.setMaximumAge(25);
 		event3.setMinimumAge(18);
 		event3.setTitle("title test 3");
+<<<<<<< Updated upstream
 		event3.setCity("Test City");
+=======
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(40);
+		event2.setCreatorGender(Gender.B);
+		event2.setCompanionGender(Gender.L);
+		event2.setApplicantStatus(ApplicantStatus.ACCEPTED);
+		event2.setHasAcceptedApplicant(true);
+		event2.setCancelled(false);
+>>>>>>> Stashed changes
 
 		eventList = new ArrayList<>();
 		eventList.add(event2);

@@ -97,7 +97,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Date inputted have to be after today!");
 		}
 
-		if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
+		if (StringUtils.isNotEmpty(wrapper.getFinishDateTime())) {
 
 			finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
 			if (startDateTime.isAfter(finishDateTime)) {

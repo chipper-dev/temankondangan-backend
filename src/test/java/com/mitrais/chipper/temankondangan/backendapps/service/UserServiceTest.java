@@ -3,9 +3,20 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+<<<<<<< Updated upstream
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doAnswer;
 
+=======
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.time.LocalDateTime;
+>>>>>>> Stashed changes
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +28,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
+<<<<<<< Updated upstream
 import org.springframework.security.crypto.password.PasswordEncoder;
+=======
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.util.ReflectionTestUtils;
+>>>>>>> Stashed changes
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
@@ -32,6 +49,10 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantReposi
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+<<<<<<< Updated upstream
+=======
+import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
+>>>>>>> Stashed changes
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
 @SpringBootTest
@@ -46,7 +67,7 @@ public class UserServiceTest {
 
 	@Mock
 	ProfileRepository profileRepository;
-	
+
 	@Mock
 	ApplicantRepository applicantRepository;
 
@@ -87,7 +108,7 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenPasswordEmptyInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "", "");
@@ -155,14 +176,13 @@ public class UserServiceTest {
 		assertTrue(result);
 	}
 
-
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreatePassword() {
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.createPassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenPasswordIsNotNullInCreatePassword() {
 		// provider must be google
@@ -199,23 +219,112 @@ public class UserServiceTest {
 		List<Event> events = new ArrayList<Event>();
 		events.add(event);
 		Mockito.when(eventRepository.findByUserId(anyLong())).thenReturn(Optional.of(events));
-		
+
 		Applicant applicant = new Applicant();
 		List<Applicant> applicants = new ArrayList<Applicant>();
 		applicants.add(applicant);
 		Mockito.when(applicantRepository.findByEventId(anyLong())).thenReturn(Optional.of(applicants));
-		
+
 		Mockito.doNothing().when(applicantRepository).deleteAll(applicants);
 		Mockito.doNothing().when(eventRepository).deleteAll(events);
-		
+
 		userService.remove(1L);
 		assertEquals(DataState.DELETED, user.getDataState());
 	}
-	
+
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInRemoveUser() {
-		
+
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.remove(1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
+<<<<<<< Updated upstream
+=======
+
+	@Test
+	public void forgotPasswordTest() {
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCode("12345");
+
+		List<VerificationCode> list = new ArrayList<>();
+		list.add(verify);
+
+		SimpleMailMessage template = new SimpleMailMessage();
+		template.setText("text");
+
+		Mockito.when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+		Mockito.when(verificationRepository.findByEmail(any(String.class))).thenReturn(list);
+		ReflectionTestUtils.setField(userService, "template", template);
+
+		userService.forgotPassword("test@example.com");
+
+		verify(verificationRepository, times(1)).delete(any(VerificationCode.class));
+		verify(verificationRepository, times(1)).save(any(VerificationCode.class));
+		verify(emailService, times(1)).sendMessage(any(String.class), any(String.class), any(String.class));
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenPasswordHasNotBeenSetInForgotPasswordTest() {
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCode("12345");
+
+		List<VerificationCode> list = new ArrayList<>();
+		list.add(verify);
+
+		SimpleMailMessage template = new SimpleMailMessage();
+		template.setText("text");
+
+		user.setProvider(AuthProvider.google);
+		user.setPasswordHashed(null);
+		Mockito.when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+		Mockito.when(verificationRepository.findByEmail(any(String.class))).thenReturn(list);
+		ReflectionTestUtils.setField(userService, "template", template);
+
+		assertThatThrownBy(() -> userService.forgotPassword("test@example.com")).hasMessageContaining(
+				"Error: You have not set password for your Email. Please login using your Gmail account and create password")
+				.isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void resetPasswordTest() {
+		ResetPasswordWrapper wrapper = new ResetPasswordWrapper();
+		wrapper.setNewPassword("password123_");
+		wrapper.setConfirmPassword("password123_");
+		wrapper.setVerificationCode("11234");
+
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCreatedAt(LocalDateTime.now().minusMinutes(1));
+		verify.setCode("11234");
+
+		Mockito.when(verificationRepository.findByCode(anyString())).thenReturn(Optional.of(verify));
+		Mockito.when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(user));
+		ReflectionTestUtils.setField(userService, "expiration", (long) 300000);
+
+		userService.resetPassword(wrapper);
+		verify(userRepository, times(1)).save(any(User.class));
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCodeIsNotValidInResetPasswordTest() {
+		ResetPasswordWrapper wrapper = new ResetPasswordWrapper();
+		wrapper.setNewPassword("password123_");
+		wrapper.setConfirmPassword("password123_");
+		wrapper.setVerificationCode("11234");
+
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+		verify.setCode("11234");
+
+		Mockito.when(verificationRepository.findByCode(anyString())).thenReturn(Optional.of(verify));
+
+		assertThatThrownBy(() -> userService.resetPassword(wrapper))
+				.hasMessageContaining("Error: Please input correct verification code from your email")
+				.isInstanceOf(BadRequestException.class);
+	}
+>>>>>>> Stashed changes
 }
