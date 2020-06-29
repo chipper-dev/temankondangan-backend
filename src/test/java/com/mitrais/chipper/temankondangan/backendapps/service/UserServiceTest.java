@@ -3,11 +3,6 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-<<<<<<< Updated upstream
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.doAnswer;
-
-=======
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -16,7 +11,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.time.LocalDateTime;
->>>>>>> Stashed changes
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,31 +22,26 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.boot.test.context.SpringBootTest;
-<<<<<<< Updated upstream
-import org.springframework.security.crypto.password.PasswordEncoder;
-=======
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
->>>>>>> Stashed changes
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
-<<<<<<< Updated upstream
-=======
 import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
->>>>>>> Stashed changes
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
 @SpringBootTest
@@ -74,6 +63,12 @@ public class UserServiceTest {
 	@Mock
 	PasswordEncoder passwordEncoder;
 
+	@Mock
+	VerificationCodeRepository verificationRepository;
+
+	@Mock
+	EmailService emailService;
+
 	@InjectMocks
 	UserServiceImpl userService;
 
@@ -82,7 +77,7 @@ public class UserServiceTest {
 	@BeforeEach
 	public void init() {
 
-		user = new User(1L, "test@email.com", "12345_", AuthProvider.email, null, null, DataState.ACTIVE);
+		user = new User(1L, "test@email.com", "12345_", AuthProvider.email, null, null, null, DataState.ACTIVE);
 
 		Optional<User> userOptional = Optional.of(user);
 
@@ -238,8 +233,6 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.remove(1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
-<<<<<<< Updated upstream
-=======
 
 	@Test
 	public void forgotPasswordTest() {
@@ -326,5 +319,4 @@ public class UserServiceTest {
 				.hasMessageContaining("Error: Please input correct verification code from your email")
 				.isInstanceOf(BadRequestException.class);
 	}
->>>>>>> Stashed changes
 }

@@ -19,6 +19,7 @@
 		<java.version>1.8</java.version>
 		<jacoco.version>0.8.4</jacoco.version>
 		<sonar.language>java</sonar.language>
+		<spring-cloud.version>Hoxton.SR5</spring-cloud.version>
 	</properties>
 
 	<dependencies>
@@ -101,7 +102,49 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 			<version>2.2.6.RELEASE</version>
 		</dependency>
+
+		<!--HYSTRIX-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+		</dependency>
+
+		<!--HYSTRIX DASHBOARD-->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-actuator</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/org.powermock/powermock-api-mockito2 -->
+		<dependency>
+			<groupId>org.powermock</groupId>
+			<artifactId>powermock-api-mockito2</artifactId>
+			<version>2.0.2</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>

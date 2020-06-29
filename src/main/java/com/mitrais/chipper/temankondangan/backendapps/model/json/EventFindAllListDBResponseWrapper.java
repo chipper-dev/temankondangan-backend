@@ -1,15 +1,14 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
-import java.time.LocalDateTime;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -33,10 +32,12 @@ public class EventFindAllListDBResponseWrapper {
 	private Gender companionGender;
 	private ApplicantStatus applicantStatus;
 	private Boolean hasAcceptedApplicant;
+	private Boolean cancelled;
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String title, String city, LocalDateTime startDateTime, LocalDateTime finishDateTime, Integer minimumAge,
-			Integer maximumAge, Gender creatorGender, Gender companionGender, ApplicantStatus applicantStatus) {
+			Integer maximumAge, Gender creatorGender, Gender companionGender, ApplicantStatus applicantStatus,
+			Boolean cancelled) {
 		super();
 		this.eventId = eventId;
 		this.profileId = profileId;
@@ -52,5 +53,6 @@ public class EventFindAllListDBResponseWrapper {
 		this.creatorGender = creatorGender;
 		this.companionGender = companionGender;
 		this.applicantStatus = applicantStatus;
+		this.cancelled = cancelled;
 	}
 }

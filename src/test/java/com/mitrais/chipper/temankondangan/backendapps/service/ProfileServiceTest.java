@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.common.Constants;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -7,6 +8,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -25,11 +27,13 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Optional;
 
 import static com.mitrais.chipper.temankondangan.backendapps.common.Constants.DEFAULT_IMAGE;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -42,7 +46,10 @@ public class ProfileServiceTest {
 	ProfileRepository profileRepository;
 
 	@Mock
-	ImageFileService iamgeService;
+	ImageFileService imageService;
+
+	@Mock
+	RatingService ratingService;
 
 	@InjectMocks
 	ProfileServiceImpl profileService;
@@ -54,7 +61,7 @@ public class ProfileServiceTest {
 
 	@BeforeEach
 	public void init() {
-		user = new User(1L, "test@email.com", "12345_", null, null, null, DataState.ACTIVE);
+		user = new User(1L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
 		Optional<User> userOptional = Optional.of(user);
 		Mockito.when(userRepository.findById(Mockito.any(Long.class))).thenReturn(userOptional);
 		Mockito.when(userRepository.findByEmail(Mockito.anyString())).thenReturn(userOptional);
@@ -68,7 +75,7 @@ public class ProfileServiceTest {
 		byte[] bytesArray = new byte[(int) file.length()];
 
 		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
-		Mockito.when(iamgeService.readBytesFromFile(Mockito.anyString())).thenReturn(bytesArray);
+		Mockito.when(imageService.readBytesFromFile(Mockito.anyString())).thenReturn(bytesArray);
 
 		createProfileWrapper = CreateProfileWrapper.builder()
 				.dob("01-01-2000")
@@ -117,11 +124,28 @@ public class ProfileServiceTest {
 		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
 				"All about me", "Not interested", DataState.ACTIVE);
 		Optional<Profile> profileOptional = Optional.of(profile);
-		Mockito.when(profileRepository.findByUserId(1L)).thenReturn(profileOptional);
-		Mockito.when(iamgeService.getImageUrl(profile)).thenReturn("test");
+		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
+		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
 
 		ProfileCreatorResponseWrapper result = profileService.findOtherPersonProfile(1l);
 		assertEquals("full name test", result.getFullName());
 	}
 
+	@Test
+	public void findByUserIdTest() {
+		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
+				"All about me", "Not interested", DataState.ACTIVE);
+
+		HashMap<String, Double> ratingData = new HashMap<>();
+		ratingData.put(Constants.RatingDataKey.TOT, 3.0);
+		ratingData.put(Constants.RatingDataKey.AVG, 5.0);
+
+		Optional<Profile> profileOptional = Optional.of(profile);
+		Mockito.when(ratingService.getUserRating(ArgumentMatchers.anyLong())).thenReturn(ratingData);
+		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
+		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
+
+		ProfileResponseWrapper result = profileService.findByUserId(1l);
+		assertEquals("full name test", result.getFullName());
+	}
 }

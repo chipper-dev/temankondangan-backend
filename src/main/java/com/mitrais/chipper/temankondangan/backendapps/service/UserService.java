@@ -18,4 +18,5 @@ public interface UserService {
 	void forgotPassword(String email);
 	void resetPassword(ResetPasswordWrapper wrapper);
 
+	public void saveMessagingToken(Long userId, String token);
 }

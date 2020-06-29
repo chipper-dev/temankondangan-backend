@@ -132,6 +132,7 @@ public class AuthServiceImpl implements AuthService {
 		User data = userRepository.findById(userId).orElseThrow(() -> new BadRequestException("Error: User Not Found"));
 
 		data.setLogout(new Date());
+		data.setMessagingToken(null);
 		userRepository.save(data);
 
 		return true;

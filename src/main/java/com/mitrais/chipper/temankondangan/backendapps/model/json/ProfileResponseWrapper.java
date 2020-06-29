@@ -10,6 +10,7 @@ import lombok.Data;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import java.time.LocalDate;
+import java.util.HashMap;
 
 @Data
 @Builder
@@ -47,4 +48,7 @@ public class ProfileResponseWrapper {
     
     @ApiModelProperty(notes = "User profile password null or not")
     private boolean hasPassword;
+
+    @ApiModelProperty(notes = "Rating")
+    private HashMap<String, Double> ratingData;
 }

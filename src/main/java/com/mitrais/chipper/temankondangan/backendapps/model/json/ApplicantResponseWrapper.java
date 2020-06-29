@@ -15,4 +15,5 @@ public class ApplicantResponseWrapper {
     private Long userId;
     private String fullName;
     private ApplicantStatus status;
+    private boolean isRated;
 }
