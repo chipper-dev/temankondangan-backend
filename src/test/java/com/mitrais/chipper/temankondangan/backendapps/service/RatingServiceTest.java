@@ -115,7 +115,7 @@ public class RatingServiceTest {
         Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
-                .hasMessageContaining("You cannot rate a user after 48 hours")
+                .hasMessageContaining("Error: You cannot rate a user after 48 hours")
                 .isInstanceOf(BadRequestException.class);
     }
 

@@ -47,9 +47,13 @@ public class RatingServiceImpl implements RatingService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
 
+        if(isRated(userVoterId, eventId)) {
+            throw new BadRequestException("Error: You've submitted the the rating. You can't submit the rating again.");
+        }
+
         if(!isRatingValid(event)) {
             String durationValid = String.valueOf(ratingValidMax / 3600000L);
-            throw new BadRequestException(String.format("You cannot rate a user after %s hours", durationValid));
+            throw new BadRequestException(String.format("Error: You cannot rate a user after %s hours", durationValid));
         }
 
         if (ratingWrapper.getScore() < 1 || ratingWrapper.getScore() > 5) {
