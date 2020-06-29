@@ -120,6 +120,27 @@ public class RatingServiceTest {
     }
 
     @Test
+    public void ratingFailedWhenEventStillActiveTest() throws Exception {
+        ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
+
+        RatingWrapper ratingWrapper = RatingWrapper.builder().score(2).userId(2L).ratingType(RatingType.APPLICANT).build();
+        User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
+        User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false).startDateTime(LocalDateTime.now().plusHours(48)).build();
+
+        List<Applicant> applicantList = Arrays.asList(
+                Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
+        );
+
+        Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+        Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
+
+        assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
+                .hasMessageContaining("Error: You cannot rate a user before the event happen.")
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
     public void ratingValidWithFinishDateTimeSuccessTest() throws Exception {
         ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
 
