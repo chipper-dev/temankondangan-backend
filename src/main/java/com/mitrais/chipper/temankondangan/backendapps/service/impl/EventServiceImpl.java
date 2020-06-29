@@ -411,15 +411,11 @@ public class EventServiceImpl implements EventService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		try{
-			String title = "Someone applied to your event";
-			String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
-			Map<String, String> data = new HashMap<>();
+		String title = "Someone applied to your event";
+		String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
 
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-
-		}
+		notificationService.send(title, body, event.getUser(), data);
 	}
 
 	@Override
@@ -443,17 +439,13 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
-		try{
-			Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
-			String name = profile == null ? "Someone" : profile.getFullName();
-			String title = "Someone cancel application to your event";
-			String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
-			Map<String, String> data = new HashMap<>();
+		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
+		String name = profile == null ? "Someone" : profile.getFullName();
+		String title = "Someone cancel application to your event";
+		String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
 
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-
-		}
+		notificationService.send(title, body, event.getUser(), data);
 
 	}
 
