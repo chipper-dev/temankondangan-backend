@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.google.firebase.messaging.*;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.NotificationRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,8 +83,11 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public List<com.mitrais.chipper.temankondangan.backendapps.model.Notification> getNotifications(Long userId) {
-        return notificationRepository.findByUserId(userId);
+    public NotificationDataWrapper getNotifications(Long userId) {
+        NotificationDataWrapper wrapper = new NotificationDataWrapper();
+        wrapper.setNotifications(notificationRepository.findByUserId(userId));
+        wrapper.setUnreadCount(notificationRepository.countUnreadByUserId(userId));
+        return wrapper;
     }
 
     @Override

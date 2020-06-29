@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Notification;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadNotificationWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
@@ -35,9 +36,9 @@ public class NotificationController extends CommonResource {
     public ResponseEntity<ResponseBody> getNotification(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         Long userId = tokenProvider.getUserIdFromToken(token);
-        List<Notification> notification = notificationService.getNotifications(userId);
+        NotificationDataWrapper notificationData = notificationService.getNotifications(userId);
         return ResponseEntity.ok(
-                getResponseBody(HttpStatus.OK.value(), notification, request.getRequestURI()));
+                getResponseBody(HttpStatus.OK.value(), notificationData, request.getRequestURI()));
     }
 
     @ApiOperation(value = "Get Notification", response = ResponseEntity.class)
