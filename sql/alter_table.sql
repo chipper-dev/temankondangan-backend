@@ -64,6 +64,9 @@ ADD COLUMN messaging_token VARCHAR;
 ALTER TABLE event
 ADD COLUMN cancelled BOOLEAN;
 
+ALTER TABLE ratings
+ADD COLUMN user_voter_id int8;
+
 ALTER TABLE applicants
 	ADD COLUMN created_by varchar NOT NULL DEFAULT 'user',
     ADD COLUMN created_date timestamp NOT NULL DEFAULT NOW(),
