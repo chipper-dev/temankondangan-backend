@@ -27,4 +27,6 @@ public class AppliedEventWrapper {
     private ApplicantStatus applicantStatus;
     private Gender creatorGender;
     private Boolean cancelled;
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
+    private LocalDateTime appliedDateTime;
 }

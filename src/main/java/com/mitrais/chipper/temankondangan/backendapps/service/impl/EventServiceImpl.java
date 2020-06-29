@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Period;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
@@ -505,8 +506,11 @@ public class EventServiceImpl implements EventService {
 				wrapper.setCreatorGender(profile.getGender());
 			});
 
-			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-					.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+			applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId()).ifPresent(applicant -> {
+				wrapper.setApplicantStatus(applicant.getStatus());
+				wrapper.setAppliedDateTime(
+						LocalDateTime.ofInstant(applicant.getCreatedDate().toInstant(), ZoneId.systemDefault()));
+			});
 
 			resultList.add(wrapper);
 		});
@@ -529,8 +533,8 @@ public class EventServiceImpl implements EventService {
 		// value for ALL STATUS
 		boolean allStatus = true;
 		boolean pastTimeOnly = true;
-		List<Boolean> isCancelled  = Arrays.asList(true, false);
-						
+		List<Boolean> isCancelled = Arrays.asList(true, false);
+
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
@@ -540,7 +544,7 @@ public class EventServiceImpl implements EventService {
 			}
 		} else if (applicantStatusStr.equals("CANCELED")) {
 			isCancelled.remove(false);
-			pastTimeOnly = false;			
+			pastTimeOnly = false;
 		} else {
 			throw new BadRequestException("Error: Please input a valid applicant status");
 		}
@@ -573,7 +577,11 @@ public class EventServiceImpl implements EventService {
 					});
 
 					applicantRepository.findByApplicantUserIdAndEventId(userId, event.getEventId())
-							.ifPresent(applicant -> wrapper.setApplicantStatus(applicant.getStatus()));
+							.ifPresent(applicant -> {
+								wrapper.setApplicantStatus(applicant.getStatus());
+								wrapper.setAppliedDateTime(LocalDateTime
+										.ofInstant(applicant.getCreatedDate().toInstant(), ZoneId.systemDefault()));
+							});
 
 					resultList.add(wrapper);
 				});
