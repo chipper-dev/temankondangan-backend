@@ -115,7 +115,7 @@ public class RatingServiceTest {
         Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
-                .hasMessageContaining("You cannot rate a user after 48 hours")
+                .hasMessageContaining("Error: You cannot rate a user after 48 hours")
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -159,12 +159,12 @@ public class RatingServiceTest {
     @Test
     public void isRatedTrueTest() {
         List<Rating> ratingList = Arrays.asList(
-                Rating.builder().userId(1L).eventId(2L).score(3).build()
+                Rating.builder().userId(1L).eventId(2L).userVoterId(3L).score(3).build()
         );
 
-        Mockito.when(ratingRepository.findByUserAndEventId(anyLong(), anyLong())).thenReturn(ratingList);
+        Mockito.when(ratingRepository.findByUserVoterAndEventId(anyLong(), anyLong())).thenReturn(ratingList);
 
-        assertTrue(ratingService.isRated(1L, 2L));
+        assertTrue(ratingService.isRated(3L, 2L));
     }
 
 

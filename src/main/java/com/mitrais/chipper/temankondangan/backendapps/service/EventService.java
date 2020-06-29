@@ -28,9 +28,9 @@ public interface EventService {
 
 	public void cancelEvent(Long userId, Long eventId);
 
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction);
+	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr);
 
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction);
+	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction, String applicantStatusStr);
 
 	public void creatorCancelEvent(Long userId, Long eventId);
 

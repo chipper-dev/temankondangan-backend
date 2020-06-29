@@ -47,9 +47,13 @@ public class RatingServiceImpl implements RatingService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
 
+        if(isRated(userVoterId, eventId)) {
+            throw new BadRequestException("Error: You've submitted the the rating. You can't submit the rating again.");
+        }
+
         if(!isRatingValid(event)) {
             String durationValid = String.valueOf(ratingValidMax / 3600000L);
-            throw new BadRequestException(String.format("You cannot rate a user after %s hours", durationValid));
+            throw new BadRequestException(String.format("Error: You cannot rate a user after %s hours", durationValid));
         }
 
         if (ratingWrapper.getScore() < 1 || ratingWrapper.getScore() > 5) {
@@ -126,13 +130,14 @@ public class RatingServiceImpl implements RatingService {
     }
 
     @Override
-    public boolean isRated(Long userId, Long eventId) {
-        return !ratingRepository.findByUserAndEventId(userId, eventId).isEmpty();
+    public boolean isRated(Long userVoterId, Long eventId) {
+        return !ratingRepository.findByUserVoterAndEventId(userVoterId, eventId).isEmpty();
     }
 
     @Override
     public RatingWrapper showRating(Long eventId, Long userVoterId) {
-        List<Rating> ratingList = ratingRepository.findByUserVoterAndEventId(eventId, userVoterId);
+        List<Rating> ratingList = ratingRepository.findByUserVoterAndEventId(userVoterId, eventId);
+
         if(!ratingList.isEmpty()) {
             Rating ratingData = ratingList.get(0);
             return RatingWrapper.builder().score(ratingData.getScore()).userId(ratingData.getUserId()).build();
