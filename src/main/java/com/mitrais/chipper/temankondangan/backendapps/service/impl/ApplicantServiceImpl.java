@@ -80,17 +80,16 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 
-		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
-			try {
-				String title = "Event that you are apply are approved";
-				String body = "Event ".concat(event.getTitle()).concat(" are approve you as the applicant");
-				Map<String, String> data = new HashMap<>();
+		try {
+			String title = "Event that you are apply are approved";
+			String body = "Event ".concat(event.getTitle()).concat(" are approve you as the applicant");
+			Map<String, String> data = new HashMap<>();
 
-				notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
-			} catch (FirebaseMessagingException e) {
+			notificationService.send(title, body, applicant.getApplicantUser(), data);
+		} catch (FirebaseMessagingException e) {
 
-			}
 		}
+
 	}
 
 	@Override
@@ -114,17 +113,15 @@ public class ApplicantServiceImpl implements ApplicantService {
 
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
+		
+		try{
+			String title = "Your accepted application to event are cancelled";
+			String body = "Event ".concat(event.getTitle()).concat(" are cancelled you as the applicant");
+			Map<String, String> data = new HashMap<>();
 
-		if(!StringUtils.isEmpty(applicant.getApplicantUser().getMessagingToken())) {
-			try{
-				String title = "Your accepted application to event are cancelled";
-				String body = "Event ".concat(event.getTitle()).concat(" are cancelled you as the applicant");
-				Map<String, String> data = new HashMap<>();
+			notificationService.send(title, body, applicant.getApplicantUser(), data);
+		} catch (FirebaseMessagingException e) {
 
-				notificationService.send(title, body, applicant.getApplicantUser().getMessagingToken(), data);
-			} catch (FirebaseMessagingException e) {
-
-			}
 		}
 	}
 	
