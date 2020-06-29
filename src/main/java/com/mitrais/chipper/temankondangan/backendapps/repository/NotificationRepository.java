@@ -1,7 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.repository;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Notification;
-import com.mitrais.chipper.temankondangan.backendapps.model.Rating;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

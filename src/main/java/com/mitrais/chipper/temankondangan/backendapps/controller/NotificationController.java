@@ -2,7 +2,6 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
-import com.mitrais.chipper.temankondangan.backendapps.model.Notification;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadNotificationWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -16,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @Api(value = "Notification")
 @RestController

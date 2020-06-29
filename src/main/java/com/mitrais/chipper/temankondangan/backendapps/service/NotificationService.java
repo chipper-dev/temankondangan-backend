@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Notification;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 

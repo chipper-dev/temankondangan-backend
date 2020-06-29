@@ -9,7 +9,9 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ApplicantServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.NotificationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -36,6 +38,12 @@ public class ApplicantServiceTest {
 
 	@Mock
 	ApplicantRepository applicantRepository;
+
+	@Mock
+	NotificationServiceImpl notificationService;
+
+	@Mock
+	ProfileRepository profileRepository;
 
 	@InjectMocks
 	ApplicantServiceImpl applicantService;
