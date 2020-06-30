@@ -71,6 +71,13 @@ public class EventControllerTest {
 	@MockBean
 	EventServiceImpl eventService;
 
+//	@MockBean
+//	EventRepository eventRepository;
+//	@MockBean
+//	ApplicantRepository applicantRepository;
+//	@MockBean
+//	ProfileRepository profileRepository;
+
 	@Autowired
 	public EventControllerTest(WebApplicationContext context, AuthenticationManager authenticationManager,
 			TokenProvider tokenProvider, PasswordEncoder passwordEncoder) {
@@ -240,6 +247,99 @@ public class EventControllerTest {
 				.andExpect(jsonPath("$.content.title").value("title test"));
 	}
 
+//	@Test
+//	public void findEventDetailTest() throws Exception {
+//		EventDetailResponseWrapper responseWrapper = EventDetailResponseWrapper.builder().title("title test")
+//				.additionalInfo("info test").applicantStatus(ApplicantStatus.ACCEPTED).cancelled(false)
+//				.city("city test").companionGender(Gender.P).creatorUserId(1L).eventId(1L).fullName("name test")
+//				.hasAcceptedApplicant(true).isApplied(true).isCreator(false).isRated(false).maximumAge(35)
+//				.minimumAge(18).startDateTime(LocalDateTime.now()).finishDateTime(LocalDateTime.now()).build();
+//
+//		Mockito.when(eventService.findEventDetail(any(String.class), anyLong())).thenReturn(responseWrapper);
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/find")
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content.title").value("title test"));
+//	}
+//
+//	@Test
+//	public void applyEventTest() throws Exception {
+//		User user2 = new User();
+//		user2.setUserId(2L);
+//		Event event = new Event();
+//		event.setUser(user2);
+//		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+//		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+//		event.setMaximumAge(40);
+//		event.setMinimumAge(18);
+//		event.setCompanionGender(Gender.B);
+//		Profile profile = new Profile();
+//		profile.setDob(LocalDate.of(1995, 1, 1));
+//		profile.setGender(Gender.L);
+//
+//		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+//		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
+//				.thenReturn(false);
+//		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+//
+//		Answer<Applicant> answer = new Answer<Applicant>() {
+//			public Applicant answer(InvocationOnMock invocation) throws Throwable {
+//				user2.setUserId(3L);
+//				Applicant applicant = invocation.getArgument(0, Applicant.class);
+//				applicant.setId(1L);
+//				applicant.setApplicantUser(user2);
+//				applicant.setEvent(event);
+//
+//				return applicant;
+//			}
+//		};
+//
+//		doAnswer(answer).when(applicantRepository).save(any(Applicant.class));
+//		
+//		Mockito.doNothing().when(eventService).apply(anyLong(), anyLong());
+//
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/edit")
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content").value("Successfully applied to the event"));
+//	}
+
+	@Test
+	public void findMyCurrentEventTest() throws Exception {
+		EventFindAllListDBResponseWrapper wrapper = EventFindAllListDBResponseWrapper.builder().title("title test")
+				.build();
+		List<EventFindAllListDBResponseWrapper> wrapperList = Arrays.asList(wrapper);
+
+		Mockito.when(eventService.findMyEvent(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+				Mockito.anyBoolean())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-event-current")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].title").value("title test"));
+	}
+
+	@Test
+	public void findMyPastEventTest() throws Exception {
+		EventFindAllListDBResponseWrapper wrapper = EventFindAllListDBResponseWrapper.builder().title("title test")
+				.build();
+		List<EventFindAllListDBResponseWrapper> wrapperList = Arrays.asList(wrapper);
+
+		Mockito.when(eventService.findMyEvent(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+				Mockito.anyBoolean())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-event-past")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].title").value("title test"));
+	}
+	
 	public static String asJsonString(final Object obj) {
 		try {
 			return new ObjectMapper().writeValueAsString(obj);
