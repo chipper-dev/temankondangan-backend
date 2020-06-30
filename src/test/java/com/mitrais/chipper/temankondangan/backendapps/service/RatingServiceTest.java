@@ -200,4 +200,13 @@ public class RatingServiceTest {
         assertSame(3, ratingWrapper.getScore());
         assertSame(1L, ratingWrapper.getUserId());
     }
+
+    @Test
+    public void scoreRatingwithDecimalTest() {
+        RatingWrapper ratingWrapper = RatingWrapper.builder().score(3.5).userId(1L).ratingType(RatingType.APPLICANT).build();
+
+        assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
+                .hasMessageContaining("Error: Cannot insert the Rating score with decimal number.")
+                .isInstanceOf(BadRequestException.class);
+    }
 }

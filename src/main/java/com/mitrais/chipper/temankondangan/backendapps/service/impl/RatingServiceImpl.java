@@ -60,15 +60,19 @@ public class RatingServiceImpl implements RatingService {
             throw new BadRequestException(String.format("Error: You cannot rate a user after %s hours", durationValid));
         }
 
-        if (ratingWrapper.getScore() < 1 || ratingWrapper.getScore() > 5) {
-            throw new BadRequestException("Error: Rating score is out of scope. Please use score from 1 to 5");
-        }
-
         if (event.getCancelled()) {
             throw new BadRequestException("Error: Event has been canceled you can't give the rating!");
         }
         if (acceptedApplicantList.isEmpty()) {
             throw new BadRequestException("Error: Event doesn't have a accepted Applicant!");
+        }
+
+        if( ratingWrapper.getScore() instanceof Integer ) {
+            if ((Integer) ratingWrapper.getScore() < 1 || (Integer) ratingWrapper.getScore() > 5) {
+                throw new BadRequestException("Error: Rating score is out of scope. Please use score from 1 to 5");
+            }
+        } else {
+            throw new BadRequestException("Error: Cannot insert the Rating score with decimal number.");
         }
 
         if (ratingWrapper.getRatingType().equals(RatingType.APPLICANT)) {
@@ -91,11 +95,13 @@ public class RatingServiceImpl implements RatingService {
             throw new BadRequestException("Error: Unknown Rating Type. Please use: APPLICANT or CREATOR");
         }
 
+        Integer score = (Integer) ratingWrapper.getScore();
+
         Rating rating = Rating.builder()
                 .eventId(eventId)
                 .userVoterId(userVoterId)
                 .userId(ratingWrapper.getUserId())
-                .score(ratingWrapper.getScore())
+                .score(score)
                 .build();
 
         ratingRepository.save(rating);
