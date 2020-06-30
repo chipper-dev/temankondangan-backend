@@ -193,7 +193,7 @@ public class EventController extends CommonResource {
 	public ResponseEntity<ResponseBody> findActiveAppliedEvent(
 			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
+			@ApiParam(value = "input ALLSTATUS, APPLIED, ACCEPTED or REJECTED") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
@@ -207,7 +207,7 @@ public class EventController extends CommonResource {
 	public ResponseEntity<ResponseBody> findPastAppliedEvent(
 			@ApiParam(value = "input latestApplied, createdDate or startDateTime") @RequestParam(defaultValue = "latestApplied") String sortBy,
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
-			@ApiParam(value = "input applicant status") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
+			@ApiParam(value = "input ALLSTATUS, APPLIED, ACCEPTED, REJECTED or CANCELED") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);

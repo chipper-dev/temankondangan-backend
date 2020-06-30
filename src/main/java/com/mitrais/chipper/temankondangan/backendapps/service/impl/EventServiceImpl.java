@@ -61,7 +61,7 @@ public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
-
+	
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
@@ -88,17 +88,6 @@ public class EventServiceImpl implements EventService {
 		this.ratingService = ratingService;
 	}
 
-	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
-
-		if (minimumAge < 18) {
-			throw new BadRequestException("Error: Minimum age must be 18!");
-		}
-
-		if (maximumAge < minimumAge) {
-			throw new BadRequestException("Error: Inputted age is not valid!");
-		}
-	}
-	
 	@Override
 	public Event create(Long userId, CreateEventWrapper wrapper) {
 		User user = userRepository.findById(userId)
@@ -150,12 +139,6 @@ public class EventServiceImpl implements EventService {
 
 	}
 
-	private void checkValidSortBy(String sortBy) {
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
-	}
-	
 	@Override
 	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
 			Long userId) {
@@ -856,4 +839,22 @@ public class EventServiceImpl implements EventService {
 		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
 				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 	}
+	
+	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
+
+		if (minimumAge < 18) {
+			throw new BadRequestException("Error: Minimum age must be 18!");
+		}
+
+		if (maximumAge < minimumAge) {
+			throw new BadRequestException("Error: Inputted age is not valid!");
+		}
+	}
+	
+	private void checkValidSortBy(String sortBy) {
+		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+	}
+	
 }
