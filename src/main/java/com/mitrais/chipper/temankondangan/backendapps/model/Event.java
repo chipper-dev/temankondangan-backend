@@ -14,17 +14,21 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
+import org.hibernate.envers.Audited;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import javax.validation.constraints.*;
 import java.time.LocalDateTime;
 
+import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Audited(withModifiedFlag = true)
 @Table(name = "event")
 @EntityListeners(AuditingEntityListener.class)
 @JsonIgnoreProperties(value = { "createdBy", "createdDate", "modifiedBy", "modifiedDate" }, allowGetters = true)
@@ -38,11 +42,13 @@ public class Event extends Auditable<String> {
 	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "event_id_seq_gen")
 	@SequenceGenerator(name = "event_id_seq_gen", sequenceName = "event_id_seq", allocationSize = 1)
 	@ApiModelProperty(notes = "Event DB id")
+	@Audited(targetAuditMode = NOT_AUDITED)
 	private Long eventId;
 
 	@ManyToOne
 	@JoinColumn(name = "user_id")
 	@Where(clause = "data_state <> 'DELETED'")
+	@Audited(targetAuditMode = NOT_AUDITED)
 	private User user;
 
 	@NotEmpty
