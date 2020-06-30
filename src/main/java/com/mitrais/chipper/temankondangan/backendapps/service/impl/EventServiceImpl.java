@@ -14,7 +14,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 
-import com.google.firebase.messaging.FirebaseMessagingException;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.apache.commons.lang3.EnumUtils;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
@@ -117,7 +116,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Date inputted have to be after today!");
 		}
 
-		if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
+		if (StringUtils.isNotEmpty(wrapper.getFinishDateTime())) {
 
 			finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
 			if (startDateTime.isAfter(finishDateTime)) {

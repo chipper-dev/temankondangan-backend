@@ -128,6 +128,18 @@ public class EventServiceTest {
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
 
+		event = new Event();
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now());
+		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
 		assertEquals("title test", result.getTitle());
@@ -145,7 +157,7 @@ public class EventServiceTest {
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
-
+		
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(150, result.getMaximumAge());
@@ -238,11 +250,27 @@ public class EventServiceTest {
 		event2.setProfileId(1L);
 		event2.setEventId(2L);
 		event2.setTitle("title test 2");
+		event2.setCity("Test City");
+		event2.setCreatorFullName("creator name test");
+		event2.setCreatedBy("system");
+		event2.setCity("city test");
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
 
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setProfileId(2L);
 		event3.setEventId(3L);
 		event3.setTitle("title test 3");
+		event3.setCity("Test City");
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(40);
+		event2.setCreatorGender(Gender.B);
+		event2.setCompanionGender(Gender.L);
+		event2.setApplicantStatus(ApplicantStatus.ACCEPTED);
+		event2.setHasAcceptedApplicant(true);
+		event2.setCancelled(false);
 
 		eventList = new ArrayList<>();
 		eventList.add(event2);
