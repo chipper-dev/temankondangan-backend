@@ -42,7 +42,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -236,22 +235,6 @@ public class EventControllerTest {
 		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/edit")
 				.header("Authorization", "Bearer " + token).content(asJsonString(wrapper))
 				.contentType(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content.title").value("title test"));
-	}
-
-	@Test
-	public void findEventDetailTest() throws Exception {
-		EventDetailResponseWrapper responseWrapper = EventDetailResponseWrapper.builder().title("title test")
-				.additionalInfo("info test").applicantStatus(ApplicantStatus.ACCEPTED).cancelled(false)
-				.city("city test").companionGender(Gender.P).creatorUserId(1L).eventId(1L).fullName("name test")
-				.hasAcceptedApplicant(true).isApplied(true).isCreator(false).isRated(false).maximumAge(35)
-				.minimumAge(18).startDateTime(LocalDateTime.now()).finishDateTime(LocalDateTime.now()).build();
-
-		Mockito.when(eventService.findEventDetail(any(String.class), anyLong())).thenReturn(responseWrapper);
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/find")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
 
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content.title").value("title test"));
