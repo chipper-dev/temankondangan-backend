@@ -1,18 +1,20 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.*;
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -24,18 +26,23 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.InstanceOfAssertFactories.optional;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
+import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserChangePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePasswordWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.VerificationCodeRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.UserServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -49,7 +56,7 @@ public class UserServiceTest {
 
 	@Mock
 	ProfileRepository profileRepository;
-	
+
 	@Mock
 	ApplicantRepository applicantRepository;
 
@@ -96,7 +103,7 @@ public class UserServiceTest {
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.changePassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenPasswordEmptyInChangePassword() {
 		UserChangePasswordWrapper wrapper = new UserChangePasswordWrapper("12345_", "", "");
@@ -164,14 +171,13 @@ public class UserServiceTest {
 		assertTrue(result);
 	}
 
-
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInCreatePassword() {
 		UserCreatePasswordWrapper wrapper = new UserCreatePasswordWrapper("12345_", "12345_");
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.createPassword(1L, wrapper)).isInstanceOf(ResourceNotFoundException.class);
 	}
-	
+
 	@Test
 	public void shouldThrowBadRequestException_WhenPasswordIsNotNullInCreatePassword() {
 		// provider must be google
@@ -208,22 +214,22 @@ public class UserServiceTest {
 		List<Event> events = new ArrayList<Event>();
 		events.add(event);
 		Mockito.when(eventRepository.findByUserId(anyLong())).thenReturn(Optional.of(events));
-		
+
 		Applicant applicant = new Applicant();
 		List<Applicant> applicants = new ArrayList<Applicant>();
 		applicants.add(applicant);
 		Mockito.when(applicantRepository.findByEventId(anyLong())).thenReturn(Optional.of(applicants));
-		
+
 		Mockito.doNothing().when(applicantRepository).deleteAll(applicants);
 		Mockito.doNothing().when(eventRepository).deleteAll(events);
-		
+
 		userService.remove(1L);
 		assertEquals(DataState.DELETED, user.getDataState());
 	}
-	
+
 	@Test
 	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInRemoveUser() {
-		
+
 		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
 		assertThatThrownBy(() -> userService.remove(1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
@@ -252,6 +258,30 @@ public class UserServiceTest {
 	}
 
 	@Test
+	public void shouldThrowBadRequestException_WhenPasswordHasNotBeenSetInForgotPasswordTest() {
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCode("12345");
+
+		List<VerificationCode> list = new ArrayList<>();
+		list.add(verify);
+
+		SimpleMailMessage template = new SimpleMailMessage();
+		template.setText("text");
+
+		user.setProvider(AuthProvider.google);
+		user.setPasswordHashed(null);
+		Mockito.when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(user));
+		Mockito.when(verificationRepository.findByEmail(any(String.class))).thenReturn(list);
+		ReflectionTestUtils.setField(userService, "template", template);
+
+		assertThatThrownBy(() -> userService.forgotPassword("test@example.com")).hasMessageContaining(
+				"Error: You have not set password for your Email. Please login using your Gmail account and create password")
+				.isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
 	public void resetPasswordTest() {
 		ResetPasswordWrapper wrapper = new ResetPasswordWrapper();
 		wrapper.setNewPassword("password123_");
@@ -269,5 +299,24 @@ public class UserServiceTest {
 
 		userService.resetPassword(wrapper);
 		verify(userRepository, times(1)).save(any(User.class));
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCodeIsNotValidInResetPasswordTest() {
+		ResetPasswordWrapper wrapper = new ResetPasswordWrapper();
+		wrapper.setNewPassword("password123_");
+		wrapper.setConfirmPassword("password123_");
+		wrapper.setVerificationCode("11234");
+
+		VerificationCode verify = new VerificationCode();
+		verify.setEmail(user.getEmail());
+		verify.setCreatedAt(LocalDateTime.now().minusMinutes(6));
+		verify.setCode("11234");
+
+		Mockito.when(verificationRepository.findByCode(anyString())).thenReturn(Optional.of(verify));
+
+		assertThatThrownBy(() -> userService.resetPassword(wrapper))
+				.hasMessageContaining("Error: Please input correct verification code from your email")
+				.isInstanceOf(BadRequestException.class);
 	}
 }

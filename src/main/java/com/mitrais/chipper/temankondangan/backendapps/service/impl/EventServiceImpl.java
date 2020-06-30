@@ -10,15 +10,11 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 
+import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.apache.commons.lang3.EnumUtils;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
@@ -71,6 +67,7 @@ public class EventServiceImpl implements EventService {
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
+	private NotificationService notificationService;
 	private RatingService ratingService;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
@@ -79,12 +76,15 @@ public class EventServiceImpl implements EventService {
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
-			ImageFileService imageFileService, RatingService ratingService) {
+			ImageFileService imageFileService, NotificationService notificationService,
+			RatingService ratingService) {
+
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
 		this.profileRepository = profileRepository;
 		this.imageFileService = imageFileService;
+		this.notificationService = notificationService;
 		this.ratingService = ratingService;
 	}
 
@@ -116,7 +116,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Date inputted have to be after today!");
 		}
 
-		if (!StringUtils.isEmpty(wrapper.getFinishDateTime())) {
+		if (StringUtils.isNotEmpty(wrapper.getFinishDateTime())) {
 
 			finishDateTime = LocalDateTime.parse(wrapper.getFinishDateTime(), df);
 			if (startDateTime.isAfter(finishDateTime)) {
@@ -409,6 +409,12 @@ public class EventServiceImpl implements EventService {
 		applicant.setDataState(DataState.ACTIVE);
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
+
+		String title = "Someone applied to your event";
+		String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
+
+		notificationService.send(title, body, event.getUser(), data);
 	}
 
 	@Override
@@ -431,6 +437,14 @@ public class EventServiceImpl implements EventService {
 		} else {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
+
+		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
+		String name = profile == null ? "Someone" : profile.getFullName();
+		String title = "Someone cancel application to your event";
+		String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
+
+		notificationService.send(title, body, event.getUser(), data);
 
 	}
 
@@ -535,17 +549,20 @@ public class EventServiceImpl implements EventService {
 		// value for ALL STATUS
 		boolean allStatus = true;
 		boolean pastTimeOnly = true;
-		List<Boolean> isCancelled = Arrays.asList(true, false);
+		List<Boolean> isCancelled = new ArrayList<>();
 
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
 			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+				isCancelled.add(true);
+				isCancelled.add(false);
+			} else {
 				allStatus = false;
-				isCancelled.remove(true);
+				isCancelled.add(false);
 			}
 		} else if (applicantStatusStr.equals("CANCELED")) {
-			isCancelled.remove(false);
+			isCancelled.add(true);
 			pastTimeOnly = false;
 		} else {
 			throw new BadRequestException("Error: Please input a valid applicant status");

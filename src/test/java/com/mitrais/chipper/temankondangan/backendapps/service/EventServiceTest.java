@@ -88,6 +88,9 @@ public class EventServiceTest {
 	@Mock
 	RatingServiceImpl ratingService;
 
+	@Mock
+	NotificationService notificationService;
+
 	@InjectMocks
 	EventServiceImpl eventService;
 
@@ -125,6 +128,18 @@ public class EventServiceTest {
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
 
+		event = new Event();
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now());
+		event.setFinishDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
 		assertEquals("title test", result.getTitle());
@@ -142,7 +157,7 @@ public class EventServiceTest {
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
-
+		
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(150, result.getMaximumAge());
@@ -235,11 +250,27 @@ public class EventServiceTest {
 		event2.setProfileId(1L);
 		event2.setEventId(2L);
 		event2.setTitle("title test 2");
+		event2.setCity("Test City");
+		event2.setCreatorFullName("creator name test");
+		event2.setCreatedBy("system");
+		event2.setCity("city test");
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
 
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setProfileId(2L);
 		event3.setEventId(3L);
 		event3.setTitle("title test 3");
+		event3.setCity("Test City");
+		event2.setStartDateTime(LocalDateTime.now());
+		event2.setFinishDateTime(LocalDateTime.now());
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(40);
+		event2.setCreatorGender(Gender.B);
+		event2.setCompanionGender(Gender.L);
+		event2.setApplicantStatus(ApplicantStatus.ACCEPTED);
+		event2.setHasAcceptedApplicant(true);
+		event2.setCancelled(false);
 
 		eventList = new ArrayList<>();
 		eventList.add(event2);
@@ -545,7 +576,7 @@ public class EventServiceTest {
 				.thenReturn(Optional.of(applicant));
 
 		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "createdDate", "DESC",
-				"ALLSTATUS");
+				"APPLIED");
 
 		assertFalse(resultList.isEmpty());
 		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
@@ -616,7 +647,56 @@ public class EventServiceTest {
 				.thenReturn(Optional.of(applicant));
 
 		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC",
-				"ALLSTATUS");
+				"APPLIED");
+
+		assertFalse(resultList.isEmpty());
+		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
+		assertEquals("title test", resultList.get(0).getTitle());
+	}
+	
+	@Test
+	public void findCancelledPastAppliedEventTest() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().minusDays(1));
+		event.setFinishDateTime(LocalDateTime.now().minusDays(1).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+
+		List<Event> eventList = new ArrayList<>();
+		eventList.add(event);
+
+		User user2 = new User();
+		user2.setUserId(2L);
+
+		Profile profile = new Profile();
+		profile.setUser(user);
+		profile.setProfileId(1L);
+		profile.setFullName("John Doe");
+		profile.setPhotoProfileFilename("image.jpg");
+
+		Applicant applicant = new Applicant();
+		applicant.setId(1L);
+		applicant.setApplicantUser(user2);
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setCreatedDate(new Date());
+
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
+				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(applicant));
+
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC",
+				"CANCELED");
 
 		assertFalse(resultList.isEmpty());
 		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());

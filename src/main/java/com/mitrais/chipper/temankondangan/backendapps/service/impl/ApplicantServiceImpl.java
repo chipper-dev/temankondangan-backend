@@ -4,6 +4,11 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,19 +21,26 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
+import org.springframework.util.StringUtils;
 
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
 	private static final String ERROR_EVENT_HAS_FINISHED = "Error: This event has finished already";
 	private static final String ERROR_NOT_CREATOR = "Error: Non event creator cannot do this";
+	private static final String DEFAULT_NO_NAME = "Someone";
 
 	private EventRepository eventRepository;
+	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
+	private NotificationService notificationService;
 
 	@Autowired
-	public ApplicantServiceImpl(EventRepository eventRepository, ApplicantRepository applicantRepository) {
+	public ApplicantServiceImpl(EventRepository eventRepository, ProfileRepository profileRepository, ApplicantRepository applicantRepository,
+								NotificationService notificationService) {
 		this.eventRepository = eventRepository;
+		this.profileRepository = profileRepository;
 		this.applicantRepository = applicantRepository;
+		this.notificationService = notificationService;
 	}
 
 	private Map<String, Object> checkApplicant(Long userId, Long applicantId) {
@@ -73,6 +85,9 @@ public class ApplicantServiceImpl implements ApplicantService {
 
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
+
+		sendNotification(applicant.getEvent().getUser().getUserId(), "accepted", "accept", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+
 	}
 
 	@Override
@@ -97,6 +112,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
+		sendNotification(applicant.getEvent().getUser().getUserId(), "cancelled", "cancelling", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+
 	}
 	
 	@Override
@@ -119,6 +136,18 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 
+		sendNotification(applicant.getEvent().getUser().getUserId(), "rejected", "reject", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+
+	}
+
+	private void sendNotification(Long userId, String eventVerbTitle, String eventVerbBody, String eventTitle, User userDestination) {
+		Profile profile = profileRepository.findByUserId(userId).orElse(null);
+		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
+		String title = "Your event application was " + eventVerbTitle;
+		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle + " at "+ LocalDateTime.now();
+		Map<String, String> data = new HashMap<>();
+
+		notificationService.send(title, body, userDestination, data);
 	}
 
 }

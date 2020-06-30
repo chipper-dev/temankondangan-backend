@@ -47,6 +47,10 @@ public class RatingServiceImpl implements RatingService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
 
+        if(event.getStartDateTime().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Error: You cannot rate a user before the event happen.");
+        }
+
         if(isRated(userVoterId, eventId)) {
             throw new BadRequestException("Error: You've submitted the the rating. You can't submit the rating again.");
         }
