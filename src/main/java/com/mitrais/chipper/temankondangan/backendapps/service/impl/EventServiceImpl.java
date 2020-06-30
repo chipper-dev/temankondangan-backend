@@ -428,7 +428,7 @@ public class EventServiceImpl implements EventService {
 		applicantRepository.save(applicant);
 
 		String title = "Someone applied to your event";
-		String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 
         try {
@@ -462,7 +462,7 @@ public class EventServiceImpl implements EventService {
 		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
 		String name = profile == null ? "Someone" : profile.getFullName();
 		String title = "Someone cancel application to your event";
-		String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
+		String body =  name + "cancel application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 
         try {
