@@ -146,7 +146,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		Profile profile = profileRepository.findByUserId(userId).orElse(null);
 		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
 		String title = "Your event application was " + eventVerbTitle;
-		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle + " at "+ LocalDateTime.now();
+		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle;
 		Map<String, String> data = new HashMap<>();
 
 		try {
