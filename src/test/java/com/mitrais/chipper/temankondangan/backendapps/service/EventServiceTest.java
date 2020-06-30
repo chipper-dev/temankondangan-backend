@@ -88,6 +88,9 @@ public class EventServiceTest {
 	@Mock
 	RatingServiceImpl ratingService;
 
+	@Mock
+	NotificationService notificationService;
+
 	@InjectMocks
 	EventServiceImpl eventService;
 
