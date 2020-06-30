@@ -579,7 +579,7 @@ public class EventServiceImpl implements EventService {
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
-			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+			if (applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
 				isCancelled.add(true);
 				isCancelled.add(false);
 			} else {
