@@ -434,7 +434,7 @@ public class EventServiceImpl implements EventService {
         try {
             notificationService.send(title, body, event.getUser(), data);
         } catch (FirebaseMessagingException e) {
-            e.printStackTrace();
+        	logger.error("FirebaseMessagingException", e);
         }
     }
 
@@ -468,7 +468,7 @@ public class EventServiceImpl implements EventService {
         try {
             notificationService.send(title, body, event.getUser(), data);
         } catch (FirebaseMessagingException e) {
-            e.printStackTrace();
+			logger.error("FirebaseMessagingException", e);
         }
 
     }

@@ -9,6 +9,8 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
 
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
+	private static final Logger logger = LoggerFactory.getLogger(ApplicantServiceImpl.class);
 	private static final String ERROR_EVENT_HAS_FINISHED = "Error: This event has finished already";
 	private static final String ERROR_NOT_CREATOR = "Error: Non event creator cannot do this";
 	private static final String DEFAULT_NO_NAME = "Someone";
@@ -149,7 +152,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		try {
 			notificationService.send(title, body, userDestination, data);
 		} catch (FirebaseMessagingException e) {
-			e.printStackTrace();
+			logger.error("FirebaseMessagingException", e);
 		}
 	}
 
