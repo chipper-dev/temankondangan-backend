@@ -262,15 +262,15 @@ public class EventServiceTest {
 		event3.setEventId(3L);
 		event3.setTitle("title test 3");
 		event3.setCity("Test City");
-		event2.setStartDateTime(LocalDateTime.now());
-		event2.setFinishDateTime(LocalDateTime.now());
-		event2.setMinimumAge(18);
-		event2.setMaximumAge(40);
-		event2.setCreatorGender(Gender.B);
-		event2.setCompanionGender(Gender.L);
-		event2.setApplicantStatus(ApplicantStatus.ACCEPTED);
-		event2.setHasAcceptedApplicant(true);
-		event2.setCancelled(false);
+		event3.setStartDateTime(LocalDateTime.now());
+		event3.setFinishDateTime(LocalDateTime.now());
+		event3.setMinimumAge(18);
+		event3.setMaximumAge(40);
+		event3.setCreatorGender(Gender.B);
+		event3.setCompanionGender(Gender.L);
+		event3.setApplicantStatus(ApplicantStatus.ACCEPTED);
+		event3.setHasAcceptedApplicant(true);
+		event3.setCancelled(false);
 
 		eventList = new ArrayList<>();
 		eventList.add(event2);
