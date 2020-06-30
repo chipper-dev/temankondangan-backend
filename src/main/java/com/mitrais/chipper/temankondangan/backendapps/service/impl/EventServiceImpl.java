@@ -295,8 +295,8 @@ public class EventServiceImpl implements EventService {
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		Event eventUpdated = eventRepository.save(event);
 
-		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
-		System.out.println("Updated Fields: " + fieldsUpdated);
+//		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
+//		System.out.println("Updated Fields: " + fieldsUpdated);
 
 		return eventUpdated;
 	}
