@@ -447,8 +447,12 @@ public class EventServiceImpl implements EventService {
 		String body =  profile.getFullName() + "apply application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
 		Map<String, String> data = new HashMap<>();
 
-		notificationService.send(title, body, event.getUser(), data);
-	}
+        try {
+            notificationService.send(title, body, event.getUser(), data);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
+    }
 
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
@@ -477,9 +481,13 @@ public class EventServiceImpl implements EventService {
 		String body =  name + "cancel application to " + applicant.getEvent().getTitle() + " at "+ LocalDateTime.now();
 		Map<String, String> data = new HashMap<>();
 
-		notificationService.send(title, body, event.getUser(), data);
+        try {
+            notificationService.send(title, body, event.getUser(), data);
+        } catch (FirebaseMessagingException e) {
+            e.printStackTrace();
+        }
 
-	}
+    }
 
 	@Override
 	public void creatorCancelEvent(Long userId, Long eventId) {

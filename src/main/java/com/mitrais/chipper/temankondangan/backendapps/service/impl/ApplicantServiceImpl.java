@@ -21,7 +21,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
-import org.springframework.util.StringUtils;
 
 @Service
 public class ApplicantServiceImpl implements ApplicantService {
@@ -147,7 +146,11 @@ public class ApplicantServiceImpl implements ApplicantService {
 		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle + " at "+ LocalDateTime.now();
 		Map<String, String> data = new HashMap<>();
 
-		notificationService.send(title, body, userDestination, data);
+		try {
+			notificationService.send(title, body, userDestination, data);
+		} catch (FirebaseMessagingException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
