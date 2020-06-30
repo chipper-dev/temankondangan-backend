@@ -42,6 +42,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.AppliedEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateEventWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EditEventWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventDetailResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllListDBResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
@@ -95,48 +96,6 @@ public class EventControllerTest {
 		Authentication authentication = authenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(email, password));
 		token = tokenProvider.createToken(authentication);
-	}
-
-	@Test
-	public void findCurrentAppliedEventTest() throws Exception {
-		AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder().photoProfileUrl("image.jpg")
-				.title("Lorem Ipsum").startDateTime(LocalDateTime.now().plusDays(1))
-				.finishDateTime(LocalDateTime.now().plusDays(1).plusHours(1)).city("Sim City")
-				.applicantStatus(ApplicantStatus.APPLIED).build();
-
-		List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
-
-		Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString())).thenReturn(wrapperList);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-current")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content").isArray())
-				.andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
-				.andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
-	}
-
-	@Test
-	public void findPastAppliedEventTest() throws Exception {
-		AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder().photoProfileUrl("image.jpg")
-				.title("Lorem Ipsum").startDateTime(LocalDateTime.now().minusDays(1))
-				.finishDateTime(LocalDateTime.now().minusDays(1).plusHours(1)).city("Sim City")
-				.applicantStatus(ApplicantStatus.APPLIED).build();
-
-		List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
-
-		Mockito.when(eventService.findPastAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(),
-				Mockito.anyString())).thenReturn(wrapperList);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-past")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content").isArray())
-				.andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
-				.andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
 	}
 
 	@Test
@@ -240,6 +199,132 @@ public class EventControllerTest {
 				.andExpect(jsonPath("$.content.title").value("title test"));
 	}
 
+	@Test
+	public void findEventDetailTest() throws Exception {
+		EventDetailResponseWrapper responseWrapper = EventDetailResponseWrapper.builder().title("title test").build();
+
+		Mockito.when(eventService.findEventDetail(any(String.class), anyLong())).thenReturn(responseWrapper);
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/find").param("eventId", Mockito.anyString())
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content.title").value("title test"));
+	}
+
+	@Test
+	public void applyEventTest() throws Exception {
+		Mockito.doNothing().when(eventService).apply(anyLong(), anyLong());
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/apply?eventId=1")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").value("Successfully applied to the event"));
+	}
+
+	@Test
+	public void cancelEventTest() throws Exception {
+		Mockito.doNothing().when(eventService).cancelEvent(anyLong(), anyLong());
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/cancel?eventId=1")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").value("The event was canceled successfully"));
+	}
+	
+	@Test
+	public void findMyCurrentEventTest() throws Exception {
+		EventFindAllListDBResponseWrapper wrapper = EventFindAllListDBResponseWrapper.builder().title("title test")
+				.build();
+		List<EventFindAllListDBResponseWrapper> wrapperList = Arrays.asList(wrapper);
+
+		Mockito.when(eventService.findMyEvent(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+				Mockito.anyBoolean())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-event-current")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].title").value("title test"));
+	}
+
+	@Test
+	public void findMyPastEventTest() throws Exception {
+		EventFindAllListDBResponseWrapper wrapper = EventFindAllListDBResponseWrapper.builder().title("title test")
+				.build();
+		List<EventFindAllListDBResponseWrapper> wrapperList = Arrays.asList(wrapper);
+
+		Mockito.when(eventService.findMyEvent(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+				Mockito.anyBoolean())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-event-past")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].title").value("title test"));
+	}
+
+	@Test
+	public void findCurrentAppliedEventTest() throws Exception {
+		AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder().photoProfileUrl("image.jpg")
+				.title("Lorem Ipsum").startDateTime(LocalDateTime.now().plusDays(1))
+				.finishDateTime(LocalDateTime.now().plusDays(1).plusHours(1)).city("Sim City")
+				.applicantStatus(ApplicantStatus.APPLIED).build();
+
+		List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
+
+		Mockito.when(eventService.findActiveAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(),
+				Mockito.anyString())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-current")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
+				.andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
+	}
+
+	@Test
+	public void findPastAppliedEventTest() throws Exception {
+		AppliedEventWrapper appliedEventWrapper = AppliedEventWrapper.builder().photoProfileUrl("image.jpg")
+				.title("Lorem Ipsum").startDateTime(LocalDateTime.now().minusDays(1))
+				.finishDateTime(LocalDateTime.now().minusDays(1).plusHours(1)).city("Sim City")
+				.applicantStatus(ApplicantStatus.APPLIED).build();
+
+		List<AppliedEventWrapper> wrapperList = Arrays.asList(appliedEventWrapper);
+
+		Mockito.when(eventService.findPastAppliedEvent(Mockito.anyLong(), Mockito.anyString(), Mockito.anyString(),
+				Mockito.anyString())).thenReturn(wrapperList);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/my-applied-event-past")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").isArray())
+				.andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
+				.andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
+	}
+	
+	@Test
+	public void creatorCancelEventTest() throws Exception {
+		Mockito.doNothing().when(eventService).creatorCancelEvent(anyLong(), anyLong());
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/creator-cancel?eventId=1")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").value("The event was canceled successfully"));
+	}
+	
+	
 	public static String asJsonString(final Object obj) {
 		try {
 			return new ObjectMapper().writeValueAsString(obj);
