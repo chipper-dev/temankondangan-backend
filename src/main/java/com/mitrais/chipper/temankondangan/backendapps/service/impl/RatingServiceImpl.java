@@ -110,7 +110,7 @@ public class RatingServiceImpl implements RatingService {
     private boolean isRatingValid(Event event) {
         Duration duration;
         if(event.getFinishDateTime() != null) {
-            duration = Duration.between(LocalDateTime.now(), event.getFinishDateTime());
+            duration = Duration.between(event.getFinishDateTime(), LocalDateTime.now());
         } else {
             duration = Duration.between(event.getStartDateTime(), LocalDateTime.now());
         }
