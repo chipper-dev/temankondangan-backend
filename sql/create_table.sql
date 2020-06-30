@@ -96,3 +96,38 @@ CREATE TABLE public.notifications (
 	CONSTRAINT notifications_pkey PRIMARY KEY (id),
 	CONSTRAINT notifications_users_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
+CREATE TABLE public.revinfo (
+	rev int4 NOT NULL,
+	revtstmp int8 NULL,
+	CONSTRAINT revinfo_pkey PRIMARY KEY (rev)
+);
+
+CREATE TABLE public.event_aud (
+	event_id int8 NOT NULL,
+	rev int4 NOT NULL,
+	revtype int2 NULL,
+	additional_info varchar(300) NULL,
+	additional_info_mod bool NULL,
+	cancelled bool NULL,
+	cancelled_mod bool NULL,
+	city varchar(255) NULL,
+	city_mod bool NULL,
+	companion_gender varchar(1) NULL,
+	companion_gender_mod bool NULL,
+	data_state varchar(255) NULL,
+	data_state_mod bool NULL,
+	finish_date_time timestamp NULL,
+	finish_date_time_mod bool NULL,
+	maximum_age int4 NULL,
+	maximum_age_mod bool NULL,
+	minimum_age int4 NULL,
+	minimum_age_mod bool NULL,
+	start_date_time timestamp NULL,
+	start_date_time_mod bool NULL,
+	title varchar(50) NULL,
+	title_mod bool NULL,
+	user_id int8 NULL,
+	CONSTRAINT event_aud_pkey PRIMARY KEY (event_id, rev),
+	CONSTRAINT fk76r0s14ewob41mu1pe3qdbdke FOREIGN KEY (rev) REFERENCES revinfo(rev)
+);

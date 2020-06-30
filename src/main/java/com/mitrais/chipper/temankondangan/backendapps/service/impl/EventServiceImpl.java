@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import java.lang.reflect.Field;
 import java.math.BigInteger;
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -18,6 +19,8 @@ import com.mitrais.chipper.temankondangan.backendapps.service.NotificationServic
 import org.apache.commons.lang3.EnumUtils;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +72,7 @@ public class EventServiceImpl implements EventService {
 	private ImageFileService imageFileService;
 	private NotificationService notificationService;
 	private RatingService ratingService;
+	private AuditReader auditReader;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
@@ -77,7 +81,7 @@ public class EventServiceImpl implements EventService {
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
 			ImageFileService imageFileService, NotificationService notificationService,
-			RatingService ratingService) {
+			RatingService ratingService, AuditReader auditReader) {
 
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
@@ -86,6 +90,7 @@ public class EventServiceImpl implements EventService {
 		this.imageFileService = imageFileService;
 		this.notificationService = notificationService;
 		this.ratingService = ratingService;
+		this.auditReader = auditReader;
 	}
 
 	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
@@ -287,9 +292,37 @@ public class EventServiceImpl implements EventService {
 		event.setMinimumAge(wrapper.getMinimumAge());
 		event.setMaximumAge(maxAge);
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
+		Event eventUpdated = eventRepository.save(event);
 
-		return eventRepository.save(event);
+		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
+		System.out.println("Updated Fields: " + fieldsUpdated);
 
+		return eventUpdated;
+	}
+
+	// To retrieve the updated fields
+	private List<String> findFieldsUpdated(Event eventResult) {
+		List<String> fieldListResult = new ArrayList<>();
+		Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
+		Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+
+		Arrays.stream(fields).map(Field::getName).filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user"))
+				.forEach(name -> {
+					final Long hits = (Long) auditReader.createQuery()
+							.forRevisionsOfEntity(Event.class, false, false)
+							.add(AuditEntity.id().eq(eventResult.getEventId()))
+							.add(AuditEntity.revisionNumber().eq(revisionNumber))
+							.add(AuditEntity.property(name).hasChanged())
+							.addProjection(AuditEntity.id().count())
+							.getSingleResult();
+
+					if (hits == 1) {
+						// propertyName changed at revisionNumber
+						fieldListResult.add(name);
+					}
+				});
+
+		return fieldListResult;
 	}
 
 	@Override
