@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +31,10 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileUpdateWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -95,6 +100,51 @@ public class ProfileControllerTest {
 
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content.profileId").value(1L));
+	}
+
+	@Test
+	public void findProfileTest() throws Exception {
+		ProfileResponseWrapper responseWrapper = ProfileResponseWrapper.builder().profileId(1L).aboutMe("aboutme test")
+				.city("city test").dob(LocalDate.now().minusYears(25)).email("email@com").fullName("name test")
+				.gender(Gender.L).hasPassword(true).interest("interest test").photoProfileUrl("photoProfileUrl test")
+				.ratingData(null).build();
+
+		Mockito.when(profileService.findByUserId(anyLong())).thenReturn(responseWrapper);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find").header("Authorization",
+				"Bearer " + token);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content.profileId").value(1L));
+	}
+
+	@Test
+	public void findProfileCreatorTest() throws Exception {
+		ProfileCreatorResponseWrapper responseWrapper = ProfileCreatorResponseWrapper.builder().fullName("name test")
+				.build();
+
+		Mockito.when(profileService.findOtherPersonProfile(anyLong())).thenReturn(responseWrapper);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find-profile/1")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content.fullName").value("name test"));
+	}
+
+	@Test
+	public void registerUserTest() throws Exception {
+		CreateProfileWrapper responseWrapper = CreateProfileWrapper.builder().fullname("name test").build();
+
+		Mockito.when(profileService.create(Mockito.any(CreateProfileWrapper.class))).thenReturn(new Profile());
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/profile/create")
+				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+				.content(asJsonString(responseWrapper)).accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+				.andExpect(jsonPath("$.content").value("Your profile created successfully"));
 	}
 
 	public static String asJsonString(final Object obj) {
