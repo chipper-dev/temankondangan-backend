@@ -10,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import javax.validation.constraints.NotNull;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +75,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationDataWrapper getNotifications(Long userId) {
         NotificationDataWrapper wrapper = new NotificationDataWrapper();
-        wrapper.setNotifications(notificationRepository.findByUserId(userId, LocalDateTime.now().plusDays(30)));
+        Date thirtyDays = Timestamp.valueOf(LocalDateTime.now().plusDays(30));
+        wrapper.setNotifications(notificationRepository.findByUserId(userId, thirtyDays));
         wrapper.setUnreadCount(notificationRepository.countUnreadByUserId(userId));
         return wrapper;
     }
