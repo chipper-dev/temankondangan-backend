@@ -24,6 +24,9 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
 
     @Query("SELECT a from Applicant a WHERE a.event.eventId = :eventId AND a.status = 'ACCEPTED'" )
     List<Applicant> findByEventIdAccepted(@Param("eventId")Long eventId);
+
+    @Query("SELECT a from Applicant a WHERE a.event.eventId = :eventId AND (a.status = 'ACCEPTED' OR a.status = 'APPLIED')" )
+    List<Applicant> findByEventIdAcceptedAndApplied(@Param("eventId")Long eventId);
     
     @Query("SELECT a from Applicant a WHERE a.event.eventId = :eventId AND a.status = :applicantStatus")
     Optional<List<Applicant>> findByEventIdAndStatus(@Param("eventId") Long eventId, 
