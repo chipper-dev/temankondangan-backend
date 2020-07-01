@@ -23,5 +23,5 @@ public class RatingWrapper {
     Long userId;
 
     @ApiModelProperty(notes = "Score for the Rating, 1~5")
-    Integer score;
+    Object score;
 }
