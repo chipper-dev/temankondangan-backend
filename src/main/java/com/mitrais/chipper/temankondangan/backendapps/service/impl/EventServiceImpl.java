@@ -16,10 +16,12 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.mitrais.chipper.temankondangan.backendapps.model.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.apache.commons.lang3.EnumUtils;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.ast.Not;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.query.AuditEntity;
 import org.slf4j.Logger;
@@ -37,10 +39,6 @@ import org.springframework.web.server.ResponseStatusException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
@@ -427,15 +425,7 @@ public class EventServiceImpl implements EventService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		String title = "Someone applied to your event";
-		String body = profile.getFullName() + " apply application to " + applicant.getEvent().getTitle();
-		Map<String, String> data = new HashMap<>();
-
-		try {
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-			logger.error("FirebaseMessagingException", e);
-		}
+		sendSingleNotification(NotificationType.APPLY_EVENT, applicant.getEvent(), profile.getFullName());
 	}
 
 	@Override
@@ -461,16 +451,7 @@ public class EventServiceImpl implements EventService {
 
 		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
 		String name = profile == null ? "Someone" : profile.getFullName();
-		String title = "Someone cancel application to your event";
-		String body = name + " cancel application to " + applicant.getEvent().getTitle();
-		Map<String, String> data = new HashMap<>();
-
-		try {
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-			logger.error("FirebaseMessagingException", e);
-		}
-
+		sendSingleNotification(NotificationType.CANCEL_APPLY_EVENT, applicant.getEvent(), name);
 	}
 
 	@Override
