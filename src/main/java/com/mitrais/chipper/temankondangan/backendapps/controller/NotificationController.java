@@ -39,7 +39,7 @@ public class NotificationController extends CommonResource {
                 getResponseBody(HttpStatus.OK.value(), notificationData, request.getRequestURI()));
     }
 
-    @ApiOperation(value = "Get Notification", response = ResponseEntity.class)
+    @ApiOperation(value = "Set Read Notification", response = ResponseEntity.class)
     @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
     @PostMapping("/set-read-notification")
     @ResponseStatus(HttpStatus.OK)

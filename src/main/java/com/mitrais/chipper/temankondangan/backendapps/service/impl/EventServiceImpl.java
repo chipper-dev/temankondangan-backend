@@ -65,7 +65,7 @@ public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
-	
+
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
@@ -278,8 +278,8 @@ public class EventServiceImpl implements EventService {
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		Event eventUpdated = eventRepository.save(event);
 
-//		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
-//		System.out.println("Updated Fields: " + fieldsUpdated);
+        List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
+        System.out.println("Updated Fields: " + fieldsUpdated);
 
 		return eventUpdated;
 	}
@@ -579,7 +579,7 @@ public class EventServiceImpl implements EventService {
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
-			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+			if (applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
 				isCancelled.add(true);
 				isCancelled.add(false);
 			} else {
@@ -881,7 +881,7 @@ public class EventServiceImpl implements EventService {
 		return EventFindAllResponseWrapper.builder().pageNumber(pageNumber).pageSize(pageSize)
 				.actualSize(eventWrapperPages.getTotalElements()).contentList(eventAllDBResponse).build();
 	}
-	
+
 	private void checkValidAge(Integer minimumAge, Integer maximumAge) {
 
 		if (minimumAge < 18) {
@@ -892,11 +892,11 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Inputted age is not valid!");
 		}
 	}
-	
+
 	private void checkValidSortBy(String sortBy) {
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
 		}
 	}
-	
+
 }

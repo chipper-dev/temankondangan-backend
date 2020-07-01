@@ -28,6 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditQuery;
+import org.hibernate.envers.query.AuditQueryCreator;
+import org.hibernate.envers.query.criteria.AuditCriterion;
+import org.hibernate.envers.query.projection.AuditProjection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -91,8 +96,17 @@ public class EventServiceTest {
 	@Mock
 	NotificationService notificationService;
 
-	@InjectMocks
-	EventServiceImpl eventService;
+    @Mock
+    AuditReader auditReader;
+
+    @Mock
+    AuditQueryCreator auditQueryCreator;
+
+    @Mock
+    AuditQuery auditQuery;
+
+    @InjectMocks
+    EventServiceImpl eventService;
 
 	private static CreateEventWrapper wrapper;
 	private static Event event;
@@ -157,7 +171,7 @@ public class EventServiceTest {
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
 		wrapper.setCity("Test City");
-		
+
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
 		assertEquals(150, result.getMaximumAge());
@@ -246,16 +260,9 @@ public class EventServiceTest {
 		Optional<Profile> profileOptional = Optional.of(profile1);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
 
-		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
-		event2.setProfileId(1L);
-		event2.setEventId(2L);
-		event2.setTitle("title test 2");
-		event2.setCity("Test City");
-		event2.setCreatorFullName("creator name test");
-		event2.setCreatedBy("system");
-		event2.setCity("city test");
-		event2.setStartDateTime(LocalDateTime.now());
-		event2.setFinishDateTime(LocalDateTime.now());
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper(1L, 2L, "creator name test",
+				"system", "title test 2", "city test", LocalDateTime.now(), LocalDateTime.now(), 18, 40, Gender.B,
+				Gender.B, ApplicantStatus.ACCEPTED, false);
 
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setProfileId(2L);
@@ -592,18 +599,20 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInActiveAppliedEvent() {
-		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
-				.hasMessageContaining("Error: Please input a valid applicant status")
-				.isInstanceOf(BadRequestException.class);
+		assertThatThrownBy(
+				() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+						.hasMessageContaining("Error: Please input a valid applicant status")
+						.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
 	public void shouldThrowBadRequestException_WhenDirectionNotValidInActiveAppliedEvent() {
-		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "wrong direction", "ALLSTATUS"))
-				.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
-				.isInstanceOf(BadRequestException.class);
+		assertThatThrownBy(
+				() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "wrong direction", "ALLSTATUS"))
+						.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
+						.isInstanceOf(BadRequestException.class);
 	}
-	
+
 	// find past events service
 	@Test
 	public void findPastAppliedEventTest() {
@@ -646,14 +655,13 @@ public class EventServiceTest {
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
 
-		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC",
-				"APPLIED");
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC", "APPLIED");
 
 		assertFalse(resultList.isEmpty());
 		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
 		assertEquals("title test", resultList.get(0).getTitle());
 	}
-	
+
 	@Test
 	public void findCancelledPastAppliedEventTest() {
 		event = new Event();
@@ -695,8 +703,7 @@ public class EventServiceTest {
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
 
-		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC",
-				"CANCELED");
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(2L, "createdDate", "DESC", "CANCELED");
 
 		assertFalse(resultList.isEmpty());
 		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
@@ -712,9 +719,10 @@ public class EventServiceTest {
 
 	@Test
 	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInPastAppliedEvent() {
-		assertThatThrownBy(() -> eventService.findPastAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
-				.hasMessageContaining("Error: Please input a valid applicant status")
-				.isInstanceOf(BadRequestException.class);
+		assertThatThrownBy(
+				() -> eventService.findPastAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+						.hasMessageContaining("Error: Please input a valid applicant status")
+						.isInstanceOf(BadRequestException.class);
 	}
 
 	@Test
@@ -724,7 +732,7 @@ public class EventServiceTest {
 				.isInstanceOf(BadRequestException.class);
 	}
 
-	//edit event service
+	// edit event service
 	@Test
 	public void editEventSuccess() {
 		event = new Event();
@@ -743,8 +751,22 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
+        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
+				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+				.add(any(AuditCriterion.class)))
+				.thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .addProjection(any(AuditProjection.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .getSingleResult())
+                .thenReturn(1L);
+
+        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
@@ -779,8 +801,22 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
+        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .add(any(AuditCriterion.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .addProjection(any(AuditProjection.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .getSingleResult())
+                .thenReturn(1L);
+
+        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
