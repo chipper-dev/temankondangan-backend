@@ -12,7 +12,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.en.RatingType;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RatingWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.RatingRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,17 +46,17 @@ public class RatingServiceImpl implements RatingService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
         List<Applicant> acceptedApplicantList = applicantRepository.findByEventIdAccepted(event.getEventId());
 
-        if(event.getStartDateTime().isAfter(LocalDateTime.now())) {
-            throw new BadRequestException("Error: You cannot rate a user before the event happen.");
+        if(!isRatingValid(event)) {
+            String durationValid = String.valueOf(ratingValidMax / 3600000L);
+            throw new BadRequestException(String.format("Error: You cannot rate a user after %s hours", durationValid));
         }
 
         if(isRated(userVoterId, eventId)) {
             throw new BadRequestException("Error: You've submitted the the rating. You can't submit the rating again.");
         }
 
-        if(!isRatingValid(event)) {
-            String durationValid = String.valueOf(ratingValidMax / 3600000L);
-            throw new BadRequestException(String.format("Error: You cannot rate a user after %s hours", durationValid));
+        if(event.getStartDateTime().isAfter(LocalDateTime.now()) || event.getFinishDateTime().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
         }
 
         if (event.getCancelled()) {
