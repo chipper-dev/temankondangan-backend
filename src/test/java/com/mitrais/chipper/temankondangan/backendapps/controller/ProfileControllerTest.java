@@ -5,6 +5,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -30,6 +31,7 @@ import org.springframework.web.context.WebApplicationContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileResponseWrapper;
@@ -102,7 +104,10 @@ public class ProfileControllerTest {
 
 	@Test
 	public void findProfileTest() throws Exception {
-		ProfileResponseWrapper responseWrapper = ProfileResponseWrapper.builder().profileId(1L).build();
+		ProfileResponseWrapper responseWrapper = ProfileResponseWrapper.builder().profileId(1L).aboutMe("aboutme test")
+				.city("city test").dob(LocalDate.now().minusYears(25)).email("email@com").fullName("name test")
+				.gender(Gender.L).hasPassword(true).interest("interest test").photoProfileUrl("photoProfileUrl test")
+				.ratingData(null).build();
 
 		Mockito.when(profileService.findByUserId(anyLong())).thenReturn(responseWrapper);
 
@@ -130,8 +135,7 @@ public class ProfileControllerTest {
 
 	@Test
 	public void registerUserTest() throws Exception {
-		CreateProfileWrapper responseWrapper = CreateProfileWrapper.builder().fullname("name test")
-				.build();
+		CreateProfileWrapper responseWrapper = CreateProfileWrapper.builder().fullname("name test").build();
 
 		Mockito.when(profileService.create(Mockito.any(CreateProfileWrapper.class))).thenReturn(new Profile());
 
