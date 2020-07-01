@@ -28,6 +28,11 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
+import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.query.AuditQuery;
+import org.hibernate.envers.query.AuditQueryCreator;
+import org.hibernate.envers.query.criteria.AuditCriterion;
+import org.hibernate.envers.query.projection.AuditProjection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -91,8 +96,17 @@ public class EventServiceTest {
 	@Mock
 	NotificationService notificationService;
 
-	@InjectMocks
-	EventServiceImpl eventService;
+    @Mock
+    AuditReader auditReader;
+
+    @Mock
+    AuditQueryCreator auditQueryCreator;
+
+    @Mock
+    AuditQuery auditQuery;
+
+    @InjectMocks
+    EventServiceImpl eventService;
 
 	private static CreateEventWrapper wrapper;
 	private static Event event;
@@ -743,8 +757,22 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
+        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
+				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+				.add(any(AuditCriterion.class)))
+				.thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .addProjection(any(AuditProjection.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .getSingleResult())
+                .thenReturn(1L);
+
+        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
@@ -779,8 +807,22 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
+        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .add(any(AuditCriterion.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .addProjection(any(AuditProjection.class)))
+                .thenReturn(auditQuery);
+        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                .getSingleResult())
+                .thenReturn(1L);
+
+        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
