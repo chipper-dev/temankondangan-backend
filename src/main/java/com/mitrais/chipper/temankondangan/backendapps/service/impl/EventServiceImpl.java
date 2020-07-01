@@ -81,8 +81,8 @@ public class EventServiceImpl implements EventService {
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
 			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
-			ImageFileService imageFileService, NotificationService notificationService,
-			RatingService ratingService, AuditReader auditReader) {
+			ImageFileService imageFileService, NotificationService notificationService, RatingService ratingService,
+			AuditReader auditReader) {
 
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
@@ -100,7 +100,7 @@ public class EventServiceImpl implements EventService {
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		checkValidAge(wrapper.getMinimumAge(), wrapper.getMaximumAge());
-		
+
 		// check dateAndTime valid
 		DateTimeFormatter df = DateTimeFormatter.ofPattern("dd-MM-uuuu HH:mm").withResolverStyle(ResolverStyle.STRICT);
 		LocalDateTime startDateTime;
@@ -278,8 +278,8 @@ public class EventServiceImpl implements EventService {
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		Event eventUpdated = eventRepository.save(event);
 
-        List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
-        System.out.println("Updated Fields: " + fieldsUpdated);
+		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
+		System.out.println("Updated Fields: " + fieldsUpdated);
 
 		return eventUpdated;
 	}
@@ -290,14 +290,12 @@ public class EventServiceImpl implements EventService {
 		Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
 		Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
 
-		Arrays.stream(fields).map(Field::getName).filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user"))
-				.forEach(name -> {
-					final Long hits = (Long) auditReader.createQuery()
-							.forRevisionsOfEntity(Event.class, false, false)
+		Arrays.stream(fields).map(Field::getName)
+				.filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
+					final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
 							.add(AuditEntity.id().eq(eventResult.getEventId()))
 							.add(AuditEntity.revisionNumber().eq(revisionNumber))
-							.add(AuditEntity.property(name).hasChanged())
-							.addProjection(AuditEntity.id().count())
+							.add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
 							.getSingleResult();
 
 					if (hits == 1) {
@@ -428,15 +426,15 @@ public class EventServiceImpl implements EventService {
 		applicantRepository.save(applicant);
 
 		String title = "Someone applied to your event";
-		String body =  profile.getFullName() + " apply application to " + applicant.getEvent().getTitle();
+		String body = profile.getFullName() + " apply application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 
-        try {
-            notificationService.send(title, body, event.getUser(), data);
-        } catch (FirebaseMessagingException e) {
-        	logger.error("FirebaseMessagingException", e);
-        }
-    }
+		try {
+			notificationService.send(title, body, event.getUser(), data);
+		} catch (FirebaseMessagingException e) {
+			logger.error("FirebaseMessagingException", e);
+		}
+	}
 
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
@@ -462,16 +460,16 @@ public class EventServiceImpl implements EventService {
 		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
 		String name = profile == null ? "Someone" : profile.getFullName();
 		String title = "Someone cancel application to your event";
-		String body =  name + " cancel application to " + applicant.getEvent().getTitle();
+		String body = name + " cancel application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 
-        try {
-            notificationService.send(title, body, event.getUser(), data);
-        } catch (FirebaseMessagingException e) {
+		try {
+			notificationService.send(title, body, event.getUser(), data);
+		} catch (FirebaseMessagingException e) {
 			logger.error("FirebaseMessagingException", e);
-        }
+		}
 
-    }
+	}
 
 	@Override
 	public void creatorCancelEvent(Long userId, Long eventId) {
@@ -802,6 +800,9 @@ public class EventServiceImpl implements EventService {
 
 		// check finishhour
 		if (!(finishHour == null || finishHour.isEmpty())) {
+			if (startHour == null || startHour.isEmpty()) {
+				startHourUpperRange = LocalTime.MIN;
+			}
 			int finishHourSize = finishHour.size();
 			Collections.sort(finishHour);
 
@@ -840,6 +841,22 @@ public class EventServiceImpl implements EventService {
 				secondFinishHourUpperRange = LocalTime.MAX;
 				finishHourLowerRange = LocalTime.MIN;
 			}
+		}
+
+		// used to disable search between 00:00 and 00:00,
+		// sometimes there are event that don't have finishDateTime
+		// and the startDateTime is at 00:00
+		if (startHourLowerRange.equals(LocalTime.MIN) && startHourUpperRange.equals(LocalTime.MIN)) {
+			startHourLowerRange = LocalTime.NOON;
+		}
+		if (finishHourLowerRange.equals(LocalTime.MIN) && finishHourUpperRange.equals(LocalTime.MIN)) {
+			finishHourLowerRange = LocalTime.NOON;
+		}
+		if (secondStartHourLowerRange.equals(LocalTime.MIN) && secondStartHourUpperRange.equals(LocalTime.MIN)) {
+			secondStartHourLowerRange = LocalTime.NOON;
+		}
+		if (secondFinishHourLowerRange.equals(LocalTime.MIN) && secondFinishHourUpperRange.equals(LocalTime.MIN)) {
+			secondFinishHourLowerRange = LocalTime.NOON;
 		}
 
 		Page<Map<String, Object>> eventWrapperPages = eventRepository.search(userAge, companionGender, userId,
