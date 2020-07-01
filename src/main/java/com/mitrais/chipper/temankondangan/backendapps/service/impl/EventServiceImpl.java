@@ -66,6 +66,8 @@ public class EventServiceImpl implements EventService {
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
 
+	enum NotificationType { APPLY_EVENT, CANCEL_APPLY_EVENT, EDIT_EVENT, CANCEL_EVENT }
+
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
 	private ProfileRepository profileRepository;
@@ -631,12 +633,6 @@ public class EventServiceImpl implements EventService {
 		return resultList;
 	}
 
-	private boolean isCancelationValid(LocalDateTime eventDate) {
-		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
-
-		return duration.getSeconds() * 1000 > cancelationMax;
-	}
-
 	@Override
 	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
 			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
@@ -913,6 +909,56 @@ public class EventServiceImpl implements EventService {
 	private void checkValidSortBy(String sortBy) {
 		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+		}
+	}
+
+	private boolean isCancelationValid(LocalDateTime eventDate) {
+		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+
+		return duration.getSeconds() * 1000 > cancelationMax;
+	}
+
+	private void sendSingleNotification(NotificationType notificationType, Event event, String name) {
+		Map<String, String> data = new HashMap<>();
+		data.put("eventId", event.getEventId().toString());
+
+		String title = tittleNotificationMsg(notificationType);
+		String body = bodyNotificationMsg(notificationType, name, event.getTitle());
+
+		try {
+			notificationService.send(title, body, event.getUser(), data);
+		} catch (FirebaseMessagingException e) {
+			logger.error("FirebaseMessagingException", e);
+		}
+	}
+
+	private String tittleNotificationMsg(NotificationType notificationType) {
+		switch (notificationType) {
+			case APPLY_EVENT:
+				return "Someone applied to your event";
+			case CANCEL_APPLY_EVENT:
+				return "Someone cancel application to your event";
+			case EDIT_EVENT:
+				return "The Creator of Event that you have applied edited the Event info";
+			case CANCEL_EVENT:
+				return "The Creator of Event that you have applied canceled the Event";
+			default:
+				return "";
+		}
+	}
+
+	private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
+		switch (notificationType) {
+			case APPLY_EVENT:
+				return name + " apply application to " + tittleEvent;
+			case CANCEL_APPLY_EVENT:
+				return name + " cancel application to " + tittleEvent;
+			case EDIT_EVENT:
+				return name + " edit the " + tittleEvent;
+			case CANCEL_EVENT:
+				return name + " cancel " + tittleEvent;
+			default:
+				return "";
 		}
 	}
 
