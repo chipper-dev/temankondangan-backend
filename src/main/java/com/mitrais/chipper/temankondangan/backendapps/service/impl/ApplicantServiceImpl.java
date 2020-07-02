@@ -149,6 +149,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle;
 		Map<String, String> data = new HashMap<>();
 		data.put("eventId", eventId.toString());
+		data.put("isMyEvent", Boolean.FALSE.toString());
 
 		try {
 			notificationService.send(title, body, userDestination, data);
