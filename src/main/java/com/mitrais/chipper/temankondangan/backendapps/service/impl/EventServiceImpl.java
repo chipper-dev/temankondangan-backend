@@ -921,6 +921,7 @@ public class EventServiceImpl implements EventService {
 
         Map<String, String> data = new HashMap<>();
         data.put("eventId", event.getEventId().toString());
+		data.put("isMyEvent", Boolean.TRUE.toString());
 
         try {
             notificationService.sendMultiple(title, body, userList, data);
