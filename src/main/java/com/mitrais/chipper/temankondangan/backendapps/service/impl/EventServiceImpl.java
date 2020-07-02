@@ -429,6 +429,7 @@ public class EventServiceImpl implements EventService {
 		String body = profile.getFullName() + " apply application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 		data.put("eventId", eventId.toString());
+		data.put("isMyEvent", Boolean.TRUE.toString());
 
 		try {
 			notificationService.send(title, body, event.getUser(), data);
@@ -464,6 +465,7 @@ public class EventServiceImpl implements EventService {
 		String body = name + " cancel application to " + applicant.getEvent().getTitle();
 		Map<String, String> data = new HashMap<>();
 		data.put("eventId", eventId.toString());
+		data.put("isMyEvent", Boolean.TRUE.toString());
 
 		try {
 			notificationService.send(title, body, event.getUser(), data);
