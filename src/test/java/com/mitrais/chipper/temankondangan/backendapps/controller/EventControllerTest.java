@@ -24,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -148,19 +147,6 @@ public class EventControllerTest {
 		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
 				.andExpect(jsonPath("$.error").value("Bad Request"))
 				.andExpect(jsonPath("$.message").value("Error: Cannot send null values!"));
-	}
-
-	@Test
-	public void shouldThrowPropertyReferenceException_inCreateEventTest() throws Exception {
-		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
-				.thenThrow(PropertyReferenceException.class);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
-				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
-				.contentType(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
-				.andExpect(jsonPath("$.error").value("Property Reference Exception"));
 	}
 
 	@Test
