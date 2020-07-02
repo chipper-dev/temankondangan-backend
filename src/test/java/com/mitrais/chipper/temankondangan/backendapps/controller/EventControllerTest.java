@@ -137,20 +137,11 @@ public class EventControllerTest {
 
 	@Test
 	public void shouldThrowNullPointerException_inCreateEventTest() throws Exception {
-		CreateEventWrapper wrapper = new CreateEventWrapper();
-		wrapper.setAdditionalInfo("info test");
-		wrapper.setCompanionGender(Gender.P);
-		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
-		wrapper.setMaximumAge(25);
-		wrapper.setMinimumAge(18);
-		wrapper.setTitle(null);
-
 		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
 				.thenThrow(NullPointerException.class);
 
 		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
-				.header("Authorization", "Bearer " + token).content(asJsonString(wrapper))
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
 				.contentType(MediaType.APPLICATION_JSON);
 
 		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
