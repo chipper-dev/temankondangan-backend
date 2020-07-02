@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.google.firebase.messaging.*;
+import com.google.gson.Gson;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.NotificationRepository;
@@ -34,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .setBody(body)
                 .build();
 
-        saveNotificationData(title, body, user.getUserId());
+        saveNotificationData(title, body, user.getUserId(), data);
         if(!StringUtils.isEmpty(user.getMessagingToken())) {
             Message message = Message.builder()
                     .putAllData(data)
@@ -58,7 +59,7 @@ public class NotificationServiceImpl implements NotificationService {
             if(!StringUtils.isEmpty(user.getMessagingToken())) {
                 messagingTokens.add(user.getMessagingToken());
             }
-            saveNotificationData(title, body, user.getUserId());
+            saveNotificationData(title, body, user.getUserId(), data);
         });
 
         if(!messagingTokens.isEmpty()) {
@@ -96,12 +97,16 @@ public class NotificationServiceImpl implements NotificationService {
         }
     }
 
-    private void saveNotificationData(String title, String body, Long userId) {
+    private void saveNotificationData(String title, String body, Long userId, @NotNull Map<String, String> data) {
         com.mitrais.chipper.temankondangan.backendapps.model.Notification notification = new com.mitrais.chipper.temankondangan.backendapps.model.Notification();
         notification.setTitle(title);
         notification.setBody(body);
         notification.setUserId(userId);
         notification.setIsRead(false);
+
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(data);
+        notification.setData(jsonString);
 
         notificationRepository.save(notification);
     }

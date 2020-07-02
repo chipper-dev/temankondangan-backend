@@ -78,3 +78,6 @@ ALTER TABLE applicants
     ALTER COLUMN created_date DROP DEFAULT,
     ALTER COLUMN last_modified_by DROP DEFAULT,
     ALTER COLUMN last_modified_date DROP DEFAULT;
+
+ALTER TABLE notifications
+    ADD COLUMN data varchar(512);
