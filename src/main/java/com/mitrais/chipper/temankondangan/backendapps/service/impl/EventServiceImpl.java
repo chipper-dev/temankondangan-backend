@@ -887,6 +887,7 @@ public class EventServiceImpl implements EventService {
     private void sendSingleNotification(NotificationType notificationType, Event event, String name) {
         Map<String, String> data = new HashMap<>();
         data.put("eventId", event.getEventId().toString());
+		data.put("isMyEvent", Boolean.TRUE.toString());
 
         String title = tittleNotificationMsg(notificationType);
         String body = bodyNotificationMsg(notificationType, name, event.getTitle());
@@ -921,7 +922,7 @@ public class EventServiceImpl implements EventService {
 
         Map<String, String> data = new HashMap<>();
         data.put("eventId", event.getEventId().toString());
-		data.put("isMyEvent", Boolean.TRUE.toString());
+		data.put("isMyEvent", Boolean.FALSE.toString());
 
         try {
             notificationService.sendMultiple(title, body, userList, data);
