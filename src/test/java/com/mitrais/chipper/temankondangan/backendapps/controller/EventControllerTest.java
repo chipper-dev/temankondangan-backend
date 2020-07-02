@@ -3,11 +3,13 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -31,6 +34,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -130,6 +134,73 @@ public class EventControllerTest {
 
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content.title").value("title test"));
+	}
+
+	@Test
+	public void shouldThrowNullPointerException_inCreateEventTest() throws Exception {
+		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
+				.thenThrow(NullPointerException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("Error: Cannot send null values!"));
+	}
+
+	@Test
+	public void shouldThrowPropertyReferenceException_inCreateEventTest() throws Exception {
+		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
+				.thenThrow(PropertyReferenceException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error").value("Property Reference Exception"));
+	}
+
+	@Test
+	public void shouldThrowDateTimeParseException_inCreateEventTest() throws Exception {
+		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
+				.thenThrow(DateTimeParseException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error").value("Bad Request"))
+				.andExpect(jsonPath("$.message").value("Error: 'null' is not a valid format"));
+	}
+
+	@Test
+	public void shouldThrowTransactionSystemException_inCreateEventTest() throws Exception {
+		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
+				.thenThrow(TransactionSystemException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isInternalServerError())
+				.andExpect(jsonPath("$.status").value(500));
+	}
+
+	@Test
+	public void shouldThrowNumberFormatException_inCreateEventTest() throws Exception {
+		Mockito.when(eventService.create(Mockito.anyLong(), Mockito.any(CreateEventWrapper.class)))
+				.thenThrow(NumberFormatException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/event/create")
+				.header("Authorization", "Bearer " + token).content(asJsonString(new CreateEventWrapper()))
+				.contentType(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.status").value(400));
 	}
 
 	@Test
@@ -235,7 +306,7 @@ public class EventControllerTest {
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content").value("The event was canceled successfully"));
 	}
-	
+
 	@Test
 	public void findMyCurrentEventTest() throws Exception {
 		EventFindAllListDBResponseWrapper wrapper = EventFindAllListDBResponseWrapper.builder().title("title test")
@@ -311,7 +382,7 @@ public class EventControllerTest {
 				.andExpect(jsonPath("$.content[0].photoProfileUrl").value("image.jpg"))
 				.andExpect(jsonPath("$.content[0].title").value("Lorem Ipsum"));
 	}
-	
+
 	@Test
 	public void creatorCancelEventTest() throws Exception {
 		Mockito.doNothing().when(eventService).creatorCancelEvent(anyLong(), anyLong());
@@ -323,8 +394,7 @@ public class EventControllerTest {
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content").value("The event was canceled successfully"));
 	}
-	
-	
+
 	public static String asJsonString(final Object obj) {
 		try {
 			return new ObjectMapper().writeValueAsString(obj);
