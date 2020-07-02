@@ -14,13 +14,17 @@ import java.time.format.ResolverStyle;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.mitrais.chipper.temankondangan.backendapps.model.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.NotificationService;
 import org.apache.commons.lang3.EnumUtils;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 import org.apache.commons.lang3.StringUtils;
+import org.aspectj.weaver.ast.Not;
 import org.hibernate.envers.AuditReader;
+import org.hibernate.envers.AuditReaderFactory;
 import org.hibernate.envers.query.AuditEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,14 +70,16 @@ public class EventServiceImpl implements EventService {
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
 
-	private EventRepository eventRepository;
-	private UserRepository userRepository;
-	private ProfileRepository profileRepository;
-	private ApplicantRepository applicantRepository;
-	private ImageFileService imageFileService;
-	private NotificationService notificationService;
-	private RatingService ratingService;
-	private AuditReader auditReader;
+    enum NotificationType {APPLY_EVENT, CANCEL_APPLY_EVENT, EDIT_EVENT, CANCEL_EVENT}
+
+    private EventRepository eventRepository;
+    private UserRepository userRepository;
+    private ProfileRepository profileRepository;
+    private ApplicantRepository applicantRepository;
+    private ImageFileService imageFileService;
+    private NotificationService notificationService;
+    private RatingService ratingService;
+    private AuditReader auditReader;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
@@ -278,44 +284,23 @@ public class EventServiceImpl implements EventService {
 		event.setAdditionalInfo(wrapper.getAdditionalInfo());
 		Event eventUpdated = eventRepository.save(event);
 
-		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
-		System.out.println("Updated Fields: " + fieldsUpdated);
+        List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
+        System.out.println("Updated Fields: " + fieldsUpdated);
 
-		return eventUpdated;
-	}
+        sendMultipleNotification(NotificationType.EDIT_EVENT, event, fieldsUpdated);
 
-	// To retrieve the updated fields
-	private List<String> findFieldsUpdated(Event eventResult) {
-		List<String> fieldListResult = new ArrayList<>();
-		Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
-		Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+        return eventUpdated;
+    }
 
-		Arrays.stream(fields).map(Field::getName)
-				.filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
-					final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-							.add(AuditEntity.id().eq(eventResult.getEventId()))
-							.add(AuditEntity.revisionNumber().eq(revisionNumber))
-							.add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
-							.getSingleResult();
-
-					if (hits == 1) {
-						// propertyName changed at revisionNumber
-						fieldListResult.add(name);
-					}
-				});
-
-		return fieldListResult;
-	}
-
-	@Override
-	public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
-		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
-		boolean isApplied = false;
-		boolean isCreatorRated = false;
-		Long id;
-		ApplicantStatus applicantStatus = null;
-		AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
-		Boolean hasAcceptedApplicant = null;
+    @Override
+    public EventDetailResponseWrapper findEventDetail(String eventIdStr, Long userId) {
+        List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
+        boolean isApplied = false;
+        boolean isCreatorRated = false;
+        Long id;
+        ApplicantStatus applicantStatus = null;
+        AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
+        Boolean hasAcceptedApplicant = null;
 
 		// Custom exception as requested by Tester, when input param.
 		try {
@@ -425,18 +410,8 @@ public class EventServiceImpl implements EventService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		String title = "Someone applied to your event";
-		String body = profile.getFullName() + " apply application to " + applicant.getEvent().getTitle();
-		Map<String, String> data = new HashMap<>();
-		data.put("eventId", eventId.toString());
-		data.put("isMyEvent", Boolean.TRUE.toString());
-
-		try {
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-			logger.error("FirebaseMessagingException", e);
-		}
-	}
+        sendSingleNotification(NotificationType.APPLY_EVENT, applicant.getEvent(), profile.getFullName());
+    }
 
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
@@ -459,21 +434,10 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
-		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
-		String name = profile == null ? "Someone" : profile.getFullName();
-		String title = "Someone cancel application to your event";
-		String body = name + " cancel application to " + applicant.getEvent().getTitle();
-		Map<String, String> data = new HashMap<>();
-		data.put("eventId", eventId.toString());
-		data.put("isMyEvent", Boolean.TRUE.toString());
-
-		try {
-			notificationService.send(title, body, event.getUser(), data);
-		} catch (FirebaseMessagingException e) {
-			logger.error("FirebaseMessagingException", e);
-		}
-
-	}
+        Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
+        String name = profile == null ? "Someone" : profile.getFullName();
+        sendSingleNotification(NotificationType.CANCEL_APPLY_EVENT, applicant.getEvent(), name);
+    }
 
 	@Override
 	public void creatorCancelEvent(Long userId, Long eventId) {
@@ -635,25 +599,19 @@ public class EventServiceImpl implements EventService {
 		return resultList;
 	}
 
-	private boolean isCancelationValid(LocalDateTime eventDate) {
-		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
-
-		return duration.getSeconds() * 1000 > cancelationMax;
-	}
-
-	@Override
-	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
-			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
-			Double zoneOffset) {
-		// check sortBy and direction
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		} else if (sortBy.equals("startDateTime")) {
-			sortBy = "start_date_time";
-		} else {
-			sortBy = "created_date";
-		}
+    @Override
+    public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
+                                              String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
+                                              String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
+                                              Double zoneOffset) {
+        // check sortBy and direction
+        if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
+            throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
+        } else if (sortBy.equals("startDateTime")) {
+            sortBy = "start_date_time";
+        } else {
+            sortBy = "created_date";
+        }
 
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -919,5 +877,129 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
 		}
 	}
+
+    private boolean isCancelationValid(LocalDateTime eventDate) {
+        Duration duration = Duration.between(LocalDateTime.now(), eventDate);
+
+        return duration.getSeconds() * 1000 > cancelationMax;
+    }
+
+    private void sendSingleNotification(NotificationType notificationType, Event event, String name) {
+        Map<String, String> data = new HashMap<>();
+        data.put("eventId", event.getEventId().toString());
+
+        String title = tittleNotificationMsg(notificationType);
+        String body = bodyNotificationMsg(notificationType, name, event.getTitle());
+
+        try {
+            notificationService.send(title, body, event.getUser(), data);
+        } catch (FirebaseMessagingException e) {
+            logger.error("FirebaseMessagingException", e);
+        }
+    }
+
+    private void sendMultipleNotification(NotificationType notificationType, Event event, List<String> fields) {
+        List<Applicant> applicantList = applicantRepository.findByEventIdAcceptedAndApplied(event.getEventId());
+        List<User> userList = applicantList.stream().map(Applicant::getApplicantUser).collect(Collectors.toList());
+
+        Profile profile = profileRepository.findByUserId(event.getUser().getUserId()).orElse(null);
+        String name = profile == null ? "Someone" : profile.getFullName();
+
+        String title = tittleNotificationMsg(notificationType);
+        String body = bodyNotificationMsg(notificationType, name, event.getTitle());
+        if (fields != null && !fields.isEmpty()) {
+            if (fields.contains("Title")) {
+                String previousTitle = getPreviousEvent(event).getTitle();
+                body = bodyNotificationMsg(notificationType, name, String.join(", ", fields).concat(" of the ")
+                        .concat(event.getTitle()).concat(" previously "))
+                        .concat(previousTitle);
+            } else {
+                body = bodyNotificationMsg(notificationType, name, String.join(", ", fields).concat(" of the ").concat(event.getTitle()));
+            }
+        }
+        logger.info("Body of Notification Message: {}", body);
+
+        Map<String, String> data = new HashMap<>();
+        data.put("eventId", event.getEventId().toString());
+		data.put("isMyEvent", Boolean.TRUE.toString());
+
+        try {
+            notificationService.sendMultiple(title, body, userList, data);
+        } catch (FirebaseMessagingException e) {
+            logger.error("FirebaseMessagingException", e);
+        }
+    }
+
+    private String tittleNotificationMsg(NotificationType notificationType) {
+        switch (notificationType) {
+            case APPLY_EVENT:
+                return "Someone applied to your event";
+            case CANCEL_APPLY_EVENT:
+                return "Someone cancel application to your event";
+            case EDIT_EVENT:
+                return "The Event info that you have applied was edited";
+            case CANCEL_EVENT:
+                return "The Event that you have applied was canceled";
+            default:
+                return "";
+        }
+    }
+
+    private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
+        switch (notificationType) {
+            case APPLY_EVENT:
+                return name + " apply application to " + tittleEvent;
+            case CANCEL_APPLY_EVENT:
+                return name + " cancel application to " + tittleEvent;
+            case EDIT_EVENT:
+                return name + " edit the " + tittleEvent;
+            case CANCEL_EVENT:
+                return name + " cancel " + tittleEvent;
+            default:
+                return "";
+        }
+    }
+
+    // To retrieve the updated fields
+    private List<String> findFieldsUpdated(Event eventResult) {
+        List<String> fieldListResult = new ArrayList<>();
+        Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
+        Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+
+        Arrays.stream(fields).map(Field::getName)
+                .filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
+            final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                    .add(AuditEntity.id().eq(eventResult.getEventId()))
+                    .add(AuditEntity.revisionNumber().eq(revisionNumber))
+                    .add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
+                    .getSingleResult();
+
+            if (hits == 1) {
+                // propertyName changed at revisionNumber
+                fieldListResult.add(splitCamelCase(name));
+            }
+        });
+
+        return fieldListResult;
+    }
+
+    private Event getPreviousEvent(Event event) {
+        List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
+        return auditReader.find(Event.class, event.getEventId(),
+                revNumbers.get(revNumbers.size() - 2));
+    }
+
+    private String splitCamelCase(String s) {
+        String splitedCamelCase = s.replaceAll(
+                String.format("%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ),
+                " "
+        );
+
+        return StringUtils.capitalize(splitedCamelCase);
+    }
 
 }
