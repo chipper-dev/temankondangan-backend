@@ -748,22 +748,10 @@ public class EventServiceTest {
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
 
+		setupEnvers();
+
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
-
-        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
-        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
-		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
-				.thenReturn(auditQuery);
-		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-				.add(any(AuditCriterion.class)))
-				.thenReturn(auditQuery);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                .addProjection(any(AuditProjection.class)))
-                .thenReturn(auditQuery);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                .getSingleResult())
-                .thenReturn(1L);
 
         ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
@@ -798,22 +786,10 @@ public class EventServiceTest {
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
 
+		setupEnvers();
+
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
-
-        Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
-        Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
-                .thenReturn(auditQuery);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                .add(any(AuditCriterion.class)))
-                .thenReturn(auditQuery);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                .addProjection(any(AuditProjection.class)))
-                .thenReturn(auditQuery);
-        Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                .getSingleResult())
-                .thenReturn(1L);
 
         ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
@@ -1238,6 +1214,8 @@ public class EventServiceTest {
 	@Test
 	public void creatorCancelEventSuccess() {
 		event = new Event();
+		event.setEventId(1L);
+		event.setTitle("Lorem Ipsum");
 		event.setUser(user);
 		event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(2));
 		event.setStartDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
@@ -1531,5 +1509,26 @@ public class EventServiceTest {
 				"", Arrays.asList(), Arrays.asList("wrong format"), Arrays.asList(), 0.0))
 						.hasMessageContaining("Error: Please use 00-12, 12-18 or 18-00 for hour value")
 						.isInstanceOf(BadRequestException.class);
+	}
+
+	private void setupEnvers(){
+		Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
+		Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
+				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+				.add(any(AuditCriterion.class)))
+				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+				.addProjection(any(AuditProjection.class)))
+				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+				.getSingleResult())
+				.thenReturn(1L);
+
+		List<Number> revisionList = Arrays.asList(1, 2, 3);
+		Mockito.when(auditReader.getRevisions(Event.class, event.getEventId())).thenReturn(revisionList);
+		Mockito.when(auditReader.find(Event.class, event.getEventId(),
+				revisionList.get(revisionList.size() - 2))).thenReturn(event);
 	}
 }

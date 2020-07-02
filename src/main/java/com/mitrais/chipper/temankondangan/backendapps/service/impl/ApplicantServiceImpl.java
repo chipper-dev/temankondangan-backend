@@ -88,7 +88,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "accepted", "accept", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+		sendNotification(applicant.getEvent().getUser().getUserId(), "accepted", "accept", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
@@ -114,7 +114,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "cancelled", "cancelling", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+		sendNotification(applicant.getEvent().getUser().getUserId(), "cancelled", "cancelling", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 	
@@ -138,16 +138,18 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "rejected", "reject", applicant.getEvent().getTitle(), applicant.getApplicantUser());
+		sendNotification(applicant.getEvent().getUser().getUserId(), "rejected", "reject", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
-	private void sendNotification(Long userId, String eventVerbTitle, String eventVerbBody, String eventTitle, User userDestination) {
+	private void sendNotification(Long userId, String eventVerbTitle, String eventVerbBody, String eventTitle, User userDestination, Long eventId) {
 		Profile profile = profileRepository.findByUserId(userId).orElse(null);
 		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
 		String title = "Your event application was " + eventVerbTitle;
 		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle;
 		Map<String, String> data = new HashMap<>();
+		data.put("eventId", eventId.toString());
+		data.put("isMyEvent", Boolean.FALSE.toString());
 
 		try {
 			notificationService.send(title, body, userDestination, data);

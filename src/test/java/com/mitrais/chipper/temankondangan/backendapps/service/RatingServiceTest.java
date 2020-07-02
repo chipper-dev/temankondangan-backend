@@ -52,7 +52,10 @@ public class RatingServiceTest {
 
         User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
         User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
-        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").startDateTime(LocalDateTime.now().minusHours(36)).cancelled(false).build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta")
+                .startDateTime(LocalDateTime.now().minusHours(36))
+                .finishDateTime(LocalDateTime.now().minusHours(30))
+                .cancelled(false).build();
 
         List<Applicant> applicantList = Arrays.asList(
                 Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
@@ -105,7 +108,9 @@ public class RatingServiceTest {
         RatingWrapper ratingWrapper = RatingWrapper.builder().score(2).userId(2L).ratingType(RatingType.APPLICANT).build();
         User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
         User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
-        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false).startDateTime(LocalDateTime.now().minusHours(72)).build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false)
+                .startDateTime(LocalDateTime.now().minusHours(72))
+                .build();
 
         List<Applicant> applicantList = Arrays.asList(
                 Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
@@ -159,7 +164,7 @@ public class RatingServiceTest {
         Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
-                .hasMessageContaining("Error: You cannot rate a user before the event happen.")
+                .hasMessageContaining("Error: You cannot rate a user when the event is still active.")
                 .isInstanceOf(BadRequestException.class);
     }
 
@@ -172,7 +177,8 @@ public class RatingServiceTest {
         User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
         Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false)
                 .startDateTime(LocalDateTime.now().minusHours(50))
-                .finishDateTime(LocalDateTime.now().minusHours(44)).build();
+                .finishDateTime(LocalDateTime.now().minusHours(44))
+                .build();
 
         List<Applicant> applicantList = Arrays.asList(
                 Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
@@ -230,6 +236,29 @@ public class RatingServiceTest {
 
         assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
                 .hasMessageContaining("Error: Cannot insert the Rating score with decimal number.")
+                .isInstanceOf(BadRequestException.class);
+    }
+
+    @Test
+    public void ratingFailedWhenEventInTheMiddleOfHappenTest() throws Exception {
+        ReflectionTestUtils.setField(ratingService, "ratingValidMax", (long) 172800000);
+
+        RatingWrapper ratingWrapper = RatingWrapper.builder().score(2).userId(2L).ratingType(RatingType.APPLICANT).build();
+        User userCreator = User.builder().userId(1L).email("ini@mail.com").build();
+        User userApplicant = User.builder().userId(2L).email("ini@mail.com").build();
+        Event event = Event.builder().eventId(3L).user(userCreator).title("Lorem Ipsum").city("Jakarta").cancelled(false)
+                .startDateTime(LocalDateTime.now().minusHours(1)).finishDateTime(LocalDateTime.now().plusHours(3))
+                .build();
+
+        List<Applicant> applicantList = Arrays.asList(
+                Applicant.builder().applicantUser(userApplicant).status(ApplicantStatus.ACCEPTED).event(event).build()
+        );
+
+        Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+        Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(applicantList);
+
+        assertThatThrownBy(() -> ratingService.sendRating(3L, 1L, ratingWrapper))
+                .hasMessageContaining("Error: You cannot rate a user when the event is still active.")
                 .isInstanceOf(BadRequestException.class);
     }
 }
