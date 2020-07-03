@@ -76,7 +76,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public NotificationDataWrapper getNotifications(Long userId) {
         NotificationDataWrapper wrapper = new NotificationDataWrapper();
-        Date thirtyDays = Timestamp.valueOf(LocalDateTime.now().plusDays(30));
+        Date thirtyDays = Timestamp.valueOf(LocalDateTime.now().minusDays(30));
         wrapper.setNotifications(notificationRepository.findByUserId(userId, thirtyDays));
         wrapper.setUnreadCount(notificationRepository.countUnreadByUserId(userId));
         return wrapper;
