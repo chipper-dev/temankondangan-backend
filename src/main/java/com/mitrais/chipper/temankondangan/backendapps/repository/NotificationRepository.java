@@ -13,7 +13,7 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     @Query("SELECT a from Notification a WHERE a.userId = :userId " +
             "AND (a.isRead = false " +
-            "OR (a.isRead = true AND a.createdDate < :thirtyDays))")
+            "OR (a.isRead = true AND a.createdDate > :thirtyDays))")
     List<Notification> findByUserId(@Param("userId") Long userId, @Param("thirtyDays") Date thirtyDays);
 
     @Query("SELECT count(a) from Notification a WHERE a.userId = :userId AND a.isRead = false")
