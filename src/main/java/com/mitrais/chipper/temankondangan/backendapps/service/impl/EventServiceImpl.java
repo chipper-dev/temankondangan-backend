@@ -939,76 +939,83 @@ public class EventServiceImpl implements EventService {
 		data.put("eventId", event.getEventId().toString());
 		data.put("isMyEvent", Boolean.FALSE.toString());
 
-		try {
-			notificationService.sendMultiple(title, body, userList, data);
-		} catch (FirebaseMessagingException e) {
-			logger.error("FirebaseMessagingException", e);
-		}
-	}
+        try {
+            notificationService.sendMultiple(title, body, userList, data);
+        } catch (FirebaseMessagingException e) {
+            logger.error("FirebaseMessagingException", e);
+        }
+    }
 
-	private String tittleNotificationMsg(NotificationType notificationType) {
-		switch (notificationType) {
-		case APPLY_EVENT:
-			return "Someone applied to your event";
-		case CANCEL_APPLY_EVENT:
-			return "Someone cancel application to your event";
-		case EDIT_EVENT:
-			return "The Event info that you have applied was edited";
-		case CANCEL_EVENT:
-			return "The Event that you have applied was canceled";
-		default:
-			return "";
-		}
-	}
+    private String tittleNotificationMsg(NotificationType notificationType) {
+        switch (notificationType) {
+            case APPLY_EVENT:
+                return "Someone applied to your event";
+            case CANCEL_APPLY_EVENT:
+                return "Someone cancel application to your event";
+            case EDIT_EVENT:
+                return "The Event info that you have applied was edited";
+            case CANCEL_EVENT:
+                return "The Event that you have applied was canceled";
+            default:
+                return "";
+        }
+    }
 
-	private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
-		switch (notificationType) {
-		case APPLY_EVENT:
-			return name + " apply application to " + tittleEvent;
-		case CANCEL_APPLY_EVENT:
-			return name + " cancel application to " + tittleEvent;
-		case EDIT_EVENT:
-			return name + " edit the " + tittleEvent;
-		case CANCEL_EVENT:
-			return name + " cancel " + tittleEvent;
-		default:
-			return "";
-		}
-	}
+    private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
+        switch (notificationType) {
+            case APPLY_EVENT:
+                return name + " apply to " + tittleEvent;
+            case CANCEL_APPLY_EVENT:
+                return name + " cancel application to " + tittleEvent;
+            case EDIT_EVENT:
+                return name + " edit the " + tittleEvent;
+            case CANCEL_EVENT:
+                return name + " cancel " + tittleEvent;
+            default:
+                return "";
+        }
+    }
 
-	// To retrieve the updated fields
-	private List<String> findFieldsUpdated(Event eventResult) {
-		List<String> fieldListResult = new ArrayList<>();
-		Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
-		Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+    // To retrieve the updated fields
+    private List<String> findFieldsUpdated(Event eventResult) {
+        List<String> fieldListResult = new ArrayList<>();
+        Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
+        Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
 
-		Arrays.stream(fields).map(Field::getName)
-				.filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
-					final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-							.add(AuditEntity.id().eq(eventResult.getEventId()))
-							.add(AuditEntity.revisionNumber().eq(revisionNumber))
-							.add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
-							.getSingleResult();
+        Arrays.stream(fields).map(Field::getName)
+                .filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
+            final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+                    .add(AuditEntity.id().eq(eventResult.getEventId()))
+                    .add(AuditEntity.revisionNumber().eq(revisionNumber))
+                    .add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
+                    .getSingleResult();
 
-					if (hits == 1) {
-						// propertyName changed at revisionNumber
-						fieldListResult.add(splitCamelCase(name));
-					}
-				});
+            if (hits == 1) {
+                // propertyName changed at revisionNumber
+                fieldListResult.add(splitCamelCase(name));
+            }
+        });
 
-		return fieldListResult;
-	}
+        return fieldListResult;
+    }
 
-	private Event getPreviousEvent(Event event) {
-		List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
-		return auditReader.find(Event.class, event.getEventId(), revNumbers.get(revNumbers.size() - 2));
-	}
+    private Event getPreviousEvent(Event event) {
+        List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
+        return auditReader.find(Event.class, event.getEventId(),
+                revNumbers.get(revNumbers.size() - 2));
+    }
 
-	private String splitCamelCase(String s) {
-		String splitedCamelCase = s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])",
-				"(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+    private String splitCamelCase(String s) {
+        String splitedCamelCase = s.replaceAll(
+                String.format("%s|%s|%s",
+                        "(?<=[A-Z])(?=[A-Z][a-z])",
+                        "(?<=[^A-Z])(?=[A-Z])",
+                        "(?<=[A-Za-z])(?=[^A-Za-z])"
+                ),
+                " "
+        );
 
-		return StringUtils.capitalize(splitedCamelCase);
-	}
+        return StringUtils.capitalize(splitedCamelCase);
+    }
 
 }
