@@ -16,5 +16,6 @@ public class AcceptedApplicantResponseWrapper {
 	private String fullName;
 	private Gender gender;
 	private String photoProfileUrl;
+	private boolean isRated;
 
 }

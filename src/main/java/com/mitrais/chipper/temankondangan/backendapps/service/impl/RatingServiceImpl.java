@@ -55,8 +55,14 @@ public class RatingServiceImpl implements RatingService {
             throw new BadRequestException("Error: You've submitted the the rating. You can't submit the rating again.");
         }
 
-        if(event.getStartDateTime().isAfter(LocalDateTime.now()) || event.getFinishDateTime().isAfter(LocalDateTime.now())) {
+        if(event.getStartDateTime().isAfter(LocalDateTime.now())) {
             throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
+        }
+
+        if(event.getFinishDateTime() != null) {
+            if(event.getFinishDateTime().isAfter(LocalDateTime.now())) {
+                throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
+            }
         }
 
         if (event.getCancelled()) {

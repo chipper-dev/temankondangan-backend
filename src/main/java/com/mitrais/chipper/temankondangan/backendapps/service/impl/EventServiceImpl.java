@@ -336,6 +336,7 @@ public class EventServiceImpl implements EventService {
 					acceptedApplicant.setFullName(profileApplicant.getFullName());
 					acceptedApplicant.setGender(profileApplicant.getGender());
 					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileApplicant));
+					acceptedApplicant.setRated(isApplicantRated);
 				}
 			}));
 		} else {
