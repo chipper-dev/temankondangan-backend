@@ -950,7 +950,7 @@ public class EventServiceImpl implements EventService {
     private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
         switch (notificationType) {
             case APPLY_EVENT:
-                return name + " apply application to " + tittleEvent;
+                return name + " apply to " + tittleEvent;
             case CANCEL_APPLY_EVENT:
                 return name + " cancel application to " + tittleEvent;
             case EDIT_EVENT:
