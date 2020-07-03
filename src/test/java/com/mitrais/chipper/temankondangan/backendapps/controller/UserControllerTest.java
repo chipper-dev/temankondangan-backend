@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -28,6 +29,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ForgotPasswordWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ResetPasswordWrapper;
@@ -98,6 +102,50 @@ public class UserControllerTest {
 
 		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
 				.andExpect(jsonPath("$.content").isBoolean()).andExpect(jsonPath("$.content").value(true));
+	}
+
+	@Test
+	public void shouldThrowUnauthorizedException_whenUserAuthInvalidInChangePasswordTest() throws Exception {
+		UserChangePasswordWrapper wrapper = UserChangePasswordWrapper.builder().newPassword("@12345").build();
+
+		Mockito.when(userService.changePassword(anyLong(), Mockito.any(UserChangePasswordWrapper.class)))
+				.thenThrow(UnauthorizedException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.put("/user/change-password")
+				.header("Authorization", "Bearer " + token).content(asJsonString(wrapper))
+				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isUnauthorized())
+				.andExpect(jsonPath("$.error").value("Unauthorized"));
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_inChangePasswordTest() throws Exception {
+		UserChangePasswordWrapper wrapper = UserChangePasswordWrapper.builder().newPassword("@12345").build();
+
+		Mockito.when(userService.changePassword(anyLong(), Mockito.any(UserChangePasswordWrapper.class)))
+				.thenThrow(ResourceNotFoundException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.put("/user/change-password")
+				.header("Authorization", "Bearer " + token).content(asJsonString(wrapper))
+				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isNotFound());
+	}
+
+	@Test
+	public void shouldBadRequestException_inChangePasswordTest() throws Exception {
+		UserChangePasswordWrapper wrapper = UserChangePasswordWrapper.builder().newPassword("@12345").build();
+
+		Mockito.when(userService.changePassword(anyLong(), Mockito.any(UserChangePasswordWrapper.class)))
+				.thenThrow(BadRequestException.class);
+
+		RequestBuilder requestBuilder = MockMvcRequestBuilders.put("/user/change-password")
+				.header("Authorization", "Bearer " + token).content(asJsonString(wrapper))
+				.contentType(MediaType.APPLICATION_JSON).accept(MediaType.APPLICATION_JSON);
+
+		mockMvc.perform(requestBuilder).andDo(print()).andExpect(status().isBadRequest())
+				.andExpect(jsonPath("$.error").value("Bad Request"));
 	}
 
 	@Test

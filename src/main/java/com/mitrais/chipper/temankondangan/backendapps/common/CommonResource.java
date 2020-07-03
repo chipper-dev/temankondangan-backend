@@ -1,13 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.common;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ContentList;
-import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import java.time.LocalDateTime;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 
 /**
  * Class that defined common function that exist in every resource.
@@ -58,23 +57,6 @@ public class CommonResource {
 		responseBody.setPath(path);
 
 		return responseBody;
-	}
-
-	/**
-	 * Method to get ContentList
-	 * 
-	 * @param pageNumber {@link Integer} Number of Page
-	 * @param pageSize   {@link Integer} Size of Page
-	 * @param contents   {@link List} contents
-	 * @return {@link ContentList}
-	 */
-	protected ContentList getContentList(Integer pageNumber, Integer pageSize, List<?> contents) {
-		ContentList contentList = new ContentList();
-		contentList.setPageNumber(pageNumber);
-		contentList.setPageSize(pageSize);
-		contentList.setContentList(contents);
-		contentList.setActualSize(contents.size());
-		return contentList;
 	}
 
 	protected String getToken(String authTokenHeader) {
