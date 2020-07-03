@@ -31,6 +31,8 @@ public class ApplicantServiceImpl implements ApplicantService {
 	private static final String ERROR_NOT_CREATOR = "Error: Non event creator cannot do this";
 	private static final String DEFAULT_NO_NAME = "Someone";
 
+	enum NotificationType {ACCEPT_APPLICANT, REJECT_APPLICANT, CANCEL_APPLICANT}
+
 	private EventRepository eventRepository;
 	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
@@ -88,7 +90,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "accepted", "accept", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.ACCEPT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
@@ -114,7 +116,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "cancelled", "cancelling", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.CANCEL_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 	
@@ -138,15 +140,15 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), "rejected", "reject", applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.REJECT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
-	private void sendNotification(Long userId, String eventVerbTitle, String eventVerbBody, String eventTitle, User userDestination, Long eventId) {
+	private void sendNotification(Long userId, NotificationType type, String eventTitle, User userDestination, Long eventId) {
 		Profile profile = profileRepository.findByUserId(userId).orElse(null);
 		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
-		String title = "Your event application was " + eventVerbTitle;
-		String body =  name + " " +  eventVerbBody + " acceptance of your application to " + eventTitle;
+		String title = titleNotificationMsg(type);
+		String body =  bodyNotificationMsg(type, name, eventTitle);
 		Map<String, String> data = new HashMap<>();
 		data.put("eventId", eventId.toString());
 		data.put("isMyEvent", Boolean.FALSE.toString());
@@ -155,6 +157,32 @@ public class ApplicantServiceImpl implements ApplicantService {
 			notificationService.send(title, body, userDestination, data);
 		} catch (FirebaseMessagingException e) {
 			logger.error("FirebaseMessagingException", e);
+		}
+	}
+
+	private String titleNotificationMsg(NotificationType notificationType) {
+		switch (notificationType) {
+			case ACCEPT_APPLICANT:
+				return "Your event application was accepted";
+			case CANCEL_APPLICANT:
+				return "Your event application was cancelled";
+			case REJECT_APPLICANT:
+				return "Your event application was rejected";
+			default:
+				return "";
+		}
+	}
+
+	private String bodyNotificationMsg(NotificationType notificationType, String name, String titleEvent) {
+		switch (notificationType) {
+			case ACCEPT_APPLICANT:
+				return name + " accept your application to " + titleEvent;
+			case CANCEL_APPLICANT:
+				return name + " cancelling acceptance of your application to " + titleEvent;
+			case REJECT_APPLICANT:
+				return name + " reject your application to " + titleEvent;
+			default:
+				return "";
 		}
 	}
 
