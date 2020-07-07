@@ -75,7 +75,7 @@ public class EventServiceImpl implements EventService {
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
 	private static final String ERROR_SORTBY = "Error: Can only input createdDate or startDateTime for sortBy!";
-		
+
 	Predicate<String> sortByCreatedDate = s -> s.equals("createdDate");
 	Predicate<String> sortByStartDateTime = s -> s.equals("startDateTime");
 	Predicate<String> sortByLatestApplied = s -> s.equals("latestApplied");
@@ -167,8 +167,8 @@ public class EventServiceImpl implements EventService {
 	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
 			Long userId) {
 
-		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), Entity.USER_ID.getLabel(), userId));
+		Profile profile = profileRepository.findByUserId(userId).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), Entity.USER_ID.getLabel(), userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
 		gender.add(Gender.B);
@@ -211,8 +211,8 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public List<EventFindAllListDBResponseWrapper> findMyEvent(String sortBy, String direction, Long userId,
 			boolean current) {
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), Entity.USER_ID.getLabel(), userId));
+		User user = userRepository.findById(userId).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.USER.getLabel(), Entity.USER_ID.getLabel(), userId));
 
 		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy))) {
 			throw new BadRequestException(ERROR_SORTBY);
@@ -441,8 +441,8 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
-		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), Entity.EVENT_ID.getLabel(), eventId));
+		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId).orElseThrow(
+				() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), Entity.EVENT_ID.getLabel(), eventId));
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
@@ -876,6 +876,8 @@ public class EventServiceImpl implements EventService {
 			responseWrapper.setStartDateTime(((Timestamp) eventWrap.get("start_date_time")).toLocalDateTime());
 			responseWrapper.setTitle((String) eventWrap.get("title"));
 			responseWrapper.setCancelled((Boolean) eventWrap.get("cancelled"));
+			responseWrapper.setCreatedDateTime(LocalDateTime
+					.ofInstant(((Date) eventWrap.get("created_date")).toInstant(), ZoneId.systemDefault()));
 
 			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
 			profileRepository.findById(((BigInteger) eventWrap.get("profile_id")).longValue())
@@ -884,6 +886,7 @@ public class EventServiceImpl implements EventService {
 			responseWrapper.setPhotoProfileUrl(photoProfileUrl.get());
 			responseWrapper.setHasAcceptedApplicant(!applicantRepository
 					.findByEventIdAccepted(((BigInteger) eventWrap.get("event_id")).longValue()).isEmpty());
+
 			eventAllDBResponse.add(responseWrapper);
 		});
 

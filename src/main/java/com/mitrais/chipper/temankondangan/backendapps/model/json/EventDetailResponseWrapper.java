@@ -56,6 +56,6 @@ public class EventDetailResponseWrapper {
     private Boolean cancelled;
 
     private Boolean isRated;
-    
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
     private LocalDateTime createdDateTime;
 }

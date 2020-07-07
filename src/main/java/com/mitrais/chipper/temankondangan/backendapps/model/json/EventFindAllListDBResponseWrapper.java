@@ -1,14 +1,17 @@
 package com.mitrais.chipper.temankondangan.backendapps.model.json;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
+
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Gender;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -33,12 +36,13 @@ public class EventFindAllListDBResponseWrapper {
 	private ApplicantStatus applicantStatus;
 	private Boolean hasAcceptedApplicant;
 	private Boolean cancelled;
+	@JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
 	private LocalDateTime createdDateTime;
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String title, String city, LocalDateTime startDateTime, LocalDateTime finishDateTime, Integer minimumAge,
 			Integer maximumAge, Gender creatorGender, Gender companionGender, ApplicantStatus applicantStatus,
-			Boolean cancelled, LocalDateTime createdDateTime) {
+			Boolean cancelled, Date createdDateTime) {
 		super();
 		this.eventId = eventId;
 		this.profileId = profileId;
@@ -55,6 +59,6 @@ public class EventFindAllListDBResponseWrapper {
 		this.companionGender = companionGender;
 		this.applicantStatus = applicantStatus;
 		this.cancelled = cancelled;
-		this.createdDateTime = createdDateTime;
+		this.createdDateTime = LocalDateTime.ofInstant(createdDateTime.toInstant(), ZoneId.systemDefault());
 	}
 }

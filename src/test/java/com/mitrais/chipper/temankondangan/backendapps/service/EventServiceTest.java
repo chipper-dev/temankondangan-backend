@@ -153,6 +153,7 @@ public class EventServiceTest {
 		event.setTitle("title test");
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
 
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 		Event result = eventService.create(1L, wrapper);
@@ -262,7 +263,7 @@ public class EventServiceTest {
 
 		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper(1L, 2L, "creator name test",
 				"system", "title test 2", "city test", LocalDateTime.now(), LocalDateTime.now(), 18, 40, Gender.B,
-				Gender.B, ApplicantStatus.ACCEPTED, false);
+				Gender.B, ApplicantStatus.ACCEPTED, false, new Date());
 
 		EventFindAllListDBResponseWrapper event3 = new EventFindAllListDBResponseWrapper();
 		event3.setProfileId(2L);
@@ -555,6 +556,7 @@ public class EventServiceTest {
 		event.setTitle("title test");
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
 
 		List<Event> eventList = new ArrayList<>();
 		eventList.add(event);
@@ -628,6 +630,7 @@ public class EventServiceTest {
 		event.setTitle("title test");
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
 
 		List<Event> eventList = new ArrayList<>();
 		eventList.add(event);
@@ -676,6 +679,7 @@ public class EventServiceTest {
 		event.setTitle("title test");
 		event.setCity("Test City");
 		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
 
 		List<Event> eventList = new ArrayList<>();
 		eventList.add(event);
