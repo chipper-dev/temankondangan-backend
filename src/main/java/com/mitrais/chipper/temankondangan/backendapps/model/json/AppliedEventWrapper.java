@@ -29,4 +29,5 @@ public class AppliedEventWrapper {
     private Boolean cancelled;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm", shape = JsonFormat.Shape.STRING)
     private LocalDateTime appliedDateTime;
+    private LocalDateTime createdDateTime;
 }

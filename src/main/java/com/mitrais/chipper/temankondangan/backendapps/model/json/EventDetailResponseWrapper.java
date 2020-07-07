@@ -56,4 +56,6 @@ public class EventDetailResponseWrapper {
     private Boolean cancelled;
 
     private Boolean isRated;
+    
+    private LocalDateTime createdDateTime;
 }

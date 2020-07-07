@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.EnumUtils;
@@ -73,6 +74,11 @@ public class EventServiceImpl implements EventService {
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
+	private static final String ERROR_SORTBY = "Error: Can only input createdDate or startDateTime for sortBy!";
+		
+	Predicate<String> sortByCreatedDate = s -> s.equals("createdDate");
+	Predicate<String> sortByStartDateTime = s -> s.equals("startDateTime");
+	Predicate<String> sortByLatestApplied = s -> s.equals("latestApplied");
 
 	enum NotificationType {
 		APPLY_EVENT, CANCEL_APPLY_EVENT, EDIT_EVENT, CANCEL_EVENT
@@ -162,13 +168,15 @@ public class EventServiceImpl implements EventService {
 			Long userId) {
 
 		Profile profile = profileRepository.findByUserId(userId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), Entity.USER_ID.getLabel(), userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
 		gender.add(Gender.B);
 		gender.add(profile.getGender());
 
-		checkValidSortBy(sortBy);
+		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy))) {
+			throw new BadRequestException(ERROR_SORTBY);
+		}
 
 		Pageable paging;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -204,9 +212,11 @@ public class EventServiceImpl implements EventService {
 	public List<EventFindAllListDBResponseWrapper> findMyEvent(String sortBy, String direction, Long userId,
 			boolean current) {
 		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "userId", userId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), Entity.USER_ID.getLabel(), userId));
 
-		checkValidSortBy(sortBy);
+		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy))) {
+			throw new BadRequestException(ERROR_SORTBY);
+		}
 
 		Sort sort;
 		if (direction.equalsIgnoreCase("DESC")) {
@@ -376,7 +386,9 @@ public class EventServiceImpl implements EventService {
 				.companionGender(event.getCompanionGender()).additionalInfo(event.getAdditionalInfo())
 				.applicantList(applicantResponseWrapperList).isCreator(userId.equals(userCreator.getUserId()))
 				.isApplied(isApplied).applicantStatus(applicantStatus).hasAcceptedApplicant(hasAcceptedApplicant)
-				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).isRated(isCreatorRated).build();
+				.acceptedApplicant(acceptedApplicant).cancelled(event.getCancelled()).isRated(isCreatorRated)
+				.createdDateTime(LocalDateTime.ofInstant(event.getCreatedDate().toInstant(), ZoneId.systemDefault()))
+				.build();
 	}
 
 	@Override
@@ -430,7 +442,7 @@ public class EventServiceImpl implements EventService {
 	@Override
 	public void cancelEvent(Long userApplicantId, Long eventId) {
 		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId)
-				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), "eventId", eventId));
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), Entity.EVENT_ID.getLabel(), eventId));
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", applicant.getEvent().getEventId()));
 
@@ -487,10 +499,10 @@ public class EventServiceImpl implements EventService {
 			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
 		boolean allStatus = true;
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy) || sortByLatestApplied.test(sortBy))) {
 			throw new BadRequestException(
 					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
-		} else if ("latestApplied".equals(sortBy)) {
+		} else if (sortByLatestApplied.test(sortBy)) {
 			sortBy = "a.createdDate";
 		}
 
@@ -520,6 +532,8 @@ public class EventServiceImpl implements EventService {
 			wrapper.setStartDateTime(event.getStartDateTime());
 			wrapper.setFinishDateTime(event.getFinishDateTime());
 			wrapper.setCancelled(event.getCancelled());
+			wrapper.setCreatedDateTime(
+					LocalDateTime.ofInstant(event.getCreatedDate().toInstant(), ZoneId.systemDefault()));
 
 			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
@@ -543,10 +557,10 @@ public class EventServiceImpl implements EventService {
 	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,
 			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy) || "latestApplied".equals(sortBy))) {
+		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy) || sortByLatestApplied.test(sortBy))) {
 			throw new BadRequestException(
 					"Error: Can only input createdDate, startDateTime or latestApplied for sortBy!");
-		} else if ("latestApplied".equals(sortBy)) {
+		} else if (sortByLatestApplied.test(sortBy)) {
 			sortBy = "a.createdDate";
 		}
 
@@ -593,6 +607,8 @@ public class EventServiceImpl implements EventService {
 					wrapper.setStartDateTime(event.getStartDateTime());
 					wrapper.setFinishDateTime(event.getFinishDateTime());
 					wrapper.setCancelled(event.getCancelled());
+					wrapper.setCreatedDateTime(
+							LocalDateTime.ofInstant(event.getCreatedDate().toInstant(), ZoneId.systemDefault()));
 
 					profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
 						wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
@@ -619,9 +635,9 @@ public class EventServiceImpl implements EventService {
 			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
 			Double zoneOffset) {
 		// check sortBy and direction
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		} else if (sortBy.equals("startDateTime")) {
+		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy))) {
+			throw new BadRequestException(ERROR_SORTBY);
+		} else if (sortByStartDateTime.test(sortBy)) {
 			sortBy = "start_date_time";
 		} else {
 			sortBy = "created_date";
@@ -886,12 +902,6 @@ public class EventServiceImpl implements EventService {
 		}
 	}
 
-	private void checkValidSortBy(String sortBy) {
-		if (!("createdDate".equals(sortBy) || "startDateTime".equals(sortBy))) {
-			throw new BadRequestException("Error: Can only input createdDate or startDateTime for sortBy!");
-		}
-	}
-
 	private boolean isCancelationValid(LocalDateTime eventDate) {
 		Duration duration = Duration.between(LocalDateTime.now(), eventDate);
 
@@ -900,7 +910,7 @@ public class EventServiceImpl implements EventService {
 
 	private void sendSingleNotification(NotificationType notificationType, Event event, String name) {
 		Map<String, String> data = new HashMap<>();
-		data.put("eventId", event.getEventId().toString());
+		data.put(Entity.EVENT_ID.getLabel(), event.getEventId().toString());
 		data.put("isMyEvent", Boolean.TRUE.toString());
 
 		String title = tittleNotificationMsg(notificationType);
@@ -939,83 +949,76 @@ public class EventServiceImpl implements EventService {
 		data.put("eventId", event.getEventId().toString());
 		data.put("isMyEvent", Boolean.FALSE.toString());
 
-        try {
-            notificationService.sendMultiple(title, body, userList, data);
-        } catch (FirebaseMessagingException e) {
-            logger.error("FirebaseMessagingException", e);
-        }
-    }
+		try {
+			notificationService.sendMultiple(title, body, userList, data);
+		} catch (FirebaseMessagingException e) {
+			logger.error("FirebaseMessagingException", e);
+		}
+	}
 
-    private String tittleNotificationMsg(NotificationType notificationType) {
-        switch (notificationType) {
-            case APPLY_EVENT:
-                return "Someone applied to your event";
-            case CANCEL_APPLY_EVENT:
-                return "Someone cancel application to your event";
-            case EDIT_EVENT:
-                return "The Event info that you have applied was edited";
-            case CANCEL_EVENT:
-                return "The Event that you have applied was canceled";
-            default:
-                return "";
-        }
-    }
+	private String tittleNotificationMsg(NotificationType notificationType) {
+		switch (notificationType) {
+		case APPLY_EVENT:
+			return "Someone applied to your event";
+		case CANCEL_APPLY_EVENT:
+			return "Someone cancel application to your event";
+		case EDIT_EVENT:
+			return "The Event info that you have applied was edited";
+		case CANCEL_EVENT:
+			return "The Event that you have applied was canceled";
+		default:
+			return "";
+		}
+	}
 
-    private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
-        switch (notificationType) {
-            case APPLY_EVENT:
-                return name + " apply to " + tittleEvent;
-            case CANCEL_APPLY_EVENT:
-                return name + " cancel application to " + tittleEvent;
-            case EDIT_EVENT:
-                return name + " edit the " + tittleEvent;
-            case CANCEL_EVENT:
-                return name + " cancel " + tittleEvent;
-            default:
-                return "";
-        }
-    }
+	private String bodyNotificationMsg(NotificationType notificationType, String name, String tittleEvent) {
+		switch (notificationType) {
+		case APPLY_EVENT:
+			return name + " apply to " + tittleEvent;
+		case CANCEL_APPLY_EVENT:
+			return name + " cancel application to " + tittleEvent;
+		case EDIT_EVENT:
+			return name + " edit the " + tittleEvent;
+		case CANCEL_EVENT:
+			return name + " cancel " + tittleEvent;
+		default:
+			return "";
+		}
+	}
 
-    // To retrieve the updated fields
-    private List<String> findFieldsUpdated(Event eventResult) {
-        List<String> fieldListResult = new ArrayList<>();
-        Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
-        Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+	// To retrieve the updated fields
+	private List<String> findFieldsUpdated(Event eventResult) {
+		List<String> fieldListResult = new ArrayList<>();
+		Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
+		Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
 
-        Arrays.stream(fields).map(Field::getName)
-                .filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
-            final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                    .add(AuditEntity.id().eq(eventResult.getEventId()))
-                    .add(AuditEntity.revisionNumber().eq(revisionNumber))
-                    .add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
-                    .getSingleResult();
+		Arrays.stream(fields).map(Field::getName)
+				.filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
+					final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
+							.add(AuditEntity.id().eq(eventResult.getEventId()))
+							.add(AuditEntity.revisionNumber().eq(revisionNumber))
+							.add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
+							.getSingleResult();
 
-            if (hits == 1) {
-                // propertyName changed at revisionNumber
-                fieldListResult.add(splitCamelCase(name));
-            }
-        });
+					if (hits == 1) {
+						// propertyName changed at revisionNumber
+						fieldListResult.add(splitCamelCase(name));
+					}
+				});
 
-        return fieldListResult;
-    }
+		return fieldListResult;
+	}
 
-    private Event getPreviousEvent(Event event) {
-        List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
-        return auditReader.find(Event.class, event.getEventId(),
-                revNumbers.get(revNumbers.size() - 2));
-    }
+	private Event getPreviousEvent(Event event) {
+		List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
+		return auditReader.find(Event.class, event.getEventId(), revNumbers.get(revNumbers.size() - 2));
+	}
 
-    private String splitCamelCase(String s) {
-        String splitedCamelCase = s.replaceAll(
-                String.format("%s|%s|%s",
-                        "(?<=[A-Z])(?=[A-Z][a-z])",
-                        "(?<=[^A-Z])(?=[A-Z])",
-                        "(?<=[A-Za-z])(?=[^A-Za-z])"
-                ),
-                " "
-        );
+	private String splitCamelCase(String s) {
+		String splitedCamelCase = s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])",
+				"(?<=[^A-Z])(?=[A-Z])", "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
 
-        return StringUtils.capitalize(splitedCamelCase);
-    }
+		return StringUtils.capitalize(splitedCamelCase);
+	}
 
 }

@@ -33,11 +33,12 @@ public class EventFindAllListDBResponseWrapper {
 	private ApplicantStatus applicantStatus;
 	private Boolean hasAcceptedApplicant;
 	private Boolean cancelled;
+	private LocalDateTime createdDateTime;
 
 	public EventFindAllListDBResponseWrapper(Long eventId, Long profileId, String creatorFullName, String createdBy,
 			String title, String city, LocalDateTime startDateTime, LocalDateTime finishDateTime, Integer minimumAge,
 			Integer maximumAge, Gender creatorGender, Gender companionGender, ApplicantStatus applicantStatus,
-			Boolean cancelled) {
+			Boolean cancelled, LocalDateTime createdDateTime) {
 		super();
 		this.eventId = eventId;
 		this.profileId = profileId;
@@ -54,5 +55,6 @@ public class EventFindAllListDBResponseWrapper {
 		this.companionGender = companionGender;
 		this.applicantStatus = applicantStatus;
 		this.cancelled = cancelled;
+		this.createdDateTime = createdDateTime;
 	}
 }
