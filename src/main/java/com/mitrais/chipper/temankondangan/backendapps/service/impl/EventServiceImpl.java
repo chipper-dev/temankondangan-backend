@@ -489,6 +489,8 @@ public class EventServiceImpl implements EventService {
 		if (isCancelationValid(event.getStartDateTime())) {
 			event.setCancelled(true);
 			eventRepository.save(event);
+
+			sendMultipleNotification(NotificationType.CANCEL_EVENT, event, null);
 		} else {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
