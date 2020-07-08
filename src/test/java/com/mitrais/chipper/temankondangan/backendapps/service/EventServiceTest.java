@@ -1261,6 +1261,7 @@ public class EventServiceTest {
 		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
 		eventSearch.put("title", "Kondangan test");
 		eventSearch.put("cancelled", false);
+		eventSearch.put("created_date", new Date());
 
 		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
 		eventSearchs.add(eventSearch);
@@ -1321,7 +1322,8 @@ public class EventServiceTest {
 		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
 		eventSearch.put("title", "Kondangan test");
 		eventSearch.put("cancelled", false);
-
+		eventSearch.put("created_date", new Date());
+		
 		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
 		eventSearchs.add(eventSearch);
 		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
@@ -1366,6 +1368,7 @@ public class EventServiceTest {
 		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
 		eventSearch.put("title", "Kondangan test");
 		eventSearch.put("cancelled", false);
+		eventSearch.put("created_date", new Date());
 
 		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
 		eventSearchs.add(eventSearch);
