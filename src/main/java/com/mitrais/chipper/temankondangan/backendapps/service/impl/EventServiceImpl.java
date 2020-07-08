@@ -11,14 +11,7 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.format.ResolverStyle;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
@@ -304,7 +297,6 @@ public class EventServiceImpl implements EventService {
         System.out.println("Updated Fields: " + fieldsUpdated);
 
         sendMultipleNotification(NotificationType.EDIT_EVENT, event, fieldsUpdated);
-
         return eventUpdated;
     }
 
@@ -993,26 +985,64 @@ public class EventServiceImpl implements EventService {
     }
 
     // To retrieve the updated fields
-    private List<String> findFieldsUpdated(Event eventResult) {
+    private List<String> findFieldsUpdated(Event currentEvent) {
         List<String> fieldListResult = new ArrayList<>();
         Number revisionNumber = auditReader.getRevisionNumberForDate(new Date());
-        Field[] fields = eventResult.getClass().getDeclaredFields(); // Get properties of the Event class
+        Field[] fields = currentEvent.getClass().getDeclaredFields(); // Get properties of the Event class
 
         Arrays.stream(fields).map(Field::getName)
-                .filter(name -> !name.equalsIgnoreCase("eventId") && !name.equalsIgnoreCase("user")).forEach(name -> {
+                .filter(name -> !name.equals("eventId") && !name.equals("user")).forEach(name -> {
+
             final Long hits = (Long) auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-                    .add(AuditEntity.id().eq(eventResult.getEventId()))
+                    .add(AuditEntity.id().eq(currentEvent.getEventId()))
                     .add(AuditEntity.revisionNumber().eq(revisionNumber))
-                    .add(AuditEntity.property(name).hasChanged()).addProjection(AuditEntity.id().count())
+                    .add(AuditEntity.property(name).hasChanged())
+                    .addProjection(AuditEntity.id().count())
                     .getSingleResult();
 
             if (hits == 1) {
                 // propertyName changed at revisionNumber
+                Event previousEvent = getPreviousEvent(currentEvent);
+                LocalDateTime currStartDateTime = currentEvent.getStartDateTime();
+                LocalDateTime currFinishDateTime = currentEvent.getFinishDateTime();
+                LocalDateTime prevStartDateTime = previousEvent.getStartDateTime();
+                LocalDateTime prevFinishDateTime = previousEvent.getFinishDateTime();
+
+                // CHIP-479
+                // For wording request from PO/tester
+                if (!currStartDateTime.toLocalDate().isEqual(prevStartDateTime.toLocalDate())) {
+                    fieldListResult.add("Date");
+                }
+                if(Objects.nonNull(currFinishDateTime)) {
+                    if (!currFinishDateTime.toLocalDate().isEqual(prevFinishDateTime.toLocalDate())) {
+                        fieldListResult.add("Date");
+                    }
+                }
+                if (name.equals("finishDateTime")) {
+                    if (Objects.nonNull(currFinishDateTime)) {
+                        if (!currFinishDateTime.toLocalTime().equals(prevFinishDateTime.toLocalTime())) {
+                            name = "endTime";
+                        } else {
+                            return;
+                        }
+                    }
+                }
+                if (name.equals("startDateTime")) {
+                    if (!currStartDateTime.toLocalTime().equals(prevStartDateTime.toLocalTime())) {
+                        name = "startTime";
+                    } else {
+                        return;
+                    }
+                }
+
                 fieldListResult.add(splitCamelCase(name));
             }
         });
 
-        return fieldListResult;
+        // return without duplicate field name n sort alpabhetical
+        fieldListResult.sort(Comparator.naturalOrder());
+        fieldListResult.sort(String.CASE_INSENSITIVE_ORDER);
+        return fieldListResult.stream().distinct().collect(Collectors.toList());
     }
 
     private Event getPreviousEvent(Event event) {
