@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.google.firebase.messaging.*;
 import com.google.gson.Gson;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.NotificationDataWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.NotificationRepository;
@@ -90,8 +91,12 @@ public class NotificationServiceImpl implements NotificationService {
             notificationIds.forEach((notificationId) -> {
                 com.mitrais.chipper.temankondangan.backendapps.model.Notification notification = notificationRepository.findById(notificationId).orElse(null);
                 if(notification != null) {
-                    notification.setIsRead(true);
-                    notificationRepository.save(notification);
+                    if (notification.getUserId().equals(userId)) {
+                        notification.setIsRead(true);
+                        notificationRepository.save(notification);
+                    } else {
+                        throw new BadRequestException("Cannot set as read another User's notification.");
+                    }
                 }
             });
         }
