@@ -1008,24 +1008,29 @@ public class EventServiceImpl implements EventService {
                 LocalDateTime prevStartDateTime = previousEvent.getStartDateTime();
                 LocalDateTime prevFinishDateTime = previousEvent.getFinishDateTime();
 
-                // CHIP-479
+                // CHIP-674
                 // For wording request from PO/tester
-                if (!currStartDateTime.toLocalDate().isEqual(prevStartDateTime.toLocalDate())) {
-                    fieldListResult.add("Date");
-                }
-                if(Objects.nonNull(currFinishDateTime)) {
+                // Finish Date Time Adjust
+                if (Objects.nonNull(currFinishDateTime) && Objects.nonNull(prevFinishDateTime)) {
                     if (!currFinishDateTime.toLocalDate().isEqual(prevFinishDateTime.toLocalDate())) {
                         fieldListResult.add("Date");
                     }
-                }
-                if (name.equals("finishDateTime")) {
-                    if (Objects.nonNull(currFinishDateTime)) {
+
+                    if (name.equals("finishDateTime")) {
                         if (!currFinishDateTime.toLocalTime().equals(prevFinishDateTime.toLocalTime())) {
                             name = "endTime";
                         } else {
                             return;
                         }
                     }
+                } else {
+                    if (name.equals("finishDateTime")) {
+                        name = "endTime";
+                    }
+                }
+                // Start Date Time Adjust
+                if (!currStartDateTime.toLocalDate().isEqual(prevStartDateTime.toLocalDate())) {
+                    fieldListResult.add("Date");
                 }
                 if (name.equals("startDateTime")) {
                     if (!currStartDateTime.toLocalTime().equals(prevStartDateTime.toLocalTime())) {
