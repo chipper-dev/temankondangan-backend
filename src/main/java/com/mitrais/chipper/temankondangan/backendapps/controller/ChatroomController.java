@@ -4,6 +4,7 @@ import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateChatroomWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.DeleteChatroomWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import io.swagger.annotations.Api;
@@ -43,11 +44,21 @@ public class ChatroomController extends CommonResource {
     @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
     @GetMapping("/get-chatroom-list")
     @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> getNotification(HttpServletRequest request) {
+    public ResponseEntity<ResponseBody> getChatroomList(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         Long userId = tokenProvider.getUserIdFromToken(token);
         List<Chatroom> chatrooms = chatroomService.getChatroomList(userId);
         return ResponseEntity.ok(
                 getResponseBody(HttpStatus.OK.value(), chatrooms, request.getRequestURI()));
+    }
+
+    @ApiOperation(value = "Create Chatroom", response = ResponseEntity.class)
+    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+    @PostMapping("/delete-room")
+    @ResponseStatus(HttpStatus.OK)
+    public ResponseEntity<ResponseBody> deleteChatrooms(@RequestBody DeleteChatroomWrapper wrapper, HttpServletRequest request) {
+        chatroomService.deleteChatrooms(wrapper.getChatroomId());
+        return ResponseEntity.ok(
+                getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
     }
 }

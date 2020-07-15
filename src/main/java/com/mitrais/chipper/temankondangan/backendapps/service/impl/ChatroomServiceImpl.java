@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
@@ -65,9 +66,24 @@ public class ChatroomServiceImpl implements ChatroomService {
     public List<Chatroom> getChatroomList(Long userId) {
         List<ChatroomUser> list = chatroomUserRepository.findByUserId(userId);
         List<Chatroom> chatrooms = new ArrayList<>();
-        list.forEach(data -> {
-            chatrooms.add(data.getChatroom());
-        });
+        list.forEach(data ->
+            chatrooms.add(data.getChatroom())
+        );
         return chatrooms;
+    }
+
+    @Override
+    public void deleteChatrooms(List<Long> chatroomIds) {
+        if(chatroomIds.isEmpty()){
+            throw new BadRequestException("Error: Chatroom Id cannot be empty!");
+        }
+
+        chatroomIds.forEach(chatroomId -> {
+            Chatroom room = chatroomRepository.findById(chatroomId).orElse(null);
+            if(room != null) {
+                room.setDataState(DataState.DELETED);
+                chatroomRepository.save(room);
+            }
+        });
     }
 }
