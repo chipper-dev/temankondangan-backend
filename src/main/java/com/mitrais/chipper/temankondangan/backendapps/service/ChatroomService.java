@@ -9,4 +9,6 @@ public interface ChatroomService {
     Chatroom createChatroom(Long eventId);
 
     List<Chatroom> getChatroomList(Long userId);
+
+    void deleteChatrooms(List<Long> chatroomIds);
 }
