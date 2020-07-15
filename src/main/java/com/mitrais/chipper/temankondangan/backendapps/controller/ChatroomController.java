@@ -16,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Api(value = "Chatroom Management System")
 @RestController
@@ -45,8 +46,8 @@ public class ChatroomController extends CommonResource {
     public ResponseEntity<ResponseBody> getNotification(HttpServletRequest request) {
         String token = getToken(request.getHeader("Authorization"));
         Long userId = tokenProvider.getUserIdFromToken(token);
-
+        List<Chatroom> chatrooms = chatroomService.getChatroomList(userId);
         return ResponseEntity.ok(
-                getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
+                getResponseBody(HttpStatus.OK.value(), chatrooms, request.getRequestURI()));
     }
 }
