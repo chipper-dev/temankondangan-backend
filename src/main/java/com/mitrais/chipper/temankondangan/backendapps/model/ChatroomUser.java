@@ -26,14 +26,12 @@ public class ChatroomUser extends Auditable<String> {
     @ManyToOne
     @JoinColumn(name = "chatroom_id")
     @Where(clause = "data_state <> 'DELETED'")
-    @Audited(targetAuditMode = NOT_AUDITED)
     private Chatroom chatroom;
 
     @ManyToOne
-    @JoinColumn(name = "user_id_creator")
+    @JoinColumn(name = "user_id")
     @Where(clause = "data_state <> 'DELETED'")
-    @Audited(targetAuditMode = NOT_AUDITED)
-    private User creator;
+    private User user;
 
 
 }

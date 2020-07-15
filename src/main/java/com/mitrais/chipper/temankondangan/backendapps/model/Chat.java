@@ -27,13 +27,11 @@ public class Chat extends Auditable<String> {
     @ManyToOne
     @JoinColumn(name = "chatroom_id")
     @Where(clause = "data_state <> 'DELETED'")
-    @Audited(targetAuditMode = NOT_AUDITED)
     private Chatroom chatroom;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     @Where(clause = "data_state <> 'DELETED'")
-    @Audited(targetAuditMode = NOT_AUDITED)
     private User user;
 
     @Size(max = 255)

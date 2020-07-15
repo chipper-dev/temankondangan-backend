@@ -33,7 +33,6 @@ public class Chatroom extends Auditable<String> {
     @ManyToOne
     @JoinColumn(name = "event_id")
     @Where(clause = "data_state <> 'DELETED'")
-    @Audited(targetAuditMode = NOT_AUDITED)
     private Event event;
 
     @NotNull

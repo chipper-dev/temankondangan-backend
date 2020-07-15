@@ -12,8 +12,6 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class ChatroomServiceImpl implements ChatroomService {
 

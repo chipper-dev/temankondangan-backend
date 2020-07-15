@@ -9,6 +9,6 @@ import java.util.Optional;
 
 public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 
-    @Query("SELECT a from chatroom a WHERE a.event.eventId = :eventId")
+    @Query("SELECT a from Chatroom a WHERE a.event.eventId = :eventId")
     Optional<Chatroom> findByEventId(@Param("eventId") Long eventId);
 }
