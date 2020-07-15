@@ -11,6 +11,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -58,5 +59,15 @@ public class ChatroomServiceImpl implements ChatroomService {
             });
         }
         return chatroom;
+    }
+
+    @Override
+    public List<Chatroom> getChatroomList(Long userId) {
+        List<ChatroomUser> list = chatroomUserRepository.findByUserId(userId);
+        List<Chatroom> chatrooms = new ArrayList<>();
+        list.forEach(data -> {
+            chatrooms.add(data.getChatroom());
+        });
+        return chatrooms;
     }
 }
