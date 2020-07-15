@@ -1,6 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller.listener;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.ChatMessage;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

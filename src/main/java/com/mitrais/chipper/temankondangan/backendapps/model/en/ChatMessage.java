@@ -1,4 +1,4 @@
-package com.mitrais.chipper.temankondangan.backendapps.model;
+package com.mitrais.chipper.temankondangan.backendapps.model.en;
 
 public class ChatMessage {
     private MessageType type;
