@@ -151,7 +151,7 @@ CREATE TABLE public.chatroom_user (
 	last_modified_by varchar(255) NULL,
 	last_modified_date timestamp NULL,
 	chatroom_id int8 NULL,
-	user_id int8 NULL
+	user_id int8 NULL,
 	CONSTRAINT chatroomuser_pkey PRIMARY KEY (id),
 	CONSTRAINT chatroomuser_chatroom_fkey FOREIGN KEY (chatroom_id) REFERENCES chatroom(id),
 	CONSTRAINT chatroomuser_user_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
@@ -165,7 +165,7 @@ CREATE TABLE public.chat (
 	last_modified_date timestamp NULL,
 	chatroom_id int8 NULL,
 	user_id int8 NULL,
-	body varchar(255) NULL
+	body varchar(255) NULL,
 	CONSTRAINT chat_pkey PRIMARY KEY (id),
 	CONSTRAINT chat_chatroom_fkey FOREIGN KEY (chatroom_id) REFERENCES chatroom(id),
 	CONSTRAINT chat_user_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
