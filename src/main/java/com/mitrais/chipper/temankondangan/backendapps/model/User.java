@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -46,7 +45,6 @@ public class User extends Auditable<String> {
 	private String email;
 
 	@ApiModelProperty(notes = "User hashed password")
-	@JsonIgnore
 	private String passwordHashed;
 
 	@NotNull
