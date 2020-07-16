@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.envers.query.AuditQueryCreator;
@@ -51,6 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -70,6 +70,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileReposito
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -489,7 +490,7 @@ public class EventServiceTest {
 		User user2 = new User();
 		user2.setUserId(2L);
 		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user2));
-		
+
 		Event event = new Event();
 		event.setUser(user);
 		event.setStartDateTime(LocalDateTime.now().plusDays(1));
@@ -497,7 +498,7 @@ public class EventServiceTest {
 		event.setMaximumAge(20);
 		event.setMinimumAge(18);
 		event.setCancelled(false);
-		
+
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 
@@ -570,7 +571,7 @@ public class EventServiceTest {
 	public void shouldThrowBadRequestException_WhenEventIsCanceledInApplyEvent() {
 		User user2 = new User();
 		user2.setUserId(2L);
-		
+
 		Event event = new Event();
 		event.setCancelled(true);
 		event.setUser(user2);
@@ -587,7 +588,7 @@ public class EventServiceTest {
 	public void shouldThrowBadRequestException_WhenApplicantHasAppliedToEvent() {
 		User user2 = new User();
 		user2.setUserId(2L);
-		
+
 		Event event = new Event();
 		event.setUser(user2);
 		profile = new Profile();
@@ -665,6 +666,56 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void findAscendingActiveAppliedEventTest() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(1));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
+
+		List<Event> eventList = new ArrayList<>();
+		eventList.add(event);
+
+		User user2 = new User();
+		user2.setUserId(2L);
+
+		Profile profile = new Profile();
+		profile.setUser(user);
+		profile.setProfileId(1L);
+		profile.setFullName("John Doe");
+		profile.setPhotoProfileFilename("image.jpg");
+
+		Applicant applicant = new Applicant();
+		applicant.setId(1L);
+		applicant.setApplicantUser(user2);
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setCreatedDate(new Date());
+
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+		Mockito.when(eventRepository.findActiveAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
+				any(Sort.class))).thenReturn(eventList);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(applicant));
+
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "startDateTime", "ASC",
+				"APPLIED");
+
+		assertFalse(resultList.isEmpty());
+		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
+		assertEquals("title test", resultList.get(0).getTitle());
+	}
+
+	@Test
 	public void shouldThrowBadRequestException_WhenSortByIsNotValidActiveAppliedEvent() {
 		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "wrong sort by", "DESC", "ALLSTATUS"))
 				.hasMessageContaining("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!")
@@ -674,7 +725,7 @@ public class EventServiceTest {
 	@Test
 	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInActiveAppliedEvent() {
 		assertThatThrownBy(
-				() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+				() -> eventService.findActiveAppliedEvent(2L, "startDateTime", "DESC", "wrong applicant status"))
 						.hasMessageContaining("Error: Please input a valid applicant status")
 						.isInstanceOf(BadRequestException.class);
 	}
@@ -1396,9 +1447,10 @@ public class EventServiceTest {
 				.isInstanceOf(BadRequestException.class);
 	}
 
+	// creator cancel event
 	@Test
 	public void creatorCancelEventSuccess() {
-		event = new Event();
+		Event event = new Event();
 		event.setEventId(1L);
 		event.setTitle("Lorem Ipsum");
 		event.setUser(user);
@@ -1415,6 +1467,73 @@ public class EventServiceTest {
 
 		eventService.creatorCancelEvent(1L, 1L);
 		verify(eventRepository, times(1)).save(any(Event.class));
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEventIdIsNullInCreatorCancel() {
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, null))
+				.hasMessageContaining("Error: eventId cannot null").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowUnauthorizedException_WhenUserLoginIsNotTheTheCreatorInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(2L, 1L))
+				.hasMessageContaining("Error: Users are not authorized to cancel this event")
+				.isInstanceOf(UnauthorizedException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEventHasBeenCanceledAlreadyInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+		event.setCancelled(true);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: You already have canceled this event")
+				.isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelingPastEventInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+		event.setCancelled(false);
+		event.setStartDateTime(LocalDateTime.now().minusDays(1));
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: Past event cannot be canceled").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelationNotValidInCreatorCancel() {
+		Event event = new Event();
+		event.setEventId(1L);
+		event.setTitle("Lorem Ipsum");
+		event.setUser(user);
+		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setCompanionGender(Gender.B);
+		event.setDataState(DataState.ACTIVE);
+		event.setCancelled(false);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: The event will be started in less than 24 hours")
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	// search event service
@@ -1459,7 +1578,7 @@ public class EventServiceTest {
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
 		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(),
-				150, 18, "", "", Arrays.asList(), Arrays.asList(), Arrays.asList(), any(Double.class));
+				150, 18, "", "", Arrays.asList(), Arrays.asList(), null, 12.75);
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
@@ -1476,10 +1595,10 @@ public class EventServiceTest {
 		Integer creatorMinimumAge = 18;
 		String startDate = LocalDate.now().format(dfDate);
 		String finishDate = LocalDate.now().format(dfDate);
-		List<String> startHour = Arrays.asList("00-12", "12-18", "18-00");
-		List<String> finishHour = Arrays.asList("00-12", "12-18", "18-00");
+		List<String> startHour = Arrays.asList("12-18", "18-00");
+		List<String> finishHour = Arrays.asList("12-18", "18-00");
 		List<String> city = Arrays.asList("Klaten", "Jogja");
-		Double zoneOffset = 9.0;
+		Double zoneOffset = -6.0;
 
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -1565,13 +1684,61 @@ public class EventServiceTest {
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
-		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(),
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.P.toString(),
 				150, 18, "", "", Arrays.asList("00-12", "18-00"), Arrays.asList("00-12", "18-00"), Arrays.asList(),
-				-9.0);
+				-9.5);
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
 
+
+	@Test
+	public void searchEvent_ForUnmetConditionTest() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+		eventSearch.put("created_date", new Date());
+
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
+
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(),
+				any(LocalDateTime.class), any(LocalDateTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), anyInt(), anyInt(), Mockito.<String>anyList(),
+				any(String.class), any(Pageable.class))).thenReturn(eventSearchPage);
+
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
+
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.P.toString(),
+				150, 18, "", "", Arrays.asList("18-00"), Arrays.asList("18-00"), Arrays.asList(),
+				7.0);
+
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
+	}
+	
 	@Test
 	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
 		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B.toString(), 150, 18,
@@ -1633,7 +1800,7 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenDateIsNotFilledTogetherInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenStartDateNotEmptyAndFinishDateEmptyInSearchEvent() {
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
 		profileMock.setGender(Gender.L);
@@ -1641,6 +1808,19 @@ public class EventServiceTest {
 
 		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				LocalDateTime.now().plusDays(10).format(dfDate), "", Arrays.asList(), Arrays.asList(), Arrays.asList(),
+				0.0)).hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateEmptyAndFinishDateNotEmptyInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "",
+				LocalDateTime.now().plusDays(10).format(dfDate), Arrays.asList(), Arrays.asList(), Arrays.asList(),
 				0.0)).hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
 						.isInstanceOf(BadRequestException.class);
 	}
