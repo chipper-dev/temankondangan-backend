@@ -562,21 +562,19 @@ public class EventServiceImpl implements EventService {
         // value for ALL STATUS
         boolean allStatus = true;
         boolean pastTimeOnly = true;
-        List<Boolean> isCancelled = new ArrayList<>();
+        boolean isCanceled = true;
 
         if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
             applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
-            if (applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
-                isCancelled.add(true);
-                isCancelled.add(false);
-            } else {
-                allStatus = false;
-                isCancelled.add(false);
+            if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+            	allStatus = false;
+                isCanceled = false;
             }
         } else if (applicantStatusStr.equals("CANCELED")) {
-            isCancelled.add(true);
+        	allStatus = true;
             pastTimeOnly = false;
+            isCanceled = true;
         } else {
             throw new BadRequestException("Error: Please input a valid applicant status");
         }
@@ -590,7 +588,7 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException(ERROR_SORT_DIRECTION);
         }
 
-        eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCancelled, sort)
+        eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCanceled, sort)
                 .forEach(event -> {
                     logger.info(event.toString());
 
