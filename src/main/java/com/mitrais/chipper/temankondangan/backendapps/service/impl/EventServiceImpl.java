@@ -305,21 +305,21 @@ public class EventServiceImpl implements EventService {
         List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
         boolean isApplied = false;
         boolean isCreatorRated = false;
-        Long id;
+        Long eventId;
         ApplicantStatus applicantStatus = null;
         AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
         Boolean hasAcceptedApplicant = null;
 
         // Custom exception as requested by Tester, when input param.
         try {
-            id = Long.parseLong(eventIdStr);
+            eventId = Long.parseLong(eventIdStr);
         } catch (NumberFormatException ex) {
             throw new BadRequestException(
                     "Error: Cannot use the text value as parameter, please use the number format value!");
         }
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", id));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
         User userCreator = userRepository.findById(event.getUser().getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
@@ -359,7 +359,7 @@ public class EventServiceImpl implements EventService {
                     () -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
             isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
             isCreatorRated = ratingService.isRated(userId, event.getEventId());
-            Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
+            Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, eventId);
             if (applicantOpt.isPresent()) {
                 applicantStatus = applicantOpt.get().getStatus();
             }
@@ -562,21 +562,19 @@ public class EventServiceImpl implements EventService {
         // value for ALL STATUS
         boolean allStatus = true;
         boolean pastTimeOnly = true;
-        List<Boolean> isCancelled = new ArrayList<>();
+        boolean isCanceled = true;
 
         if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
             applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
 //			if any applicant status besides ALLSTATUS
-            if (applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
-                isCancelled.add(true);
-                isCancelled.add(false);
-            } else {
-                allStatus = false;
-                isCancelled.add(false);
+            if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
+            	allStatus = false;
+                isCanceled = false;
             }
         } else if (applicantStatusStr.equals("CANCELED")) {
-            isCancelled.add(true);
+        	allStatus = true;
             pastTimeOnly = false;
+            isCanceled = true;
         } else {
             throw new BadRequestException("Error: Please input a valid applicant status");
         }
@@ -590,7 +588,7 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException(ERROR_SORT_DIRECTION);
         }
 
-        eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCancelled, sort)
+        eventRepository.findPastAppliedEvent(userId, applicantStatus, allStatus, pastTimeOnly, isCanceled, sort)
                 .forEach(event -> {
                     logger.info(event.toString());
 
