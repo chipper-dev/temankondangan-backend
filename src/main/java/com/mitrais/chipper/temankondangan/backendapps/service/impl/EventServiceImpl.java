@@ -305,21 +305,21 @@ public class EventServiceImpl implements EventService {
         List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
         boolean isApplied = false;
         boolean isCreatorRated = false;
-        Long id;
+        Long eventId;
         ApplicantStatus applicantStatus = null;
         AcceptedApplicantResponseWrapper acceptedApplicant = new AcceptedApplicantResponseWrapper();
         Boolean hasAcceptedApplicant = null;
 
         // Custom exception as requested by Tester, when input param.
         try {
-            id = Long.parseLong(eventIdStr);
+            eventId = Long.parseLong(eventIdStr);
         } catch (NumberFormatException ex) {
             throw new BadRequestException(
                     "Error: Cannot use the text value as parameter, please use the number format value!");
         }
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", id));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
         User userCreator = userRepository.findById(event.getUser().getUserId()).orElseThrow(
                 () -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
@@ -359,7 +359,7 @@ public class EventServiceImpl implements EventService {
                     () -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
             isApplied = applicantRepository.existsByApplicantUserAndEvent(userApplicant, event);
             isCreatorRated = ratingService.isRated(userId, event.getEventId());
-            Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, id);
+            Optional<Applicant> applicantOpt = applicantRepository.findByApplicantUserIdAndEventId(userId, eventId);
             if (applicantOpt.isPresent()) {
                 applicantStatus = applicantOpt.get().getStatus();
             }
