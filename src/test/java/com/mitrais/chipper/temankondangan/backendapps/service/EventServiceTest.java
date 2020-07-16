@@ -776,7 +776,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
@@ -825,7 +825,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
