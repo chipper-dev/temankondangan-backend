@@ -129,6 +129,8 @@ public class UserServiceImpl implements UserService {
 					.ifPresent(applicants -> applicantRepository.deleteAll(applicants)));
 			eventRepository.deleteAll(events);
 		});
+		
+		applicantRepository.findByUserId(userId).ifPresent(applicants -> applicantRepository.deleteAll(applicants));
 		profileRepository.findByUserId(userId).ifPresent(p -> profileRepository.delete(p));
 		userRepository.delete(user);
 
