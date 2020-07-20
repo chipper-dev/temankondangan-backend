@@ -219,7 +219,7 @@ public class UserServiceTest {
 		List<Applicant> applicants = new ArrayList<Applicant>();
 		applicants.add(applicant);
 		Mockito.when(applicantRepository.findByEventId(anyLong())).thenReturn(Optional.of(applicants));
-
+		Mockito.when(applicantRepository.findByUserId(anyLong())).thenReturn(Optional.of(applicants));
 		Mockito.doNothing().when(applicantRepository).deleteAll(applicants);
 		Mockito.doNothing().when(eventRepository).deleteAll(events);
 
