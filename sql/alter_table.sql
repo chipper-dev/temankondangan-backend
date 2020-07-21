@@ -86,7 +86,7 @@ ALTER TABLE chat
     ADD COLUMN content_type varchar;
 
 ALTER TABLE chat
-    ALTER COLUMN created_by DROP DEFAULT,
-    ALTER COLUMN created_date DROP DEFAULT,
-    ALTER COLUMN last_modified_by DROP DEFAULT,
-    ALTER COLUMN last_modified_date DROP DEFAULT;
+    DROP COLUMN created_by,
+    DROP COLUMN created_date,
+    DROP COLUMN last_modified_by,
+    DROP COLUMN last_modified_date;
