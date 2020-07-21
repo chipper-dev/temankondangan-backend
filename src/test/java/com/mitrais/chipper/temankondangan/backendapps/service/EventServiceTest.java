@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 import org.hibernate.envers.AuditReader;
 import org.hibernate.envers.query.AuditQuery;
 import org.hibernate.envers.query.AuditQueryCreator;
@@ -51,6 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
@@ -70,6 +70,7 @@ import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileReposito
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.EventServiceImpl;
 import com.mitrais.chipper.temankondangan.backendapps.service.impl.ImageFileServiceImpl;
+import com.mitrais.chipper.temankondangan.backendapps.service.impl.RatingServiceImpl;
 
 @SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -96,17 +97,17 @@ public class EventServiceTest {
 	@Mock
 	NotificationService notificationService;
 
-    @Mock
-    AuditReader auditReader;
+	@Mock
+	AuditReader auditReader;
 
-    @Mock
-    AuditQueryCreator auditQueryCreator;
+	@Mock
+	AuditQueryCreator auditQueryCreator;
 
-    @Mock
-    AuditQuery auditQuery;
+	@Mock
+	AuditQuery auditQuery;
 
-    @InjectMocks
-    EventServiceImpl eventService;
+	@InjectMocks
+	EventServiceImpl eventService;
 
 	private static CreateEventWrapper wrapper;
 	private static Event event;
@@ -136,7 +137,6 @@ public class EventServiceTest {
 		wrapper.setAdditionalInfo("info test");
 		wrapper.setCompanionGender(Gender.P);
 		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
 		wrapper.setMaximumAge(25);
 		wrapper.setMinimumAge(18);
 		wrapper.setTitle("title test");
@@ -370,26 +370,29 @@ public class EventServiceTest {
 	// find Event Detail
 	@Test
 	public void findEventDetailForCreatorTest() {
-		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
-
-		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
-
-		Profile profileApplicant = Profile.builder().profileId(2L).user(userApplicant).fullName("jane doe").build();
-
-		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
-				.status(ApplicantStatus.APPLIED).build();
-
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-		Mockito.when(applicantRepository.findByEventId(event.getEventId()))
-				.thenReturn(Optional.of(Arrays.asList(applicant)));
 
+		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
 		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
+
+		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
+
+		Profile profileApplicant = Profile.builder().profileId(2L).user(userApplicant).fullName("jane doe")
+				.gender(Gender.L).build();
 		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
 				.thenReturn(Optional.of(profileApplicant));
 
-		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn("");
+		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
+				.status(ApplicantStatus.APPLIED).build();
+		Applicant acceptedApplicant = Applicant.builder().applicantUser(userApplicant).event(event)
+				.dataState(DataState.ACTIVE).status(ApplicantStatus.ACCEPTED).build();
+
+		Mockito.when(applicantRepository.findByEventId(event.getEventId()))
+				.thenReturn(Optional.of(Arrays.asList(applicant, acceptedApplicant)));
+
 		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
+		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn("");
 
 		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
 
@@ -400,20 +403,72 @@ public class EventServiceTest {
 		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
 	}
 
-	// apply service
+	// find Event Detail
+	@Test
+	public void findEventDetailForApplicantTest() {
+		Event event = Event.builder().eventId(1L).user(user).title("title test applicant").additionalInfo("info test")
+				.companionGender(Gender.P).startDateTime(LocalDateTime.now())
+				.finishDateTime(LocalDateTime.now().plusHours(1)).maximumAge(40).minimumAge(18).city("Test City")
+				.dataState(DataState.ACTIVE).build();
+		event.setCreatedDate(new Date());
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		Mockito.when(userRepository.findById(event.getUser().getUserId())).thenReturn(Optional.of(user));
+
+		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
+		Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profileCreator));
+
+		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
+		Profile profileApplicant = Profile.builder().user(userApplicant).profileId(2L).fullName("jane doe").build();
+		Mockito.when(profileRepository.findByUserId(2L)).thenReturn(Optional.of(profileApplicant));
+
+		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(userApplicant));
+		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(userApplicant, event)).thenReturn(true);
+		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
+
+		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
+				.status(ApplicantStatus.APPLIED).build();
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(applicant));
+
+		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 2L);
+
+		assertEquals("title test applicant", actualResult.getTitle());
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInFindEventDetail() {
+		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInFindEventDetail() {
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	// apply event service
 	@Test
 	public void applyEventTest() {
 		User user2 = new User();
 		user2.setUserId(2L);
+		
+		Event event = new Event();
+		event.setEventId(1L);
+		event.setTitle("Kondangan");
 		event.setUser(user2);
 		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
 		event.setStartDateTime(LocalDateTime.now().plusHours(1));
 		event.setMaximumAge(40);
 		event.setMinimumAge(18);
 		event.setCompanionGender(Gender.B);
+		event.setCancelled(false);
+		
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.L);
+		profile.setFullName("Jono");
 
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
@@ -441,10 +496,16 @@ public class EventServiceTest {
 	public void shouldThrowBadRequestException_WhenUserAgeDoesNotMeetApplyAgeRequirement() {
 		User user2 = new User();
 		user2.setUserId(2L);
-		event.setUser(user2);
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user2));
+
+		Event event = new Event();
+		event.setUser(user);
+		event.setStartDateTime(LocalDateTime.now().plusDays(1));
 		event.setFinishDateTime(LocalDateTime.now().plusDays(1));
 		event.setMaximumAge(20);
 		event.setMinimumAge(18);
+		event.setCancelled(false);
+
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 
@@ -514,9 +575,28 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void shouldThrowBadRequestException_WhenEventIsCanceledInApplyEvent() {
+		User user2 = new User();
+		user2.setUserId(2L);
+
+		Event event = new Event();
+		event.setCancelled(true);
+		event.setUser(user2);
+
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		assertThatThrownBy(() -> eventService.apply(1L, 1L))
+				.hasMessageContaining("Error: You cannot applied to cancelled event")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
 	public void shouldThrowBadRequestException_WhenApplicantHasAppliedToEvent() {
 		User user2 = new User();
 		user2.setUserId(2L);
+
+		Event event = new Event();
 		event.setUser(user2);
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
@@ -593,6 +673,56 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void findAscendingActiveAppliedEventTest() {
+		event = new Event();
+		event.setEventId(1L);
+		event.setUser(user);
+		event.setAdditionalInfo("info test");
+		event.setCompanionGender(Gender.P);
+		event.setStartDateTime(LocalDateTime.now().plusDays(1));
+		event.setFinishDateTime(LocalDateTime.now().plusDays(1).plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setTitle("title test");
+		event.setCity("Test City");
+		event.setDataState(DataState.ACTIVE);
+		event.setCreatedDate(new Date());
+
+		List<Event> eventList = new ArrayList<>();
+		eventList.add(event);
+
+		User user2 = new User();
+		user2.setUserId(2L);
+
+		Profile profile = new Profile();
+		profile.setUser(user);
+		profile.setProfileId(1L);
+		profile.setFullName("John Doe");
+		profile.setPhotoProfileFilename("image.jpg");
+
+		Applicant applicant = new Applicant();
+		applicant.setId(1L);
+		applicant.setApplicantUser(user2);
+		applicant.setEvent(event);
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setCreatedDate(new Date());
+
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
+		Mockito.when(eventRepository.findActiveAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
+				any(Sort.class))).thenReturn(eventList);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(applicant));
+
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(2L, "startDateTime", "ASC",
+				"APPLIED");
+
+		assertFalse(resultList.isEmpty());
+		assertEquals("image.jpg", resultList.get(0).getPhotoProfileUrl());
+		assertEquals("title test", resultList.get(0).getTitle());
+	}
+
+	@Test
 	public void shouldThrowBadRequestException_WhenSortByIsNotValidActiveAppliedEvent() {
 		assertThatThrownBy(() -> eventService.findActiveAppliedEvent(2L, "wrong sort by", "DESC", "ALLSTATUS"))
 				.hasMessageContaining("Error: Can only input createdDate, startDateTime or latestApplied for sortBy!")
@@ -602,7 +732,7 @@ public class EventServiceTest {
 	@Test
 	public void shouldThrowBadRequestException_WhenApplicantStatusNotValidInActiveAppliedEvent() {
 		assertThatThrownBy(
-				() -> eventService.findActiveAppliedEvent(2L, "latestApplied", "DESC", "wrong applicant status"))
+				() -> eventService.findActiveAppliedEvent(2L, "startDateTime", "DESC", "wrong applicant status"))
 						.hasMessageContaining("Error: Please input a valid applicant status")
 						.isInstanceOf(BadRequestException.class);
 	}
@@ -653,7 +783,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
@@ -702,7 +832,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
@@ -757,8 +887,8 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
@@ -795,8 +925,8 @@ public class EventServiceTest {
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(eventRepository.save(any(Event.class))).thenAnswer(i -> i.getArgument(0, Event.class));
 
-        ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
 
 		EditEventWrapper editEvent = new EditEventWrapper();
 		editEvent.setEventId(1L);
@@ -805,7 +935,6 @@ public class EventServiceTest {
 		editEvent.setAdditionalInfo("info test");
 		editEvent.setCompanionGender(Gender.P);
 		editEvent.setStartDateTime(LocalDateTime.now().plusDays(3).format(formatter));
-		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1).format(formatter));
 		editEvent.setMaximumAge(40);
 		editEvent.setMinimumAge(18);
 		Event eventEdited = eventService.edit(1L, editEvent);
@@ -1071,6 +1200,7 @@ public class EventServiceTest {
 				.isInstanceOf(BadRequestException.class);
 	}
 
+	// cancel event
 	@Test
 	public void cancelEventSuccess() {
 		event = new Event();
@@ -1099,6 +1229,19 @@ public class EventServiceTest {
 		eventService.cancelEvent(1L, 1L);
 		verify(applicantRepository, times(1)).delete(applicant);
 
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenApplicantNotFoundInCancelEvent() {
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.cancelEvent(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenEventNotFoundInCancelEvent() {
+		Mockito.when(eventRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.cancelEvent(1L, 1L)).isInstanceOf(ResourceNotFoundException.class);
 	}
 
 	@Test
@@ -1134,6 +1277,25 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void shouldThrowBadRequestException_WhenCancelACanceledEventInCancelEvent() {
+		Event event = new Event();
+		event.setCancelled(true);
+		event.setEventId(1L);
+
+		Applicant applicant = new Applicant();
+		applicant.setStatus(ApplicantStatus.APPLIED);
+		applicant.setEvent(event);
+
+		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+				.thenReturn(Optional.of(applicant));
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+
+		assertThatThrownBy(() -> eventService.cancelEvent(1L, 1L))
+				.hasMessageContaining("Error: You cannot cancel to cancelled event")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
 	public void shouldThrowBadRequestException_WhenCancelEventStartedLessThan24Hours() {
 		event = new Event();
 		event.setEventId(1L);
@@ -1165,6 +1327,7 @@ public class EventServiceTest {
 
 	}
 
+	// find my event
 	@Test
 	public void findMyEventSuccess() {
 		EventFindAllListDBResponseWrapper event1 = new EventFindAllListDBResponseWrapper();
@@ -1216,8 +1379,85 @@ public class EventServiceTest {
 	}
 
 	@Test
+	public void findMyEventOtherConditionSuccess() {
+		EventFindAllListDBResponseWrapper event1 = new EventFindAllListDBResponseWrapper();
+		event1.setEventId(1L);
+		event1.setProfileId(1L);
+		event1.setCreatorFullName("test");
+		event1.setCreatedBy("test");
+		event1.setPhotoProfileUrl("");
+		event1.setTitle("Event Test 1");
+		event1.setCity("Yogya");
+		event1.setStartDateTime(LocalDateTime.now().plusDays(2));
+		event1.setFinishDateTime(LocalDateTime.now().plusDays(2).plusHours(1));
+		event1.setMinimumAge(18);
+		event1.setMaximumAge(22);
+		event1.setCreatorGender(Gender.L);
+		event1.setCompanionGender(Gender.B);
+		event1.setApplicantStatus(null);
+
+		EventFindAllListDBResponseWrapper event2 = new EventFindAllListDBResponseWrapper();
+		event2.setEventId(2L);
+		event2.setProfileId(1L);
+		event2.setCreatorFullName("test");
+		event2.setCreatedBy("test");
+		event2.setPhotoProfileUrl("");
+		event2.setTitle("Event Test 2");
+		event2.setCity("Yogya");
+		event2.setStartDateTime(LocalDateTime.now().plusDays(3));
+		event2.setFinishDateTime(LocalDateTime.now().plusDays(3).plusHours(1));
+		event2.setMinimumAge(18);
+		event2.setMaximumAge(22);
+		event2.setCreatorGender(Gender.L);
+		event2.setCompanionGender(Gender.B);
+		event2.setApplicantStatus(null);
+
+		List<EventFindAllListDBResponseWrapper> list = new ArrayList<>();
+		list.add(event1);
+		list.add(event2);
+
+		profile = new Profile();
+		Applicant applicant = Applicant.builder().applicantUser(user).dataState(DataState.ACTIVE).build();
+
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+		Mockito.when(eventRepository.findAllMyEvent(anyLong(), any(LocalDateTime.class), anyInt(), any(Sort.class)))
+				.thenReturn(list);
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(profile));
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn(Arrays.asList(applicant));
+
+		List<EventFindAllListDBResponseWrapper> response = eventService.findMyEvent("startDateTime", "ASC", 1L, true);
+		assertEquals("Event Test 1", response.get(0).getTitle());
+	}
+
+	@Test
+	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInFindMyEvent() {
+		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+		assertThatThrownBy(() -> eventService.findMyEvent("createdDate", "DESC", 1L, true))
+				.isInstanceOf(ResourceNotFoundException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenSortByParamNotFilledWithCorrectValueInFindMyEvent() {
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+		assertThatThrownBy(() -> eventService.findMyEvent("wrong sort by", "DESC", 1L, true))
+				.hasMessageContaining("Error: Can only input createdDate or startDateTime for sortBy!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenDirectionParamNotFilledWithCorrectValueInFindMyEvent() {
+		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+
+		assertThatThrownBy(() -> eventService.findMyEvent("startDateTime", "wrong direction", 1L, true))
+				.hasMessageContaining("Error: Can only input ASC or DESC for direction!")
+				.isInstanceOf(BadRequestException.class);
+	}
+
+	// creator cancel event
+	@Test
 	public void creatorCancelEventSuccess() {
-		event = new Event();
+		Event event = new Event();
 		event.setEventId(1L);
 		event.setTitle("Lorem Ipsum");
 		event.setUser(user);
@@ -1234,6 +1474,73 @@ public class EventServiceTest {
 
 		eventService.creatorCancelEvent(1L, 1L);
 		verify(eventRepository, times(1)).save(any(Event.class));
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEventIdIsNullInCreatorCancel() {
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, null))
+				.hasMessageContaining("Error: eventId cannot null").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowUnauthorizedException_WhenUserLoginIsNotTheTheCreatorInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(2L, 1L))
+				.hasMessageContaining("Error: Users are not authorized to cancel this event")
+				.isInstanceOf(UnauthorizedException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenEventHasBeenCanceledAlreadyInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+		event.setCancelled(true);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: You already have canceled this event")
+				.isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelingPastEventInCreatorCancel() {
+		Event event = new Event();
+		event.setUser(user);
+		event.setCancelled(false);
+		event.setStartDateTime(LocalDateTime.now().minusDays(1));
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: Past event cannot be canceled").isInstanceOf(BadRequestException.class);
+
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenCancelationNotValidInCreatorCancel() {
+		Event event = new Event();
+		event.setEventId(1L);
+		event.setTitle("Lorem Ipsum");
+		event.setUser(user);
+		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
+		event.setStartDateTime(LocalDateTime.now().plusHours(1));
+		event.setMaximumAge(40);
+		event.setMinimumAge(18);
+		event.setCompanionGender(Gender.B);
+		event.setDataState(DataState.ACTIVE);
+		event.setCancelled(false);
+
+		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+		ReflectionTestUtils.setField(eventService, "cancelationMax", (long) 86400000);
+
+		assertThatThrownBy(() -> eventService.creatorCancelEvent(1L, 1L))
+				.hasMessageContaining("Error: The event will be started in less than 24 hours")
+				.isInstanceOf(BadRequestException.class);
 	}
 
 	// search event service
@@ -1278,7 +1585,7 @@ public class EventServiceTest {
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
 		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(),
-				150, 18, "", "", Arrays.asList(), Arrays.asList(), Arrays.asList(), any(Double.class));
+				150, 18, "", "", Arrays.asList(), Arrays.asList(), null, 12.75);
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
@@ -1295,10 +1602,10 @@ public class EventServiceTest {
 		Integer creatorMinimumAge = 18;
 		String startDate = LocalDate.now().format(dfDate);
 		String finishDate = LocalDate.now().format(dfDate);
-		List<String> startHour = Arrays.asList("00-12", "12-18", "18-00");
-		List<String> finishHour = Arrays.asList("00-12", "12-18", "18-00");
+		List<String> startHour = Arrays.asList("12-18", "18-00");
+		List<String> finishHour = Arrays.asList("12-18", "18-00");
 		List<String> city = Arrays.asList("Klaten", "Jogja");
-		Double zoneOffset = 9.0;
+		Double zoneOffset = -6.0;
 
 		Profile profile1 = new Profile();
 		profile1.setGender(Gender.P);
@@ -1323,7 +1630,7 @@ public class EventServiceTest {
 		eventSearch.put("title", "Kondangan test");
 		eventSearch.put("cancelled", false);
 		eventSearch.put("created_date", new Date());
-		
+
 		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
 		eventSearchs.add(eventSearch);
 		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
@@ -1384,13 +1691,61 @@ public class EventServiceTest {
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
 		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
 
-		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(),
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.P.toString(),
 				150, 18, "", "", Arrays.asList("00-12", "18-00"), Arrays.asList("00-12", "18-00"), Arrays.asList(),
-				-9.0);
+				-9.5);
 
 		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
 	}
 
+
+	@Test
+	public void searchEvent_ForUnmetConditionTest() {
+		Profile profile1 = new Profile();
+		profile1.setGender(Gender.P);
+		profile1.setDob(LocalDate.now().minusYears(19));
+
+		Optional<Profile> profileOptional = Optional.of(profile1);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(profileOptional);
+
+		Map<String, Object> eventSearch = new HashMap<String, Object>();
+		eventSearch.put("status", "APPLIED");
+		eventSearch.put("city", "Klaten");
+		eventSearch.put("companion_gender", "L");
+		eventSearch.put("created_by", "tester");
+		eventSearch.put("full_name", "full name tester");
+		eventSearch.put("gender", "P");
+		eventSearch.put("event_id", BigInteger.valueOf(1));
+		eventSearch.put("finish_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("maximum_age", 40);
+		eventSearch.put("minimum_age", 18);
+		eventSearch.put("profile_id", BigInteger.valueOf(1));
+		eventSearch.put("start_date_time", new Timestamp(System.currentTimeMillis()));
+		eventSearch.put("title", "Kondangan test");
+		eventSearch.put("cancelled", false);
+		eventSearch.put("created_date", new Date());
+
+		List<Map<String, Object>> eventSearchs = new ArrayList<Map<String, Object>>();
+		eventSearchs.add(eventSearch);
+		Page<Map<String, Object>> eventSearchPage = new PageImpl<Map<String, Object>>(eventSearchs);
+
+		Mockito.when(eventRepository.search(any(Integer.class), Mockito.<String>anyList(), anyLong(),
+				any(LocalDateTime.class), any(LocalDateTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), any(LocalTime.class), any(LocalTime.class),
+				any(LocalTime.class), any(LocalTime.class), anyInt(), anyInt(), Mockito.<String>anyList(),
+				any(String.class), any(Pageable.class))).thenReturn(eventSearchPage);
+
+		Mockito.when(profileRepository.findById(anyLong())).thenReturn(Optional.of(new Profile()));
+		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn("");
+		Mockito.when(applicantRepository.findByEventIdAccepted(anyLong())).thenReturn((new ArrayList<Applicant>()));
+
+		EventFindAllResponseWrapper events = eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.P.toString(),
+				150, 18, "", "", Arrays.asList("18-00"), Arrays.asList("18-00"), Arrays.asList(),
+				7.0);
+
+		assertEquals("Kondangan test", events.getContentList().get(0).getTitle());
+	}
+	
 	@Test
 	public void shouldThrowBadRequestException_WhenSortByNotFilledWithCorrectValueInSearchEvent() {
 		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "wrong sortBy", "DESC", Gender.B.toString(), 150, 18,
@@ -1452,7 +1807,7 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenDateIsNotFilledTogetherInSearchEvent() {
+	public void shouldThrowBadRequestException_WhenStartDateNotEmptyAndFinishDateEmptyInSearchEvent() {
 		Profile profileMock = new Profile();
 		profileMock.setDob(LocalDate.now().minusYears(20));
 		profileMock.setGender(Gender.L);
@@ -1460,6 +1815,19 @@ public class EventServiceTest {
 
 		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18,
 				LocalDateTime.now().plusDays(10).format(dfDate), "", Arrays.asList(), Arrays.asList(), Arrays.asList(),
+				0.0)).hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
+						.isInstanceOf(BadRequestException.class);
+	}
+
+	@Test
+	public void shouldThrowBadRequestException_WhenStartDateEmptyAndFinishDateNotEmptyInSearchEvent() {
+		Profile profileMock = new Profile();
+		profileMock.setDob(LocalDate.now().minusYears(20));
+		profileMock.setGender(Gender.L);
+		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profileMock));
+
+		assertThatThrownBy(() -> eventService.search(1L, 0, 10, "createdDate", "DESC", Gender.B.toString(), 150, 18, "",
+				LocalDateTime.now().plusDays(10).format(dfDate), Arrays.asList(), Arrays.asList(), Arrays.asList(),
 				0.0)).hasMessageContaining("Error: startDate and finishDate must be all empty or all filled!")
 						.isInstanceOf(BadRequestException.class);
 	}
@@ -1518,24 +1886,20 @@ public class EventServiceTest {
 						.isInstanceOf(BadRequestException.class);
 	}
 
-	private void setupEnvers(){
+	private void setupEnvers() {
 		Mockito.when(auditReader.getRevisionNumberForDate(any(Date.class))).thenReturn(1);
 		Mockito.when(auditReader.createQuery()).thenReturn(auditQueryCreator);
-		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false))
-				.thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)).thenReturn(auditQuery);
 		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-				.add(any(AuditCriterion.class)))
-				.thenReturn(auditQuery);
+				.add(any(AuditCriterion.class))).thenReturn(auditQuery);
 		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-				.addProjection(any(AuditProjection.class)))
-				.thenReturn(auditQuery);
-		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false)
-				.getSingleResult())
+				.addProjection(any(AuditProjection.class))).thenReturn(auditQuery);
+		Mockito.when(auditReader.createQuery().forRevisionsOfEntity(Event.class, false, false).getSingleResult())
 				.thenReturn(1L);
 
 		List<Number> revisionList = Arrays.asList(1, 2, 3);
 		Mockito.when(auditReader.getRevisions(Event.class, event.getEventId())).thenReturn(revisionList);
-		Mockito.when(auditReader.find(Event.class, event.getEventId(),
-				revisionList.get(revisionList.size() - 2))).thenReturn(event);
+		Mockito.when(auditReader.find(Event.class, event.getEventId(), revisionList.get(revisionList.size() - 2)))
+				.thenReturn(event);
 	}
 }
