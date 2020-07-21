@@ -18,7 +18,7 @@ import javax.validation.constraints.Size;
 @NoArgsConstructor
 @Entity
 @Table(name = "chat")
-public class Chat extends Auditable<String> {
+public class Chat{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
