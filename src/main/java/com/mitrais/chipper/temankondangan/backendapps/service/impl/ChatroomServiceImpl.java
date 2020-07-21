@@ -98,4 +98,9 @@ public class ChatroomServiceImpl implements ChatroomService {
         chat.setContentType(chatMessage.getContentType());
         chatRepository.save(chat);
     }
+
+    @Override
+    public List<Chat> getChat(Long roomId) {
+        return chatRepository.findAllByChatroomId(roomId);
+    }
 }

@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 
@@ -14,4 +15,6 @@ public interface ChatroomService {
     void deleteChatrooms(List<Long> chatroomIds);
 
     void saveChat(ChatMessage chatMessage, Long roomId);
+
+    List<Chat> getChat(Long roomId);
 }
