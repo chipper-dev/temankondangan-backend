@@ -1,17 +1,16 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
-import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
-import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Data
 @Builder
@@ -33,6 +32,10 @@ public class Chat extends Auditable<String> {
     @JoinColumn(name = "user_id")
     @Where(clause = "data_state <> 'DELETED'")
     private User user;
+
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    private ChatMessage.ContentType contentType;
 
     @Size(max = 255)
     private String body;

@@ -2,10 +2,8 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
-import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.*;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
@@ -22,16 +20,18 @@ public class ChatroomServiceImpl implements ChatroomService {
     ChatroomUserRepository chatroomUserRepository;
     ChatRepository chatRepository;
     EventRepository eventRepository;
+    UserRepository userRepository;
     ApplicantRepository applicantRepository;
 
     @Autowired
     public ChatroomServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
                                ChatRepository chatRepository, EventRepository eventRepository,
-                               ApplicantRepository applicantRepository) {
+                               UserRepository userRepository, ApplicantRepository applicantRepository) {
         this.chatroomRepository = chatroomRepository;
         this.chatroomUserRepository = chatroomUserRepository;
         this.chatRepository = chatRepository;
         this.eventRepository = eventRepository;
+        this.userRepository = userRepository;
         this.applicantRepository = applicantRepository;
     }
 
@@ -85,5 +85,17 @@ public class ChatroomServiceImpl implements ChatroomService {
                 chatroomRepository.save(room);
             }
         });
+    }
+
+    @Override
+    public void saveChat(ChatMessage chatMessage, Long roomId) {
+        Chatroom room = chatroomRepository.findById(roomId).get();
+        User user = userRepository.findById(chatMessage.getUserId()).get();
+        Chat chat = new Chat();
+        chat.setChatroom(room);
+        chat.setBody(chatMessage.getContent());
+        chat.setUser(user);
+        chat.setContentType(chatMessage.getContentType());
+        chatRepository.save(chat);
     }
 }

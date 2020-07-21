@@ -81,3 +81,6 @@ ALTER TABLE applicants
 
 ALTER TABLE notifications
     ADD COLUMN data varchar(512);
+
+ALTER TABLE chat
+    ADD COLUMN content_type varchar;
