@@ -18,7 +18,6 @@ public class ChatWebsocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/chat");
-        registry.enableStompBrokerRelay("/room")
-                .setRelayHost("embedded");
+        registry.enableSimpleBroker("/room");
     }
 }
