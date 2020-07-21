@@ -453,15 +453,22 @@ public class EventServiceTest {
 	public void applyEventTest() {
 		User user2 = new User();
 		user2.setUserId(2L);
+		
+		Event event = new Event();
+		event.setEventId(1L);
+		event.setTitle("Kondangan");
 		event.setUser(user2);
 		event.setFinishDateTime(LocalDateTime.now().plusHours(2));
 		event.setStartDateTime(LocalDateTime.now().plusHours(1));
 		event.setMaximumAge(40);
 		event.setMinimumAge(18);
 		event.setCompanionGender(Gender.B);
+		event.setCancelled(false);
+		
 		profile = new Profile();
 		profile.setDob(LocalDate.of(1995, 1, 1));
 		profile.setGender(Gender.L);
+		profile.setFullName("Jono");
 
 		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
 		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(any(User.class), any(Event.class)))
@@ -776,7 +783,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));
@@ -825,7 +832,7 @@ public class EventServiceTest {
 
 		Mockito.when(imageFileService.getImageUrl(any(Profile.class))).thenReturn(profile.getPhotoProfileFilename());
 		Mockito.when(eventRepository.findPastAppliedEvent(anyLong(), any(ApplicantStatus.class), any(Boolean.class),
-				any(Boolean.class), Mockito.<Boolean>anyList(), any(Sort.class))).thenReturn(eventList);
+				any(Boolean.class), any(Boolean.class), any(Sort.class))).thenReturn(eventList);
 		Mockito.when(profileRepository.findByUserId(anyLong())).thenReturn(Optional.of(profile));
 		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
 				.thenReturn(Optional.of(applicant));

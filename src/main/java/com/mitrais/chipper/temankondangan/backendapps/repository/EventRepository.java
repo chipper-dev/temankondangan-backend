@@ -60,11 +60,12 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
 	@Query("SELECT e FROM Event e JOIN Applicant a ON a.event.eventId = e.eventId "
 			+ "WHERE a.applicantUser.userId = :userId AND a.dataState = 'ACTIVE' "
-			+ "AND (e.startDateTime < NOW() OR false = :pastTimeOnly) AND e.cancelled in :isCancelled "
-			+ "AND (a.status = :applicantStatus OR true = :allStatus)")
+			+ "AND ((e.startDateTime < now() AND e.cancelled = false AND true=:pastTimeOnly) "
+			+ "AND (a.status = :applicantStatus OR true = :allStatus) "
+			+ "OR (e.cancelled = true AND true = :isCanceled))")
 	List<Event> findPastAppliedEvent(@Param("userId") Long userId,
 			@Param("applicantStatus") ApplicantStatus applicantStatus, @Param("allStatus") boolean allStatus,
-			@Param("pastTimeOnly") boolean pastTimeOnly, @Param("isCancelled") List<Boolean> isCancelled, Sort sort);
+			@Param("pastTimeOnly") boolean pastTimeOnly, @Param("isCanceled") boolean isCanceled, Sort sort);
 
 	@Query(nativeQuery = true, value = "SELECT e.event_id, p.profile_id, p.full_name, e.created_by, "
 			+ "e.title, e.city , e.start_date_time, e.finish_date_time, e.minimum_age, e.maximum_age, "
