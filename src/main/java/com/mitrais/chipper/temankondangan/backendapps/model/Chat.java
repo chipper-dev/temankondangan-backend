@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import lombok.AllArgsConstructor;
@@ -27,11 +28,12 @@ public class Chat{
 
     @ManyToOne
     @JoinColumn(name = "chatroom_id")
+    @JsonBackReference
     @Where(clause = "data_state <> 'DELETED'")
     private Chatroom chatroom;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id")    
     @Where(clause = "data_state <> 'DELETED'")
     private User user;
 

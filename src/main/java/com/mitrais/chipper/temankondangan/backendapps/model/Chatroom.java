@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import lombok.AllArgsConstructor;
@@ -16,6 +17,9 @@ import javax.validation.constraints.NotNull;
 
 import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -26,16 +30,17 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Where(clause = "data_state <> 'DELETED'")
 public class Chatroom extends Auditable<String> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id")
-    @Where(clause = "data_state <> 'DELETED'")
-    private Event event;
+	@ManyToOne
+	@JoinColumn(name = "event_id")
+	@Where(clause = "data_state <> 'DELETED'")
+	private Event event;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    protected DataState dataState;
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	protected DataState dataState;
+		
 }
