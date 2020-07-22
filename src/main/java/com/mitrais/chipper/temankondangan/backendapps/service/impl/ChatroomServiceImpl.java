@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -96,6 +97,7 @@ public class ChatroomServiceImpl implements ChatroomService {
         chat.setBody(chatMessage.getContent());
         chat.setUser(user);
         chat.setContentType(chatMessage.getContentType());
+        chat.setCreatedDate(new Date());
         chatRepository.save(chat);
     }
 

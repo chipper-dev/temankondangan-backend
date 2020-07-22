@@ -7,10 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
+import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.util.Date;
 
 @Data
 @Builder
@@ -36,6 +38,9 @@ public class Chat{
     @NotNull
     @Enumerated(EnumType.STRING)
     private ChatMessage.ContentType contentType;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date createdDate;
 
     @Size(max = 255)
     private String body;
