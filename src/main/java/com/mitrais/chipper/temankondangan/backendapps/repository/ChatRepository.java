@@ -12,6 +12,6 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 
     @Query("SELECT new com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper"
             + "(a.id, a.user, a.contentType, a.createdDate, a.body) "
-            + "from Chat a WHERE a.chatroom.id = :chatroomId ORDER BY a.id")
+            + "from Chat a WHERE a.chatroom.id = :chatroomId ORDER BY a.createdDate")
     List<ChatMessageWrapper> findAllByChatroomId(@Param("chatroomId") Long chatroomId);
 }
