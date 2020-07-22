@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,8 +42,8 @@ public class ChatroomServiceImpl implements ChatroomService {
 
 	@Autowired
 	public ChatroomServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
-			ChatRepository chatRepository, EventRepository eventRepository, ApplicantRepository applicantRepository,
-			UserRepository userRepository, ProfileRepository profileRepository) {
+							   ChatRepository chatRepository, EventRepository eventRepository, ApplicantRepository applicantRepository,
+							   UserRepository userRepository, ProfileRepository profileRepository) {
 		this.chatroomRepository = chatroomRepository;
 		this.chatroomUserRepository = chatroomUserRepository;
 		this.chatRepository = chatRepository;
@@ -51,33 +53,33 @@ public class ChatroomServiceImpl implements ChatroomService {
 		this.profileRepository = profileRepository;
 	}
 
-	@Override
-	public Chatroom createChatroom(Long eventId) {
-		Event event = eventRepository.findById(eventId)
-				.orElseThrow(() -> new ResourceNotFoundException("Event", "eventId", eventId));
-		Chatroom chatroom = chatroomRepository.findByEventId(eventId).orElse(null);
-		if (chatroom == null) {
-			chatroom = new Chatroom();
-			chatroom.setEvent(event);
-			chatroom.setDataState(DataState.ACTIVE);
-			chatroom = chatroomRepository.save(chatroom);
+    @Override
+    public Chatroom createChatroom(Long eventId) {
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException("Event", "eventId", eventId));
+        Chatroom chatroom = chatroomRepository.findByEventId(eventId).orElse(null);
+        if(chatroom == null) {
+            chatroom = new Chatroom();
+            chatroom.setEvent(event);
+            chatroom.setDataState(DataState.ACTIVE);
+            chatroom = chatroomRepository.save(chatroom);
 
-			ChatroomUser userCreator = new ChatroomUser();
-			userCreator.setChatroom(chatroom);
-			userCreator.setUser(event.getUser());
-			chatroomUserRepository.save(userCreator);
+            ChatroomUser userCreator = new ChatroomUser();
+            userCreator.setChatroom(chatroom);
+            userCreator.setUser(event.getUser());
+            chatroomUserRepository.save(userCreator);
 
-			List<Applicant> applicantsApproved = applicantRepository.findByEventIdAccepted(eventId);
-			Chatroom finalChatroom = chatroom;
-			applicantsApproved.forEach(applicant -> {
-				ChatroomUser userApplicant = new ChatroomUser();
-				userApplicant.setChatroom(finalChatroom);
-				userApplicant.setUser(applicant.getApplicantUser());
-				chatroomUserRepository.save(userApplicant);
-			});
-		}
-		return chatroom;
-	}
+            List<Applicant> applicantsApproved = applicantRepository.findByEventIdAccepted(eventId);
+            Chatroom finalChatroom = chatroom;
+            applicantsApproved.forEach(applicant -> {
+                ChatroomUser userApplicant = new ChatroomUser();
+                userApplicant.setChatroom(finalChatroom);
+                userApplicant.setUser(applicant.getApplicantUser());
+                chatroomUserRepository.save(userApplicant);
+            });
+        }
+        return chatroom;
+    }
+
 
 	@Override
 	public ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
@@ -90,7 +92,7 @@ public class ChatroomServiceImpl implements ChatroomService {
 
 	@Override
 	public ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber,
-			int pageSize) {
+																			   int pageSize) {
 		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByUnreadChat(userId);
 		return ChatroomListResponseWrapper
 				.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chatrooms.size()).contentList(chatrooms
@@ -108,32 +110,39 @@ public class ChatroomServiceImpl implements ChatroomService {
 		return chatroom;
 	}
 
-	@Override
-	public void deleteChatrooms(List<Long> chatroomIds) {
-		if (chatroomIds.isEmpty()) {
-			throw new BadRequestException("Error: Chatroom Id cannot be empty!");
-		}
+    @Override
+    public void deleteChatrooms(List<Long> chatroomIds) {
+        if(chatroomIds.isEmpty()){
+            throw new BadRequestException("Error: Chatroom Id cannot be empty!");
+        }
 
-		chatroomIds.forEach(chatroomId -> {
-			Chatroom room = chatroomRepository.findById(chatroomId).orElse(null);
-			if (room != null) {
-				room.setDataState(DataState.DELETED);
-				chatroomRepository.save(room);
-			}
-		});
-	}
+        chatroomIds.forEach(chatroomId -> {
+            Chatroom room = chatroomRepository.findById(chatroomId).orElse(null);
+            if(room != null) {
+                room.setDataState(DataState.DELETED);
+                chatroomRepository.save(room);
+            }
+        });
+    }
 
-	@Override
-	public void saveChat(ChatMessage chatMessage, Long roomId) {
-		Chatroom room = chatroomRepository.findById(roomId).get();
-		User user = userRepository.findById(chatMessage.getUserId()).get();
-		Chat chat = new Chat();
-		chat.setChatroom(room);
-		chat.setBody(chatMessage.getContent());
-		chat.setUser(user);
-		chat.setContentType(chatMessage.getContentType());
-		chatRepository.save(chat);
-	}
+    @Override
+    public void saveChat(ChatMessage chatMessage, Long roomId) {
+        Chatroom room = chatroomRepository.findById(roomId).get();
+        User user = userRepository.findById(chatMessage.getUserId()).get();
+        Chat chat = new Chat();
+        chat.setChatroom(room);
+        chat.setBody(chatMessage.getContent());
+        chat.setUser(user);
+        chat.setContentType(chatMessage.getContentType());
+        chat.setCreatedDate(new Date());
+        chatRepository.save(chat);
+    }
+
+    @Override
+    public List<Chat> getChat(Long roomId) {
+        return chatRepository.findAllByChatroomId(roomId);
+    }
+
 
 	@Override
 	public void markChatroomsAsReceived(List<Long> chatroomIds, Long userId) {

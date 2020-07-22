@@ -1,5 +1,6 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
@@ -14,6 +15,8 @@ public interface ChatroomService {
 	ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize);
 
 	ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize);
+
+    List<Chat> getChat(Long roomId);
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
 
