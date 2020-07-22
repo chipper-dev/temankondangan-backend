@@ -81,3 +81,11 @@ ALTER TABLE applicants
 
 ALTER TABLE notifications
     ADD COLUMN data varchar(512);
+
+ALTER TABLE chat
+    ADD COLUMN content_type varchar;
+
+ALTER TABLE chat
+    DROP COLUMN created_by,
+    DROP COLUMN last_modified_by,
+    DROP COLUMN last_modified_date;
