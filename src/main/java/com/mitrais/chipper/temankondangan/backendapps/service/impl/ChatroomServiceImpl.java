@@ -2,27 +2,21 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
-import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
+import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.model.*;
+import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -127,19 +121,23 @@ public class ChatroomServiceImpl implements ChatroomService {
 
     @Override
     public void saveChat(ChatMessage chatMessage, Long roomId) {
-        Chatroom room = chatroomRepository.findById(roomId).get();
-        User user = userRepository.findById(chatMessage.getUserId()).get();
         Chat chat = new Chat();
-        chat.setChatroom(room);
         chat.setBody(chatMessage.getContent());
-        chat.setUser(user);
+
+		chatroomRepository.findById(roomId).ifPresent(chat::setChatroom);
+		userRepository.findById(chatMessage.getUserId()).ifPresent(chat::setUser);
+
         chat.setContentType(chatMessage.getContentType());
         chat.setCreatedDate(new Date());
+        
         chatRepository.save(chat);
     }
 
     @Override
-    public List<Chat> getChat(Long roomId) {
+    public List<ChatMessageWrapper> getChat(Long userId, Long roomId) {
+        chatroomUserRepository.findByUserIdAndChatroomId(userId, roomId).orElseThrow(
+        		() -> new UnauthorizedException("User are not registered in this chatroom!")
+		);
         return chatRepository.findAllByChatroomId(roomId);
     }
 
