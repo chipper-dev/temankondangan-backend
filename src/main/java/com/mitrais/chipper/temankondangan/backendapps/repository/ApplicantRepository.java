@@ -33,4 +33,7 @@ public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
     		@Param("applicantStatus") ApplicantStatus applicantStatus);
 
     Boolean existsByEventAndStatus(Event event, ApplicantStatus applicantStatus);
+    
+    @Query("SELECT a from Applicant a WHERE a.applicantUser.userId = :userId")
+    Optional<List<Applicant>> findByUserId(@Param("userId") Long userId);
 }
