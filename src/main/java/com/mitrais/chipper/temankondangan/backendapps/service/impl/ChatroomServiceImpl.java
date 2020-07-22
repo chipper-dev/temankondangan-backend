@@ -121,14 +121,15 @@ public class ChatroomServiceImpl implements ChatroomService {
 
     @Override
     public void saveChat(ChatMessage chatMessage, Long roomId) {
-        Chatroom room = chatroomRepository.findById(roomId).get();
-        User user = userRepository.findById(chatMessage.getUserId()).get();
         Chat chat = new Chat();
-        chat.setChatroom(room);
         chat.setBody(chatMessage.getContent());
-        chat.setUser(user);
+
+		chatroomRepository.findById(roomId).ifPresent(chat::setChatroom);
+		userRepository.findById(chatMessage.getUserId()).ifPresent(chat::setUser);
+
         chat.setContentType(chatMessage.getContentType());
         chat.setCreatedDate(new Date());
+        
         chatRepository.save(chat);
     }
 
