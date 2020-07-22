@@ -11,16 +11,21 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatroomServiceImpl implements ChatroomService {
@@ -77,17 +82,22 @@ public class ChatroomServiceImpl implements ChatroomService {
 	}
 
 	@Override
-	public List<ChatroomDto> getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
-		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByDate(userId, pageNumber,
-				pageSize);
-		return chatrooms;
+	public ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
+		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByDate(userId);
+		return ChatroomListResponseWrapper
+				.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chatrooms.size()).contentList(chatrooms
+						.stream().skip((pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.build();
 	}
 
 	@Override
-	public List<ChatroomDto> getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize) {
-		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByUnreadChat(userId, pageNumber,
-				pageSize);
-		return chatrooms;
+	public ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber,
+			int pageSize) {
+		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByUnreadChat(userId);
+		return ChatroomListResponseWrapper
+				.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chatrooms.size()).contentList(chatrooms
+						.stream().skip((pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.build();
 	}
 
 	@Override

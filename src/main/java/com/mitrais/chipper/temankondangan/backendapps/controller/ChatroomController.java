@@ -4,8 +4,10 @@ import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateChatroomWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.DeleteChatroomWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadChatroomWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadNotificationWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
@@ -14,6 +16,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -48,6 +52,8 @@ public class ChatroomController extends CommonResource {
 	@ApiOperation(value = "Get Chatroom By Id", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping("/get-chatroom")
+	@ApiResponses(value = { @ApiResponse(response = ChatroomDto.class, code = 200, message = ""),
+			@ApiResponse(code = 404, message = "Chatroom not found with chatroomId") })
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> getChatroomById(@RequestParam(defaultValue = "0") Long chatroomId,
 			HttpServletRequest request) {
@@ -60,6 +66,7 @@ public class ChatroomController extends CommonResource {
 
 	@ApiOperation(value = "Get Chatroom List", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@ApiResponses(value = { @ApiResponse(response = ChatroomListResponseWrapper.class, code = 200, message = ""), })
 	@GetMapping("/get-chatroom-list")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> getChatroomList(@RequestParam(defaultValue = "0") Integer pageNumber,
@@ -68,7 +75,7 @@ public class ChatroomController extends CommonResource {
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<ChatroomDto> chatrooms;
+		ChatroomListResponseWrapper chatrooms;
 
 		if (sortBy == "timeReceived") {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);

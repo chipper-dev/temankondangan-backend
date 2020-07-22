@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 
 import java.util.List;
 
@@ -9,9 +10,9 @@ public interface ChatroomService {
 
 	Chatroom createChatroom(Long eventId);
 
-	List<ChatroomDto> getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize);
+	ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize);
 
-	List<ChatroomDto> getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize);
+	ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize);
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
 

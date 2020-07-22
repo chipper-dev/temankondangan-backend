@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.repository;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -36,10 +37,8 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ " left outer join chat_log cl2 on c2.id = cl2.chat_id " + " where cu.user_id = :userId  "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
-			+ "order by max(cl2.created_date) desc "
-			+ "limit :pageSize offset (:pageNumber - 1) * :pageSize ", nativeQuery = true)
-	List<ChatroomDto> findChatroomListByUserIdSortByDate(@Param("userId") Long userId,
-			@Param("pageNumber") int pageNumber, @Param("pageSize") int pageSize);
+			+ "order by max(cl2.created_date) desc, max(c2.created_date) desc ", nativeQuery = true)
+	List<ChatroomDto> findChatroomListByUserIdSortByDate(@Param("userId") Long userId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
 			+ "	case when e.cancelled or e.data_state <> 'ACTIVE' then 'INACTIVE' else  "
@@ -61,8 +60,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
 			+ "order by count(distinct ch.id) desc "
 			+ "limit :pageSize offset (:pageNumber - 1) * :pageSize ", nativeQuery = true)
-	List<ChatroomDto> findChatroomListByUserIdSortByUnreadChat(@Param("userId") Long userId,
-			@Param("pageNumber") int pageNumber, @Param("pageSize") int pageSize);
+	List<ChatroomDto> findChatroomListByUserIdSortByUnreadChat(@Param("userId") Long userId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
 			+ "	case when e.cancelled or e.data_state <> 'ACTIVE' then 'INACTIVE' else  "
