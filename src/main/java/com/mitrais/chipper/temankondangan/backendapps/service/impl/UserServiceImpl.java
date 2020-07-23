@@ -23,9 +23,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,6 +31,11 @@ public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
+
+	public static final List<String> STATIC_VERIFICATION_CODE_EMAIL = Collections.unmodifiableList(
+			new ArrayList<String>() {{
+				add("reset@gmail.com");
+			}});
 
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
@@ -138,9 +141,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(String email) {
-//		Integer code = generateRandomCode(000000);
+		Integer code = generateRandomCode(000000, email);
 
-		Integer code = 10201;
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
 
@@ -197,9 +199,13 @@ public class UserServiceImpl implements UserService {
 		userRepository.save(user);
 	}
 
-	private Integer generateRandomCode(Integer n) {
-		int m = (int) Math.pow(10, (double) n - 1);
-		return m + new Random().nextInt(9 * m);
+	private Integer generateRandomCode(Integer n, String email) {
+		if(STATIC_VERIFICATION_CODE_EMAIL.contains(email)) {
+			return 10201;
+		} else {
+			int m = (int) Math.pow(10, (double) n - 1);
+			return m + new Random().nextInt(9 * m);
+		}
 	}
 
 	private void saveCode(String email, Integer code) {
