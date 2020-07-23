@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
 	public static final List<String> STATIC_VERIFICATION_CODE_EMAIL = Collections.unmodifiableList(
 			new ArrayList<String>() {{
-				add("test@example.com");
+				add("reset@gmail.com");
 			}});
 
 	@Value("${app.verificationExpirationMsec}")
