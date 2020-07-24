@@ -87,6 +87,5 @@ ALTER TABLE chat
 
 ALTER TABLE chat
     DROP COLUMN created_by,
-    DROP COLUMN created_date,
     DROP COLUMN last_modified_by,
     DROP COLUMN last_modified_date;

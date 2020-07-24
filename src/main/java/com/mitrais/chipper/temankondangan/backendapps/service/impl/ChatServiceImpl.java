@@ -12,6 +12,9 @@ import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -51,8 +55,75 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public List<Chat> getChatListByChatroomIdAndUserId(Long chatroomId, Long userId) {
-		List<Chat> chats= chatRepository.findByChatroomIdAndUserId(chatroomId);
-		return chats;
-	}	
+	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
+			int pageSize) {
+		List<ChatMessageWrapper> chats = chatRepository.findAllByChatroomIdAndUserId(chatroomId, userId);
+		return ChatMessageListWrapper.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chats.size())
+				.contentList(
+						chats.stream().skip((pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.build();
+	}
+
+	@Override
+	public void markChatsAsReceived(List<Long> chatIds, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		if (chatIds.isEmpty()) {
+			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
+		}
+
+		chatIds.forEach(chatId -> {
+			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
+	}
+
+	@Override
+	public void markChatAsReceived(Long chatId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
+	}
+
+	@Override
+	public void markChatAsReceivedByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatRepository.markAsReceivedToLastId(chatroomId, lastChatId, userId, profile.getFullName(),
+				profile.getFullName());
+	}
+
+	@Override
+	public void markChatsAsRead(List<Long> chatIds, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		if (chatIds.isEmpty()) {
+			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
+		}
+
+		chatIds.forEach(chatId -> {
+			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
+
+	}
+
+	@Override
+	public void markChatAsRead(Long chatId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
+
+	}
+
+	@Override
+	public void markChatAsReadByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatRepository.markAsReadToLastId(chatroomId, lastChatId, userId, profile.getFullName(), profile.getFullName());
+	}
 }

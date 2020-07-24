@@ -4,6 +4,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
 
 import java.util.List;
 
@@ -30,4 +31,6 @@ public interface ChatroomService {
 	void markChatroomAsRead(Long chatroomId, Long userId);
 
 	Integer getUnreadChatroom(Long userId);
+
+    List<ChatMessageWrapper> getChat(Long userId, Long roomId);
 }
