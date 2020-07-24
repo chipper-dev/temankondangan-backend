@@ -22,6 +22,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ReceiveReadChatWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
@@ -74,11 +75,11 @@ public class ChatController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PostMapping("/set-received-chat-tolastid")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> setReceivedChatToLastId(@RequestBody Long chatroomId,
-			@RequestBody Long lastChatId, HttpServletRequest request) {
+	public ResponseEntity<ResponseBody> setReceivedChatToLastId(@RequestBody ReceiveReadChatWrapper wrapper,
+			HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsReceivedByChatroomIdAndLastChatId(chatroomId, lastChatId, userId);
+		chatService.markChatAsReceivedByChatroomIdAndLastChatId(wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -97,11 +98,11 @@ public class ChatController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PostMapping("/set-read-chat-tolastid")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> setReadChatToLastId(@RequestBody Long chatroomId, @RequestBody Long lastChatId,
+	public ResponseEntity<ResponseBody> setReadChatToLastId(@RequestBody ReceiveReadChatWrapper wrapper,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader("Authorization"));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsReadByChatroomIdAndLastChatId(chatroomId, lastChatId, userId);
+		chatService.markChatAsReadByChatroomIdAndLastChatId(wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 }

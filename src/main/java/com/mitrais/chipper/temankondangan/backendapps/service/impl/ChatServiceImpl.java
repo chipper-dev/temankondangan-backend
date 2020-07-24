@@ -57,7 +57,19 @@ public class ChatServiceImpl implements ChatService {
 	@Override
 	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
 			int pageSize) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
 		List<ChatMessageWrapper> chats = chatRepository.findAllByChatroomIdAndUserId(chatroomId, userId);
+
+		if (chats.size() > 0) {
+			Long lastchatId = chats.get(0).getId();
+
+			chatRepository.markAsReadToLastId(chatroomId, lastchatId, userId, profile.getFullName(),
+					profile.getFullName());
+
+		}
+
 		return ChatMessageListWrapper.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chats.size())
 				.contentList(
 						chats.stream().skip((pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
