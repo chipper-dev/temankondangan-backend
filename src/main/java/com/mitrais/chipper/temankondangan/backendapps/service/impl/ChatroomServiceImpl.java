@@ -138,7 +138,7 @@ public class ChatroomServiceImpl implements ChatroomService {
         chatroomUserRepository.findByUserIdAndChatroomId(userId, roomId).orElseThrow(
         		() -> new UnauthorizedException("User are not registered in this chatroom!")
 		);
-        return chatRepository.findAllByChatroomId(roomId);
+        return chatRepository.findAllByChatroomIdAndUserId(roomId, userId);
     }
 
 
