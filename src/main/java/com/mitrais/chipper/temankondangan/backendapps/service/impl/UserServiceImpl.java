@@ -141,7 +141,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(String email) {
-		Integer code = generateRandomCode(000000, email);
+		Integer code = generateRandomCode(000001, email);
 
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
