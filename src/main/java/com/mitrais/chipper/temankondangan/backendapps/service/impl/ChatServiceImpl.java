@@ -2,36 +2,27 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
-import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.User;
-import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
-import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ChatServiceImpl implements ChatService {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(AuthServiceImpl.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(ChatServiceImpl.class);
 
 	ChatroomRepository chatroomRepository;
 	ChatroomUserRepository chatroomUserRepository;
@@ -55,6 +46,20 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
+	public void saveChat(ChatMessage chatMessage, Long roomId) {
+		Chat chat = new Chat();
+		chat.setBody(chatMessage.getContent());
+
+		chatroomRepository.findById(roomId).ifPresent(chat::setChatroom);
+		userRepository.findById(chatMessage.getUserId()).ifPresent(chat::setUser);
+
+		chat.setContentType(chatMessage.getContentType());
+		chat.setCreatedDate(new Date());
+
+		chatRepository.save(chat);
+	}
+
+	@Override
 	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
 			int pageSize) {
 		Profile profile = profileRepository.findByUserId(userId)
@@ -62,7 +67,7 @@ public class ChatServiceImpl implements ChatService {
 
 		List<ChatMessageWrapper> chats = chatRepository.findAllByChatroomIdAndUserId(chatroomId, userId);
 
-		if (chats.size() > 0) {
+		if (!chats.isEmpty()) {
 			Long lastchatId = chats.get(0).getId();
 
 			chatRepository.markAsReadToLastId(chatroomId, lastchatId, userId, profile.getFullName(),
@@ -72,7 +77,7 @@ public class ChatServiceImpl implements ChatService {
 
 		return ChatMessageListWrapper.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chats.size())
 				.contentList(
-						chats.stream().skip((pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+						chats.stream().skip((long)(pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
 				.build();
 	}
 
@@ -85,9 +90,9 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId -> {
-			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
-		});
+		chatIds.forEach(chatId ->
+			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName())
+		);
 	}
 
 	@Override
@@ -116,9 +121,9 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId -> {
-			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
-		});
+		chatIds.forEach(chatId ->
+			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName())
+		);
 
 	}
 
