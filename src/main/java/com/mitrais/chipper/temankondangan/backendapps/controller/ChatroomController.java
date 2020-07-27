@@ -2,13 +2,9 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateChatroomWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.DeleteChatroomWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadChatroomWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import io.swagger.annotations.*;
@@ -73,7 +69,9 @@ public class ChatroomController extends CommonResource {
     @GetMapping("/get-chat/{roomId}")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ResponseBody> getChat(@PathVariable long roomId, HttpServletRequest request) {
-        List<Chat> chats = chatroomService.getChat(roomId);
+        String token = getToken(request.getHeader("Authorization"));
+        Long userId = tokenProvider.getUserIdFromToken(token);
+        List<ChatMessageWrapper> chats = chatroomService.getChat(userId, roomId);
 
         return ResponseEntity.ok(
                 getResponseBody(HttpStatus.OK.value(), chats, request.getRequestURI()));
@@ -93,9 +91,9 @@ public class ChatroomController extends CommonResource {
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		ChatroomListResponseWrapper chatrooms;
 
-		if (sortBy == "timeReceived") {
+		if ("timeReceived".equalsIgnoreCase(sortBy)) {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
-		} else if (sortBy == "unreadMessage") {
+		} else if ("unreadMessage".equalsIgnoreCase(sortBy)) {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByUnreadChat(userId, pageNumber, pageSize);
 		} else {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
