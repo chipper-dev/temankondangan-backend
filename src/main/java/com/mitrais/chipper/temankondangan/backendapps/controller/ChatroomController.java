@@ -64,20 +64,6 @@ public class ChatroomController extends CommonResource {
     }
 
 
-    @ApiOperation(value = "Get Chat from Chatroom", response = ResponseEntity.class)
-    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-    @GetMapping("/get-chat/{roomId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> getChat(@PathVariable long roomId, HttpServletRequest request) {
-        String token = getToken(request.getHeader("Authorization"));
-        Long userId = tokenProvider.getUserIdFromToken(token);
-        List<ChatMessageWrapper> chats = chatroomService.getChat(userId, roomId);
-
-        return ResponseEntity.ok(
-                getResponseBody(HttpStatus.OK.value(), chats, request.getRequestURI()));
-    }
-
-
 	@ApiOperation(value = "Get Chatroom List", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@ApiResponses(value = { @ApiResponse(response = ChatroomListResponseWrapper.class, code = 200, message = ""), })

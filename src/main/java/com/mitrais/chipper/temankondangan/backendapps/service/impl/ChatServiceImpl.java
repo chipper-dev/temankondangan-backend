@@ -2,7 +2,9 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
@@ -13,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +43,20 @@ public class ChatServiceImpl implements ChatService {
 		this.applicantRepository = applicantRepository;
 		this.userRepository = userRepository;
 		this.profileRepository = profileRepository;
+	}
+
+	@Override
+	public void saveChat(ChatMessage chatMessage, Long roomId) {
+		Chat chat = new Chat();
+		chat.setBody(chatMessage.getContent());
+
+		chatroomRepository.findById(roomId).ifPresent(chat::setChatroom);
+		userRepository.findById(chatMessage.getUserId()).ifPresent(chat::setUser);
+
+		chat.setContentType(chatMessage.getContentType());
+		chat.setCreatedDate(new Date());
+
+		chatRepository.save(chat);
 	}
 
 	@Override
