@@ -91,9 +91,9 @@ public class ChatroomController extends CommonResource {
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		ChatroomListResponseWrapper chatrooms;
 
-		if (sortBy == "timeReceived") {
+		if ("timeReceived".equalsIgnoreCase(sortBy)) {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
-		} else if (sortBy == "unreadMessage") {
+		} else if ("unreadMessage".equalsIgnoreCase(sortBy)) {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByUnreadChat(userId, pageNumber, pageSize);
 		} else {
 			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
