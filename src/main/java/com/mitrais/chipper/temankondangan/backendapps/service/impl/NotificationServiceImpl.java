@@ -88,7 +88,7 @@ public class NotificationServiceImpl implements NotificationService {
         if(notificationIds.isEmpty()) {
             notificationRepository.changeAllNotificationToReadByUserId(userId);
         } else {
-            notificationIds.forEach((notificationId) -> {
+            notificationIds.forEach(notificationId -> {
                 com.mitrais.chipper.temankondangan.backendapps.model.Notification notification = notificationRepository.findById(notificationId).orElse(null);
                 if(notification != null) {
                     if (notification.getUserId().equals(userId)) {

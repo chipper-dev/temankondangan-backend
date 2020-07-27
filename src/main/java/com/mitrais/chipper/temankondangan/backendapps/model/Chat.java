@@ -1,14 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.mitrais.chipper.temankondangan.backendapps.model.common.Auditable;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Where;
-import org.springframework.data.annotation.CreatedDate;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;

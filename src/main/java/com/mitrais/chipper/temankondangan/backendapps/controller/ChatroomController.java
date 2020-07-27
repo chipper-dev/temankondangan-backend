@@ -4,7 +4,10 @@ import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.*;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateChatroomWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.DeleteChatroomWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ReadChatroomWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import io.swagger.annotations.*;
@@ -15,7 +18,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 @Api(value = "Chatroom Management System")
 @RestController
@@ -27,6 +29,8 @@ public class ChatroomController extends CommonResource {
 
     @Autowired
     TokenProvider tokenProvider;
+
+	private static final String AUTH_STRING = "Authorization";
 
     @ApiOperation(value = "Create Chatroom", response = ResponseEntity.class)
     @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
@@ -46,7 +50,7 @@ public class ChatroomController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> getChatroomById(@RequestParam(defaultValue = "0") Long chatroomId,
 														HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		ChatroomDto chatroom = chatroomService.getChatroomByIdAndUserId(chatroomId, userId);
 
@@ -64,20 +68,6 @@ public class ChatroomController extends CommonResource {
     }
 
 
-    @ApiOperation(value = "Get Chat from Chatroom", response = ResponseEntity.class)
-    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-    @GetMapping("/get-chat/{roomId}")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<ResponseBody> getChat(@PathVariable long roomId, HttpServletRequest request) {
-        String token = getToken(request.getHeader("Authorization"));
-        Long userId = tokenProvider.getUserIdFromToken(token);
-        List<ChatMessageWrapper> chats = chatroomService.getChat(userId, roomId);
-
-        return ResponseEntity.ok(
-                getResponseBody(HttpStatus.OK.value(), chats, request.getRequestURI()));
-    }
-
-
 	@ApiOperation(value = "Get Chatroom List", response = ResponseEntity.class)
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@ApiResponses(value = { @ApiResponse(response = ChatroomListResponseWrapper.class, code = 200, message = ""), })
@@ -87,7 +77,7 @@ public class ChatroomController extends CommonResource {
 			@RequestParam(defaultValue = "10") Integer pageSize,
 			@ApiParam(value = "input timeReceived or unreadMessage") @RequestParam(defaultValue = "timeReceived") String sortBy,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		ChatroomListResponseWrapper chatrooms;
 
@@ -107,7 +97,7 @@ public class ChatroomController extends CommonResource {
 	@PostMapping("/set-received-chatroom")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChatroom(@RequestBody Long chatroomId, HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		chatroomService.markChatroomAsReceived(chatroomId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
@@ -119,7 +109,7 @@ public class ChatroomController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChatrooms(@RequestBody ReadChatroomWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		chatroomService.markChatroomsAsReceived(wrapper.getChatroomIds(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
@@ -130,7 +120,7 @@ public class ChatroomController extends CommonResource {
 	@PostMapping("/set-read-chatroom")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatroom(@RequestBody Long chatroomId, HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		chatroomService.markChatroomAsRead(chatroomId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
@@ -142,7 +132,7 @@ public class ChatroomController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatrooms(@RequestBody ReadChatroomWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		chatroomService.markChatroomsAsRead(wrapper.getChatroomIds(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
@@ -153,7 +143,7 @@ public class ChatroomController extends CommonResource {
 	@GetMapping("/get-unread-chatrooms")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatrooms(HttpServletRequest request) {
-		String token = getToken(request.getHeader("Authorization"));
+		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		Integer unreadChatroom = chatroomService.getUnreadChatroom(userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), unreadChatroom, request.getRequestURI()));
