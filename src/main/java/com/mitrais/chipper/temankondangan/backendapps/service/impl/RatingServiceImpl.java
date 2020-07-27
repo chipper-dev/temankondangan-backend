@@ -65,7 +65,7 @@ public class RatingServiceImpl implements RatingService {
             }
         }
 
-        if (event.getCancelled()) {
+        if (Boolean.TRUE.equals(event.getCancelled())) {
             throw new BadRequestException("Error: Event has been canceled you can't give the rating!");
         }
         if (acceptedApplicantList.isEmpty()) {
