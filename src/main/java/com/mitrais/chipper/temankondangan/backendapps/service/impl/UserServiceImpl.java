@@ -12,6 +12,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePassw
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -32,10 +32,9 @@ public class UserServiceImpl implements UserService {
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
 
-	public static final List<String> STATIC_VERIFICATION_CODE_EMAIL = Collections.unmodifiableList(
-			new ArrayList<String>() {{
-				add("reset@gmail.com");
-			}});
+	private static final Integer VALIDATION_CODE_LENGTH = 6;
+
+	private static final List<String> STATIC_VERIFICATION_CODE_EMAIL = new ArrayList<>();
 
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
@@ -61,6 +60,8 @@ public class UserServiceImpl implements UserService {
 		this.emailService = emailService;
 		this.verificationRepository = verificationRepository;
 		this.template = template;
+		
+		STATIC_VERIFICATION_CODE_EMAIL.add("reset@gmail.com");
 	}
 
 	@Override
@@ -141,7 +142,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(String email) {
-		Integer code = generateRandomCode(000001, email);
+		Integer code = generateRandomCode(VALIDATION_CODE_LENGTH, email);
 
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
@@ -209,7 +210,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	private void saveCode(String email, Integer code) {
-		VerificationCode temp = VerificationCode.builder().code(String.valueOf(code)).email(email)
+		VerificationCode temp = VerificationCode.builder().code(StringUtils.leftPad(String.valueOf(code), VALIDATION_CODE_LENGTH, "0")).email(email)
 				.createdAt(LocalDateTime.now()).build();
 
 		verificationRepository.save(temp);
