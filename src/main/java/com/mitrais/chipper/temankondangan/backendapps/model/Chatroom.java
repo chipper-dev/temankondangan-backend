@@ -9,12 +9,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ResultCheckStyle;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
-import org.hibernate.envers.Audited;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
-
-import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 
 @Data
 @Builder
@@ -26,16 +23,17 @@ import static org.hibernate.envers.RelationTargetAuditMode.NOT_AUDITED;
 @Where(clause = "data_state <> 'DELETED'")
 public class Chatroom extends Auditable<String> {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "event_id")
-    @Where(clause = "data_state <> 'DELETED'")
-    private Event event;
+	@ManyToOne
+	@JoinColumn(name = "event_id")
+	@Where(clause = "data_state <> 'DELETED'")
+	private Event event;
 
-    @NotNull
-    @Enumerated(EnumType.STRING)
-    protected DataState dataState;
+	@NotNull
+	@Enumerated(EnumType.STRING)
+	protected DataState dataState;
+		
 }

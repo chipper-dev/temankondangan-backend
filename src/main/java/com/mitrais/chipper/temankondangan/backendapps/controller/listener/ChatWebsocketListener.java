@@ -31,7 +31,7 @@ public class ChatWebsocketListener {
         String username = (String) headerAccessor.getSessionAttributes().get("username");
         String roomId = (String) headerAccessor.getSessionAttributes().get("roomId");
         if(username != null) {
-            logger.info("User Disconnected : " + username);
+            logger.info("User Disconnected : {}",  username);
 
             ChatMessage chatMessage = new ChatMessage();
             chatMessage.setType(ChatMessage.MessageType.LEAVE);

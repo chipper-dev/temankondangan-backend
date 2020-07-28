@@ -2,38 +2,48 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
-import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
-import com.mitrais.chipper.temankondangan.backendapps.model.Event;
+import com.mitrais.chipper.temankondangan.backendapps.model.*;
+import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ChatroomServiceImpl implements ChatroomService {
 
-    ChatroomRepository chatroomRepository;
-    ChatroomUserRepository chatroomUserRepository;
-    ChatRepository chatRepository;
-    EventRepository eventRepository;
-    ApplicantRepository applicantRepository;
+	public static final Logger LOGGER = LoggerFactory.getLogger(ChatroomServiceImpl.class);
 
-    @Autowired
-    public ChatroomServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
-                               ChatRepository chatRepository, EventRepository eventRepository,
-                               ApplicantRepository applicantRepository) {
-        this.chatroomRepository = chatroomRepository;
-        this.chatroomUserRepository = chatroomUserRepository;
-        this.chatRepository = chatRepository;
-        this.eventRepository = eventRepository;
-        this.applicantRepository = applicantRepository;
-    }
+	public static final String ERROR_CHATROOM_ID_EMPTY = "Error: Chatroom Id cannot be empty!";
+
+	ChatroomRepository chatroomRepository;
+	ChatroomUserRepository chatroomUserRepository;
+	ChatRepository chatRepository;
+	EventRepository eventRepository;
+	ApplicantRepository applicantRepository;
+	UserRepository userRepository;
+	ProfileRepository profileRepository;
+
+	@Autowired
+	public ChatroomServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
+							   ChatRepository chatRepository, EventRepository eventRepository, ApplicantRepository applicantRepository,
+							   UserRepository userRepository, ProfileRepository profileRepository) {
+		this.chatroomRepository = chatroomRepository;
+		this.chatroomUserRepository = chatroomUserRepository;
+		this.chatRepository = chatRepository;
+		this.eventRepository = eventRepository;
+		this.applicantRepository = applicantRepository;
+		this.userRepository = userRepository;
+		this.profileRepository = profileRepository;
+	}
 
     @Override
     public Chatroom createChatroom(Long eventId) {
@@ -62,20 +72,40 @@ public class ChatroomServiceImpl implements ChatroomService {
         return chatroom;
     }
 
-    @Override
-    public List<Chatroom> getChatroomList(Long userId) {
-        List<ChatroomUser> list = chatroomUserRepository.findByUserId(userId);
-        List<Chatroom> chatrooms = new ArrayList<>();
-        list.forEach(data ->
-            chatrooms.add(data.getChatroom())
-        );
-        return chatrooms;
-    }
+
+	@Override
+	public ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
+		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByDate(userId);
+		return ChatroomListResponseWrapper
+				.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chatrooms.size()).contentList(chatrooms
+						.stream().skip((long)(pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.build();
+	}
+
+	@Override
+	public ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber,
+																			   int pageSize) {
+		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByUnreadChat(userId);
+		return ChatroomListResponseWrapper
+				.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chatrooms.size()).contentList(chatrooms
+						.stream().skip((long)(pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.build();
+	}
+
+	@Override
+	public ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId) {
+		ChatroomDto chatroom = chatroomRepository.findChatroomByIdAndUserId(chatroomId, userId);
+
+		if (chatroom == null) {
+			throw new ResourceNotFoundException(Entity.CHATROOM.getLabel(), "id", chatroomId);
+		}
+		return chatroom;
+	}
 
     @Override
     public void deleteChatrooms(List<Long> chatroomIds) {
         if(chatroomIds.isEmpty()){
-            throw new BadRequestException("Error: Chatroom Id cannot be empty!");
+            throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
         }
 
         chatroomIds.forEach(chatroomId -> {
@@ -86,4 +116,55 @@ public class ChatroomServiceImpl implements ChatroomService {
             }
         });
     }
+
+	@Override
+	public void markChatroomsAsReceived(List<Long> chatroomIds, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		if (chatroomIds.isEmpty()) {
+			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
+		}
+
+		chatroomIds.forEach(chatroomId ->
+			chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
+					profile.getFullName(), profile.getFullName()));
+	}
+
+	@Override
+	public void markChatroomAsReceived(Long chatroomId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
+				profile.getFullName(), profile.getFullName());
+	}
+
+	@Override
+	public void markChatroomsAsRead(List<Long> chatroomIds, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		if (chatroomIds.isEmpty()) {
+			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
+		}
+
+		chatroomIds.forEach(chatroomId ->
+			chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
+					profile.getFullName(), profile.getFullName()));
+	}
+
+	@Override
+	public void markChatroomAsRead(Long chatroomId, Long userId) {
+		Profile profile = profileRepository.findByUserId(userId)
+				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId, profile.getFullName(),
+				profile.getFullName());
+	}
+
+	@Override
+	public Integer getUnreadChatroom(Long userId) {
+		return chatroomRepository.getUnreadChatroom(userId);
+	}
 }

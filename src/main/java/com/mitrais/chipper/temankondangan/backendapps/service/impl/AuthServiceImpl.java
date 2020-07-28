@@ -48,7 +48,7 @@ public class AuthServiceImpl implements AuthService {
 	@Override
 	public User save(RegisterUserWrapper register) {
 		// check email exist
-		if (userRepository.existsByEmail(register.getEmail())) {
+		if (Boolean.TRUE.equals(userRepository.existsByEmail(register.getEmail()))) {
 			throw new BadRequestException("Error: Email is already exist!");
 		}
 

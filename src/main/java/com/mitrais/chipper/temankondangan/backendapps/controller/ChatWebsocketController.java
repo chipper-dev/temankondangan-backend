@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
+import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -15,8 +16,12 @@ public class ChatWebsocketController {
     @Autowired
     private SimpMessageSendingOperations messagingTemplate;
 
+    @Autowired
+    private ChatService chatService;
+
     @MessageMapping("/sendMessage/{roomId}")
     public void sendMessage(@Payload ChatMessage chatMessage, @DestinationVariable String roomId) {
+        chatService.saveChat(chatMessage, Long.parseLong(roomId));
         messagingTemplate.convertAndSend("/room/" + roomId, chatMessage);
     }
 

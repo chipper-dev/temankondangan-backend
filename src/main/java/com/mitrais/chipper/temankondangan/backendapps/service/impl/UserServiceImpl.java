@@ -12,6 +12,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.UserCreatePassw
 import com.mitrais.chipper.temankondangan.backendapps.repository.*;
 import com.mitrais.chipper.temankondangan.backendapps.service.EmailService;
 import com.mitrais.chipper.temankondangan.backendapps.service.UserService;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,13 +20,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -33,6 +31,10 @@ public class UserServiceImpl implements UserService {
 	private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 	private static final String ERROR_USER_NOT_FOUND = "Error: User not found!";
+
+	private static final Integer VALIDATION_CODE_LENGTH = 6;
+
+	private static final List<String> STATIC_VERIFICATION_CODE_EMAIL = new ArrayList<>();
 
 	@Value("${app.verificationExpirationMsec}")
 	Long expiration;
@@ -58,6 +60,8 @@ public class UserServiceImpl implements UserService {
 		this.emailService = emailService;
 		this.verificationRepository = verificationRepository;
 		this.template = template;
+		
+		STATIC_VERIFICATION_CODE_EMAIL.add("reset@gmail.com");
 	}
 
 	@Override
@@ -138,9 +142,8 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public void forgotPassword(String email) {
-//		Integer code = generateRandomCode(000000);
+		Integer code = generateRandomCode(VALIDATION_CODE_LENGTH, email);
 
-		Integer code = 10201;
 		User user = userRepository.findByEmail(email)
 				.orElseThrow(() -> new BadRequestException("Error: Your email is not registered. Please try again"));
 
@@ -197,13 +200,17 @@ public class UserServiceImpl implements UserService {
 		userRepository.save(user);
 	}
 
-	private Integer generateRandomCode(Integer n) {
-		int m = (int) Math.pow(10, (double) n - 1);
-		return m + new Random().nextInt(9 * m);
+	private Integer generateRandomCode(Integer n, String email) {
+		if(STATIC_VERIFICATION_CODE_EMAIL.contains(email)) {
+			return 10201;
+		} else {
+			int m = (int) Math.pow(10, (double) n - 1);
+			return m + new Random().nextInt(9 * m);
+		}
 	}
 
 	private void saveCode(String email, Integer code) {
-		VerificationCode temp = VerificationCode.builder().code(String.valueOf(code)).email(email)
+		VerificationCode temp = VerificationCode.builder().code(StringUtils.leftPad(String.valueOf(code), VALIDATION_CODE_LENGTH, "0")).email(email)
 				.createdAt(LocalDateTime.now()).build();
 
 		verificationRepository.save(temp);

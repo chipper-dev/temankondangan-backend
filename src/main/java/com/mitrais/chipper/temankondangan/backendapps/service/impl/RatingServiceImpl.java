@@ -59,13 +59,11 @@ public class RatingServiceImpl implements RatingService {
             throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
         }
 
-        if(event.getFinishDateTime() != null) {
-            if(event.getFinishDateTime().isAfter(LocalDateTime.now())) {
-                throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
-            }
+        if(event.getFinishDateTime() != null && event.getFinishDateTime().isAfter(LocalDateTime.now())) {
+            throw new BadRequestException("Error: You cannot rate a user when the event is still active.");
         }
 
-        if (event.getCancelled()) {
+        if (Boolean.TRUE.equals(event.getCancelled())) {
             throw new BadRequestException("Error: Event has been canceled you can't give the rating!");
         }
         if (acceptedApplicantList.isEmpty()) {
