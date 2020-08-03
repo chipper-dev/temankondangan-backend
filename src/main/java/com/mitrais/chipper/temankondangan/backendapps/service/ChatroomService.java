@@ -3,8 +3,6 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chatroom;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatroomListResponseWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
 
 import java.util.List;
 
