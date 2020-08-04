@@ -177,7 +177,7 @@ CREATE TABLE public.chat_log (
 );
 
 CREATE TABLE public.lookup (
-	lookup_id int8 PRIMARY KEY,
+	lookup_id BIGSERIAL PRIMARY KEY,
 	lookup_key varchar NOT NULL,
 	lookup_value varchar NOT NULL,
 	lookup_display_name varchar NOT NULL
