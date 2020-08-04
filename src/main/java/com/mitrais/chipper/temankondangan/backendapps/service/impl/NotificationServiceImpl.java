@@ -31,6 +31,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void send(String title, String body, User user, @NotNull Map<String, String> data) throws FirebaseMessagingException {
+        data.putIfAbsent("click_action", "FLUTTER_NOTIFICATION_CLICK");
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
@@ -50,6 +51,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public void sendMultiple(String title, String body, List<User> users, @NotNull Map<String, String> data) throws FirebaseMessagingException {
+        data.putIfAbsent("click_action", "FLUTTER_NOTIFICATION_CLICK");
         Notification notification = Notification.builder()
                 .setTitle(title)
                 .setBody(body)
