@@ -16,11 +16,11 @@ import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMS
 public interface ProfileFeignClient {
 
 	// fetch legacy profile data
-	@RequestMapping(method = RequestMethod.GET, value = "/client/find/{userId}")
-	Optional<ProfileMSResponseDTO> findByUserId(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
+	@RequestMapping(method = RequestMethod.GET, value = "/client/findByUser/{userId}")
+	Optional<ProfileMSResponseDTO> findByUser(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
 			@PathVariable("userId") Long userId);
 	
-	@RequestMapping(method = RequestMethod.GET, value = "/client/profiles")
+	@RequestMapping(method = RequestMethod.GET, value = "/client/findall")
     List<ProfileMSResponseDTO> getProfiles(@RequestHeader(HttpHeaders.AUTHORIZATION) String token);
 
 }

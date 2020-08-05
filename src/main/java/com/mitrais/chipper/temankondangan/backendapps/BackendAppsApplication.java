@@ -17,9 +17,9 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @EnableFeignClients
 @EnableEurekaClient
-//@EnableCircuitBreaker
-//@EnableHystrixDashboard
-//@EnableHystrix
+@EnableCircuitBreaker
+@EnableHystrixDashboard
+@EnableHystrix
 @SpringBootApplication
 @EnableAutoConfiguration
 @EnableJpaAuditing(auditorAwareRef = "auditorAware")

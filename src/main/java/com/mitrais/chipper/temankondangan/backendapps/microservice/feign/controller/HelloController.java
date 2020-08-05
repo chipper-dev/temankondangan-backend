@@ -15,7 +15,7 @@ import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMS
 import com.mitrais.chipper.temankondangan.backendapps.service.HelloService;
 
 @RestController
-@RequestMapping("/hell")
+@RequestMapping("/hello")
 public class HelloController extends CommonResource {
 	private static final String HEADER_AUTH = "Authorization";
 	@Autowired
@@ -24,12 +24,12 @@ public class HelloController extends CommonResource {
 	@Autowired
 	HelloService hello;
 
-	@GetMapping("/hello")
+	@GetMapping("/")
 	public String index(HttpServletRequest request) {
 		return "Hello from Legacy Service running at port: " + env.getProperty("local.server.port");
 	}
 
-	@GetMapping("/helloprofiles")
+	@GetMapping("/findallprofiles")
 	public List<ProfileMSResponseDTO> getProfiles(HttpServletRequest request) {
 		LOGGER.info("Get all profiles test");
 		return hello.getAllProfiles(request.getHeader(HEADER_AUTH));

@@ -341,7 +341,7 @@ public class EventServiceImpl implements EventService {
 				() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 
 		Profile profileCreator = msConverter
-				.convertFromMSProfile(profileFeignClient.findByUserId(header, userCreator.getUserId()).orElseThrow(
+				.convertFromMSProfile(profileFeignClient.findByUser(header, userCreator.getUserId()).orElseThrow(
 						() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId())));
 
 		if (userId.equals(userCreator.getUserId())) {
