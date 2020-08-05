@@ -26,16 +26,6 @@ CREATE table public.profile (
     modified_date timestamp NOT NULL
 );
 
-CREATE TABLE public.config (
-	config_id int8 PRIMARY KEY,
-	config_key varchar NOT NULL,
-	config_value varchar NOT NULL,
-	created_by varchar NOT NULL,
-	created_date timestamp NOT NULL,
-	modified_by varchar NOT NULL,
-	modified_date timestamp NOT NULL
-);
-
 CREATE TABLE public.event
 (
     event_id int8 PRIMARY KEY,
@@ -184,4 +174,11 @@ CREATE TABLE public.chat_log (
 	CONSTRAINT chat_log_pkey PRIMARY KEY (id),	
 	CONSTRAINT chat_log_chat_fkey FOREIGN KEY (chat_id) REFERENCES chat(id),
 	CONSTRAINT chat_log_user_fkey FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+CREATE TABLE public.lookup (
+	lookup_id BIGSERIAL PRIMARY KEY,
+	lookup_key varchar NOT NULL,
+	lookup_value varchar NOT NULL,
+	lookup_display_name varchar NOT NULL
 );
