@@ -24,7 +24,7 @@ public interface EventService {
 
 	public void apply(Long userId, Long eventId);
 
-	public EventDetailResponseWrapper findEventDetail(String id, Long userId);
+//	public EventDetailResponseWrapper findEventDetail(String id, Long userId);
 
 	public void cancelEvent(Long userId, Long eventId);
 
@@ -38,5 +38,7 @@ public interface EventService {
 			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
 			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
 			Double zoneOffset);
+
+	public EventDetailResponseWrapper findEventDetail(String header, String eventId, Long userId);
 
 }

@@ -1,5 +1,8 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
+import java.util.List;
+
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileLegacyResponseDTO;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.CreateProfileWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ProfileCreatorResponseWrapper;
@@ -11,4 +14,5 @@ public interface ProfileService {
 	Profile update(Long userId, ProfileUpdateWrapper wrapper);
 	ProfileResponseWrapper findByUserId(Long userId);
 	ProfileCreatorResponseWrapper findOtherPersonProfile(Long userId);
+	List<ProfileLegacyResponseDTO> fetchAllProfiles();
 }

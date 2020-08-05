@@ -106,10 +106,11 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@GetMapping(value = "/find")
 	public ResponseEntity<ResponseBody> find(@RequestParam String eventId, HttpServletRequest request) {
+		String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		EventDetailResponseWrapper responseWrapper = eventService.findEventDetail(eventId, userId);
+		EventDetailResponseWrapper responseWrapper = eventService.findEventDetail(header, eventId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
 
 	}

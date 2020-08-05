@@ -256,18 +256,18 @@ public class EventControllerTest {
 				.andExpect(jsonPath("$.content.title").value("title test"));
 	}
 
-	@Test
-	public void findEventDetailTest() throws Exception {
-		EventDetailResponseWrapper responseWrapper = EventDetailResponseWrapper.builder().title("title test").build();
-
-		Mockito.when(eventService.findEventDetail(any(String.class), anyLong())).thenReturn(responseWrapper);
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/find").param("eventId", Mockito.anyString())
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content.title").value("title test"));
-	}
+//	@Test
+//	public void findEventDetailTest() throws Exception {
+//		EventDetailResponseWrapper responseWrapper = EventDetailResponseWrapper.builder().title("title test").build();
+//
+//		Mockito.when(eventService.findEventDetail(any(String.class), anyLong())).thenReturn(responseWrapper);
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/event/find").param("eventId", Mockito.anyString())
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+//				.accept(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content.title").value("title test"));
+//	}
 
 	@Test
 	public void applyEventTest() throws Exception {

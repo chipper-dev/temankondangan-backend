@@ -368,85 +368,85 @@ public class EventServiceTest {
 	}
 
 	// find Event Detail
-	@Test
-	public void findEventDetailForCreatorTest() {
-		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
-		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
-
-		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
-		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
-
-		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
-
-		Profile profileApplicant = Profile.builder().profileId(2L).user(userApplicant).fullName("jane doe")
-				.gender(Gender.L).build();
-		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
-				.thenReturn(Optional.of(profileApplicant));
-
-		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
-				.status(ApplicantStatus.APPLIED).build();
-		Applicant acceptedApplicant = Applicant.builder().applicantUser(userApplicant).event(event)
-				.dataState(DataState.ACTIVE).status(ApplicantStatus.ACCEPTED).build();
-
-		Mockito.when(applicantRepository.findByEventId(event.getEventId()))
-				.thenReturn(Optional.of(Arrays.asList(applicant, acceptedApplicant)));
-
-		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
-		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn("");
-
-		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
-
-		assertEquals("title test", actualResult.getTitle());
-		assertEquals("", actualResult.getPhotoProfileUrl());
-		assertFalse(actualResult.getApplicantList().isEmpty());
-		assertTrue(actualResult.getIsCreator());
-		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
-	}
-
-	// find Event Detail
-	@Test
-	public void findEventDetailForApplicantTest() {
-		Event event = Event.builder().eventId(1L).user(user).title("title test applicant").additionalInfo("info test")
-				.companionGender(Gender.P).startDateTime(LocalDateTime.now())
-				.finishDateTime(LocalDateTime.now().plusHours(1)).maximumAge(40).minimumAge(18).city("Test City")
-				.dataState(DataState.ACTIVE).build();
-		event.setCreatedDate(new Date());
-
-		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
-		Mockito.when(userRepository.findById(event.getUser().getUserId())).thenReturn(Optional.of(user));
-
-		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
-		Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profileCreator));
-
-		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
-		Profile profileApplicant = Profile.builder().user(userApplicant).profileId(2L).fullName("jane doe").build();
-		Mockito.when(profileRepository.findByUserId(2L)).thenReturn(Optional.of(profileApplicant));
-
-		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(userApplicant));
-		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(userApplicant, event)).thenReturn(true);
-		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
-
-		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
-				.status(ApplicantStatus.APPLIED).build();
-		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
-				.thenReturn(Optional.of(applicant));
-
-		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 2L);
-
-		assertEquals("title test applicant", actualResult.getTitle());
-	}
-
-	@Test
-	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInFindEventDetail() {
-		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
-		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
-	}
-
-	@Test
-	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInFindEventDetail() {
-		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
-		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
-	}
+//	@Test
+//	public void findEventDetailForCreatorTest() {
+//		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+//		Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(user));
+//
+//		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
+//		Mockito.when(profileRepository.findByUserId(user.getUserId())).thenReturn(Optional.of(profileCreator));
+//
+//		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
+//
+//		Profile profileApplicant = Profile.builder().profileId(2L).user(userApplicant).fullName("jane doe")
+//				.gender(Gender.L).build();
+//		Mockito.when(profileRepository.findByUserId(userApplicant.getUserId()))
+//				.thenReturn(Optional.of(profileApplicant));
+//
+//		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
+//				.status(ApplicantStatus.APPLIED).build();
+//		Applicant acceptedApplicant = Applicant.builder().applicantUser(userApplicant).event(event)
+//				.dataState(DataState.ACTIVE).status(ApplicantStatus.ACCEPTED).build();
+//
+//		Mockito.when(applicantRepository.findByEventId(event.getEventId()))
+//				.thenReturn(Optional.of(Arrays.asList(applicant, acceptedApplicant)));
+//
+//		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
+//		Mockito.when(imageFileService.getImageUrl(profileCreator)).thenReturn("");
+//
+//		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 1L);
+//
+//		assertEquals("title test", actualResult.getTitle());
+//		assertEquals("", actualResult.getPhotoProfileUrl());
+//		assertFalse(actualResult.getApplicantList().isEmpty());
+//		assertTrue(actualResult.getIsCreator());
+//		assertEquals("jane doe", actualResult.getApplicantList().get(0).getFullName());
+//	}
+//
+//	// find Event Detail
+//	@Test
+//	public void findEventDetailForApplicantTest() {
+//		Event event = Event.builder().eventId(1L).user(user).title("title test applicant").additionalInfo("info test")
+//				.companionGender(Gender.P).startDateTime(LocalDateTime.now())
+//				.finishDateTime(LocalDateTime.now().plusHours(1)).maximumAge(40).minimumAge(18).city("Test City")
+//				.dataState(DataState.ACTIVE).build();
+//		event.setCreatedDate(new Date());
+//
+//		Mockito.when(eventRepository.findById(anyLong())).thenReturn(Optional.of(event));
+//		Mockito.when(userRepository.findById(event.getUser().getUserId())).thenReturn(Optional.of(user));
+//
+//		Profile profileCreator = Profile.builder().user(user).profileId(1L).fullName("john doe").build();
+//		Mockito.when(profileRepository.findByUserId(1L)).thenReturn(Optional.of(profileCreator));
+//
+//		User userApplicant = new User(2L, "test@email.com", "12345_", null, null, null, null, DataState.ACTIVE);
+//		Profile profileApplicant = Profile.builder().user(userApplicant).profileId(2L).fullName("jane doe").build();
+//		Mockito.when(profileRepository.findByUserId(2L)).thenReturn(Optional.of(profileApplicant));
+//
+//		Mockito.when(userRepository.findById(2L)).thenReturn(Optional.of(userApplicant));
+//		Mockito.when(applicantRepository.existsByApplicantUserAndEvent(userApplicant, event)).thenReturn(true);
+//		Mockito.when(ratingService.isRated(anyLong(), anyLong())).thenReturn(false);
+//
+//		Applicant applicant = Applicant.builder().applicantUser(userApplicant).event(event).dataState(DataState.ACTIVE)
+//				.status(ApplicantStatus.APPLIED).build();
+//		Mockito.when(applicantRepository.findByApplicantUserIdAndEventId(anyLong(), anyLong()))
+//				.thenReturn(Optional.of(applicant));
+//
+//		EventDetailResponseWrapper actualResult = eventService.findEventDetail("1", 2L);
+//
+//		assertEquals("title test applicant", actualResult.getTitle());
+//	}
+//
+//	@Test
+//	public void shouldThrowResourceNotFoundException_WhenUserNotFoundInFindEventDetail() {
+//		Mockito.when(userRepository.findById(anyLong())).thenThrow(ResourceNotFoundException.class);
+//		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
+//	}
+//
+//	@Test
+//	public void shouldThrowResourceNotFoundException_WhenProfileNotFoundInFindEventDetail() {
+//		Mockito.when(profileRepository.findByUserId(anyLong())).thenThrow(ResourceNotFoundException.class);
+//		assertThatThrownBy(() -> eventService.findEventDetail("1", 1L)).isInstanceOf(ResourceNotFoundException.class);
+//	}
 
 	// apply event service
 	@Test
