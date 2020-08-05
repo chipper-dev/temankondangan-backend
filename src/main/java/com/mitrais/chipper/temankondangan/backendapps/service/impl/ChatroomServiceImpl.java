@@ -50,7 +50,13 @@ public class ChatroomServiceImpl implements ChatroomService {
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new ResourceNotFoundException("Event", "eventId", eventId));
         Chatroom chatroom = chatroomRepository.findByEventId(eventId).orElse(null);
         if(chatroom == null) {
-            chatroom = new Chatroom();
+        	List<Applicant> applicantsApproved = applicantRepository.findByEventIdAccepted(eventId);
+
+        	if(applicantsApproved.isEmpty()) {
+				throw new BadRequestException("Error: Event did not have approved applicant!");
+			}
+
+			chatroom = new Chatroom();
             chatroom.setEvent(event);
             chatroom.setDataState(DataState.ACTIVE);
             chatroom = chatroomRepository.save(chatroom);
@@ -60,7 +66,6 @@ public class ChatroomServiceImpl implements ChatroomService {
             userCreator.setUser(event.getUser());
             chatroomUserRepository.save(userCreator);
 
-            List<Applicant> applicantsApproved = applicantRepository.findByEventIdAccepted(eventId);
             Chatroom finalChatroom = chatroom;
             applicantsApproved.forEach(applicant -> {
                 ChatroomUser userApplicant = new ChatroomUser();
@@ -68,7 +73,9 @@ public class ChatroomServiceImpl implements ChatroomService {
                 userApplicant.setUser(applicant.getApplicantUser());
                 chatroomUserRepository.save(userApplicant);
             });
-        }
+        } else {
+			throw new BadRequestException("Error: This room already created by "+ chatroom.getCreatedBy() +"!");
+		}
         return chatroom;
     }
 
@@ -113,7 +120,9 @@ public class ChatroomServiceImpl implements ChatroomService {
             if(room != null) {
                 room.setDataState(DataState.DELETED);
                 chatroomRepository.save(room);
-            }
+            } else {
+				throw new BadRequestException("Error: Chatroom not exist!");
+			}
         });
     }
 
