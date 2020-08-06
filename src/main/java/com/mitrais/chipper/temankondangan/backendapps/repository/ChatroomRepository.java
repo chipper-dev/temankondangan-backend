@@ -13,8 +13,8 @@ import java.util.Optional;
 
 public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 
-	@Query("SELECT a from Chatroom a WHERE a.event.eventId = :eventId")
-	Optional<Chatroom> findByEventId(@Param("eventId") Long eventId);
+	@Query("SELECT a from Chatroom a WHERE a.event.eventId = :eventId AND a.dataState = 'ACTIVE'")
+	Optional<Chatroom> findActiveChatroomByEventId(@Param("eventId") Long eventId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
 			+ "	case when e.cancelled or e.data_state <> 'ACTIVE' then 'INACTIVE' else  "

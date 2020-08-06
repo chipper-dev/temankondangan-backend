@@ -56,17 +56,33 @@ public class ChatroomServiceImpl implements ChatroomService {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
-        Chatroom chatroom = chatroomRepository.findByEventId(eventId).orElse(null);
+        Chatroom chatroom = chatroomRepository.findActiveChatroomByEventId(eventId).orElse(null);
 		List<Applicant> applicantsApproved = applicantRepository.findByEventIdAccepted(eventId);
 		if(chatroom == null) {
-        	createAndSaveChatroom(event, applicantsApproved);
+			if(applicantsApproved.isEmpty()) {
+				throw new BadRequestException("Error: Event did not have approved applicant!");
+			}
+
+			chatroom = new Chatroom();
+			chatroom.setEvent(event);
+			chatroom.setDataState(DataState.ACTIVE);
+			chatroom = chatroomRepository.save(chatroom);
+
+			ChatroomUser userCreator = new ChatroomUser();
+			userCreator.setChatroom(chatroom);
+			userCreator.setUser(event.getUser());
+			chatroomUserRepository.save(userCreator);
+
+			Chatroom finalChatroom = chatroom;
+			applicantsApproved.forEach(applicant -> {
+				ChatroomUser userApplicant = new ChatroomUser();
+				userApplicant.setChatroom(finalChatroom);
+				userApplicant.setUser(applicant.getApplicantUser());
+				chatroomUserRepository.save(userApplicant);
+			});
 
         } else {
-        	if(DataState.INACTIVE.equals(chatroom.getDataState())) {
-				createAndSaveChatroom(event, applicantsApproved);
-			} else {
-				throw new BadRequestException("Error: This room already created by "+ chatroom.getCreatedBy() +"!");
-			}
+			throw new BadRequestException("Error: This room already created by "+ chatroom.getCreatedBy() +"!");
 		}
         return chatroom;
     }
@@ -175,30 +191,6 @@ public class ChatroomServiceImpl implements ChatroomService {
 	@Override
 	public Integer getUnreadChatroom(Long userId) {
 		return chatroomRepository.getUnreadChatroom(userId);
-	}
-
-	private void createAndSaveChatroom(Event event, List<Applicant> applicantsApproved) {
-		if(applicantsApproved.isEmpty()) {
-			throw new BadRequestException("Error: Event did not have approved applicant!");
-		}
-
-		Chatroom chatroom = new Chatroom();
-		chatroom.setEvent(event);
-		chatroom.setDataState(DataState.ACTIVE);
-		chatroom = chatroomRepository.save(chatroom);
-
-		ChatroomUser userCreator = new ChatroomUser();
-		userCreator.setChatroom(chatroom);
-		userCreator.setUser(event.getUser());
-		chatroomUserRepository.save(userCreator);
-
-		Chatroom finalChatroom = chatroom;
-		applicantsApproved.forEach(applicant -> {
-			ChatroomUser userApplicant = new ChatroomUser();
-			userApplicant.setChatroom(finalChatroom);
-			userApplicant.setUser(applicant.getApplicantUser());
-			chatroomUserRepository.save(userApplicant);
-		});
 	}
 
 	private void setChatroomInactive(List<ChatroomDto> chatrooms){
