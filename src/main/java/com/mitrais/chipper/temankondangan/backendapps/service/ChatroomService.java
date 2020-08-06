@@ -10,9 +10,7 @@ public interface ChatroomService {
 
 	Chatroom createChatroom(Long eventId);
 
-	ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize);
-
-	ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize);
+	ChatroomListResponseWrapper getChatroomListByUserId(Long userId, int pageNumber, int pageSize, String sortBy);
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
 

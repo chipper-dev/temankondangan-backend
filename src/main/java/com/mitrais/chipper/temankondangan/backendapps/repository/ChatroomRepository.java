@@ -58,8 +58,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "and c.data_state <> 'DELETED' "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
-			+ "order by count(distinct ch.id) desc "
-			+ "limit :pageSize offset (:pageNumber - 1) * :pageSize ", nativeQuery = true)
+			+ "order by count(distinct ch.id) desc ", nativeQuery = true)
 	List<ChatroomDto> findChatroomListByUserIdSortByUnreadChat(@Param("userId") Long userId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
