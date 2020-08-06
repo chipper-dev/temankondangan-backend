@@ -103,7 +103,7 @@ public class ChatroomServiceImpl implements ChatroomService {
 		} else if ("unreadMessage".equalsIgnoreCase(sortBy)) {
 			chatrooms = getChatroomListByUserIdSortByUnreadChat(userId, pageNumber, pageSize);
 		} else {
-			chatrooms = getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
+			throw new BadRequestException("Error: Can only input timeReceived or unreadMessage for sortBy!");
 		}
 		return chatrooms;
 	}
