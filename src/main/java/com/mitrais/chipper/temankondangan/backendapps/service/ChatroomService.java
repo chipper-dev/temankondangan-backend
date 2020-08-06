@@ -16,7 +16,7 @@ public interface ChatroomService {
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
 
-	void deleteChatrooms(List<Long> chatroomIds);
+	void deleteChatrooms(List<Long> chatroomIds, Long userId);
 
 	void markChatroomsAsReceived(List<Long> chatroomIds, Long userId);
 
