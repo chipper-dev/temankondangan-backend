@@ -62,6 +62,19 @@ public class ChatServiceImpl implements ChatService {
 	@Override
 	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
 			int pageSize) {
+
+		if(chatroomId < 1) {
+			throw new BadRequestException("Error: Chatroom ID cannot null or less than 1!");
+		}
+
+		if(pageNumber < 1) {
+			throw new BadRequestException("Error: Page Number cannot less than 1!");
+		}
+
+		if(pageSize < 1) {
+			throw new BadRequestException("Error: Page Size cannot less than 1!");
+		}
+
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
