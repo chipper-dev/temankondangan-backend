@@ -62,7 +62,9 @@ public class ChatroomController extends CommonResource {
     @PostMapping("/delete-room")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ResponseBody> deleteChatrooms(@RequestBody DeleteChatroomWrapper wrapper, HttpServletRequest request) {
-        chatroomService.deleteChatrooms(wrapper.getChatroomId());
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+    	chatroomService.deleteChatrooms(wrapper.getChatroomId(), userId);
         return ResponseEntity.ok(
                 getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
     }

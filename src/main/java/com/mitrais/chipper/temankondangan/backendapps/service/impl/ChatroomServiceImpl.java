@@ -110,7 +110,7 @@ public class ChatroomServiceImpl implements ChatroomService {
 	}
 
     @Override
-    public void deleteChatrooms(List<Long> chatroomIds) {
+    public void deleteChatrooms(List<Long> chatroomIds, Long userId) {
         if(chatroomIds.isEmpty()){
             throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
         }
@@ -118,6 +118,12 @@ public class ChatroomServiceImpl implements ChatroomService {
         chatroomIds.forEach(chatroomId -> {
             Chatroom room = chatroomRepository.findById(chatroomId).orElse(null);
             if(room != null) {
+            	ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
+
+            	if(user == null) {
+					throw new BadRequestException("Error: User cannot delete chatroom "+ chatroomId+"!");
+				}
+
                 room.setDataState(DataState.DELETED);
                 chatroomRepository.save(room);
             } else {
