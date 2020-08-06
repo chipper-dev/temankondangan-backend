@@ -33,6 +33,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "		where c.user_id <> :userId and cl.read_date is null ) ch on c.id = ch.chatroom_id "
 			+ " left outer join chat c2 on c.id = c2.chatroom_id "
 			+ " left outer join chat_log cl2 on c2.id = cl2.chat_id " + " where cu.user_id = :userId  "
+			+ "and c.data_state <> 'DELETED' "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
 			+ "order by max(cl2.created_date) desc, max(c2.created_date) desc ", nativeQuery = true)
@@ -54,6 +55,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "		from chat c  " + " left outer join chat_log cl on c.id = cl.chat_id and cl.user_id = :userId "
 			+ "		where c.user_id <> :userId and cl.read_date is null ) ch on c.id = ch.chatroom_id "
 			+ " where cu.user_id = :userId  "
+			+ "and c.data_state <> 'DELETED' "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
 			+ "order by count(distinct ch.id) desc "
@@ -74,9 +76,10 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "	inner join profile p on u.user_id = p.user_id  " + "	left outer join  (   "
 			+ "		select c.id, c.chatroom_id, c.user_id chat_user_id, cl.user_id chat_log_user_id  "
 			+ "		from chat c  " + "		left outer join chat_log cl on c.id = cl.chat_id and cl.read_date = null   "
-			+ "		where c.user_id <> :userId  )  "
+			+ "		where c.user_id <> :userId and cl.read_date is null )  "
 			+ "	ch on c.id = ch.chatroom_id and ch.chat_log_user_id is null  "
 			+ "where cu.user_id = :userId and c.id = :id "
+			+ "and c.data_state <> 'DELETED' "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  ", nativeQuery = true)
 	ChatroomDto findChatroomByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
