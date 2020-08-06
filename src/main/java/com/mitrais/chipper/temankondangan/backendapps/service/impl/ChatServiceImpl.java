@@ -2,6 +2,8 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
@@ -30,19 +32,19 @@ public class ChatServiceImpl implements ChatService {
 	EventRepository eventRepository;
 	ApplicantRepository applicantRepository;
 	UserRepository userRepository;
-	ProfileRepository profileRepository;
+	ProfileFeignClient profileFeignClient;
 
 	@Autowired
 	public ChatServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
 			ChatRepository chatRepository, EventRepository eventRepository, ApplicantRepository applicantRepository,
-			UserRepository userRepository, ProfileRepository profileRepository) {
+			UserRepository userRepository, ProfileFeignClient profileFeignClient) {
 		this.chatroomRepository = chatroomRepository;
 		this.chatroomUserRepository = chatroomUserRepository;
 		this.chatRepository = chatRepository;
 		this.eventRepository = eventRepository;
 		this.applicantRepository = applicantRepository;
 		this.userRepository = userRepository;
-		this.profileRepository = profileRepository;
+		this.profileFeignClient = profileFeignClient;
 	}
 
 	@Override
@@ -60,9 +62,9 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
+	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(String header, Long chatroomId, Long userId, int pageNumber,
 			int pageSize) {
-		Profile profile = profileRepository.findByUserId(userId)
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		List<ChatMessageWrapper> chats = chatRepository.findAllByChatroomIdAndUserId(chatroomId, userId);
@@ -82,8 +84,8 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public void markChatsAsReceived(List<Long> chatIds, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatsAsReceived(String header, List<Long> chatIds, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		if (chatIds.isEmpty()) {
@@ -96,16 +98,16 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public void markChatAsReceived(Long chatId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatAsReceived(String header, Long chatId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
 	}
 
 	@Override
-	public void markChatAsReceivedByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatAsReceivedByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatRepository.markAsReceivedToLastId(chatroomId, lastChatId, userId, profile.getFullName(),
@@ -113,8 +115,8 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public void markChatsAsRead(List<Long> chatIds, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatsAsRead(String header, List<Long> chatIds, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		if (chatIds.isEmpty()) {
@@ -128,8 +130,8 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public void markChatAsRead(Long chatId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatAsRead(String header, Long chatId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
@@ -137,8 +139,8 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public void markChatAsReadByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatAsReadByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatRepository.markAsReadToLastId(chatroomId, lastChatId, userId, profile.getFullName(), profile.getFullName());

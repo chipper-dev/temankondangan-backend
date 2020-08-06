@@ -82,10 +82,11 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find all Event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		EventFindAllResponseWrapper events = eventService.findAll(pageNumber, pageSize, sortBy, direction, userId);
+		EventFindAllResponseWrapper events = eventService.findAll(header, pageNumber, pageSize, sortBy, direction, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
@@ -94,10 +95,11 @@ public class EventController extends CommonResource {
 	@PostMapping("/edit")
 	public ResponseEntity<ResponseBody> edit(@RequestBody EditEventWrapper wrapper, HttpServletRequest request) {
 		LOGGER.info("Edit an event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		Event result = eventService.edit(userId, wrapper);
+		Event result = eventService.edit(header, userId, wrapper);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), result, null));
 
 	}
@@ -125,10 +127,11 @@ public class EventController extends CommonResource {
 	@PostMapping(value = "/apply")
 	public ResponseEntity<ResponseBody> applyEvent(@RequestParam Long eventId, HttpServletRequest request) {
 		LOGGER.info("A user apply to an event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		eventService.apply(userId, eventId);
+		eventService.apply(header, userId, eventId);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "Successfully applied to the event", request.getRequestURI()));
 
@@ -139,9 +142,10 @@ public class EventController extends CommonResource {
 	@PostMapping(value = "/cancel")
 	public ResponseEntity<ResponseBody> cancelEvent(@RequestParam Long eventId, HttpServletRequest request) {
 		LOGGER.info("A user cancel to an event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		eventService.cancelEvent(userId, eventId);
+		eventService.cancelEvent(header, userId, eventId);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
@@ -160,10 +164,11 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find My Event (Current)");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(sortBy, direction, userId, true);
+		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(header, sortBy, direction, userId, true);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
@@ -181,10 +186,11 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			HttpServletRequest request) {
 		LOGGER.info("Find My Event (Past)");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(sortBy, direction, userId, false);
+		List<EventFindAllListDBResponseWrapper> events = eventService.findMyEvent(header, sortBy, direction, userId, false);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));
 	}
 
@@ -196,9 +202,10 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			@ApiParam(value = "input ALLSTATUS, APPLIED, ACCEPTED or REJECTED") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(userId, sortBy, direction, applicantStatus);
+		List<AppliedEventWrapper> resultList = eventService.findActiveAppliedEvent(header, userId, sortBy, direction, applicantStatus);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
@@ -210,9 +217,10 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input ASC or DESC") @RequestParam(defaultValue = "DESC") String direction,
 			@ApiParam(value = "input ALLSTATUS, APPLIED, ACCEPTED, REJECTED or CANCELED") @RequestParam(defaultValue = "ALLSTATUS") String applicantStatus,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(userId, sortBy, direction, applicantStatus);
+		List<AppliedEventWrapper> resultList = eventService.findPastAppliedEvent(header, userId, sortBy, direction, applicantStatus);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), resultList, request.getRequestURI()));
 	}
 
@@ -220,9 +228,10 @@ public class EventController extends CommonResource {
 	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
 	@PostMapping(value = "/creator-cancel")
 	public ResponseEntity<ResponseBody> creatorCancelEvent(@RequestParam Long eventId, HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		eventService.creatorCancelEvent(userId, eventId);
+		eventService.creatorCancelEvent(header, userId, eventId);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}
@@ -255,10 +264,11 @@ public class EventController extends CommonResource {
 			@ApiParam(value = "input zone offset, input 4.5 for 4:30 and 5.75 for 5:45 (and other cases with x:30 or x:45)") @RequestParam(defaultValue = "0", required = false) Double zoneOffset,
 			HttpServletRequest request) {
 		LOGGER.info("Search Event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 
-		EventFindAllResponseWrapper events = eventService.search(userId, pageNumber, pageSize, sortBy, direction,
+		EventFindAllResponseWrapper events = eventService.search(header, userId, pageNumber, pageSize, sortBy, direction,
 				creatorGender, creatorMaximumAge, creatorMinimumAge, startDate, finishDate, startHour, finishHour, city,
 				zoneOffset);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), events, request.getRequestURI()));

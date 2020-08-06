@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMSResponseDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.service.HelloService;
 
 @RestController
@@ -30,7 +30,7 @@ public class HelloController extends CommonResource {
 	}
 
 	@GetMapping("/findallprofiles")
-	public List<ProfileMSResponseDTO> getProfiles(HttpServletRequest request) {
+	public List<ProfileMicroservicesDTO> getProfiles(HttpServletRequest request) {
 		LOGGER.info("Get all profiles test");
 		return hello.getAllProfiles(request.getHeader(HEADER_AUTH));
 	}

@@ -18,13 +18,13 @@ public interface ChatroomService {
 
 	void deleteChatrooms(List<Long> chatroomIds);
 
-	void markChatroomsAsReceived(List<Long> chatroomIds, Long userId);
+	void markChatroomsAsReceived(String header, List<Long> chatroomIds, Long userId);
 
-	void markChatroomAsReceived(Long chatroomId, Long userId);
+	void markChatroomAsReceived(String header, Long chatroomId, Long userId);
 
-	void markChatroomsAsRead(List<Long> chatroomIds, Long userId);
+	void markChatroomsAsRead(String header, List<Long> chatroomIds, Long userId);
 
-	void markChatroomAsRead(Long chatroomId, Long userId);
+	void markChatroomAsRead(String header, Long chatroomId, Long userId);
 
 	Integer getUnreadChatroom(Long userId);
 }

@@ -41,10 +41,11 @@ public class ApplicantController extends CommonResource {
 	public ResponseEntity<ResponseBody> acceptEventApplicant(
 			@RequestParam Long applicantId, HttpServletRequest request) {
 		LOGGER.info("User accept one of the event applicant");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		
-		applicantService.accept(userId, applicantId);
+		applicantService.accept(header, userId, applicantId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Successfully accept the event applicant",
 				request.getRequestURI()));
 
@@ -61,10 +62,11 @@ public class ApplicantController extends CommonResource {
 	public ResponseEntity<ResponseBody> cancelAcceptedApplicant(@RequestParam Long applicantId,
 			HttpServletRequest request) {
 		LOGGER.info("User cancel the accepted applicant in their event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		
-		applicantService.cancelAccepted(userId, applicantId);
+		applicantService.cancelAccepted(header, userId, applicantId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Successfully cancel the accepted applicant",
 				request.getRequestURI()));
 
@@ -82,10 +84,11 @@ public class ApplicantController extends CommonResource {
 	public ResponseEntity<ResponseBody> rejectAppliedApplicant(@RequestParam Long applicantId,
 			HttpServletRequest request) {
 		LOGGER.info("User cancel the accepted applicant in their event");
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		
-		applicantService.rejectApplicant(userId, applicantId);
+		applicantService.rejectApplicant(header, userId, applicantId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Successfully reject the applied applicant",
 				request.getRequestURI()));
 

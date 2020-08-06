@@ -2,10 +2,10 @@ package com.mitrais.chipper.temankondangan.backendapps.service;
 
 import java.util.List;
 
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMSResponseDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 
 public interface HelloService {
 
-	List<ProfileMSResponseDTO> getAllProfiles(String header);
+	List<ProfileMicroservicesDTO> getAllProfiles(String header);
 
 }

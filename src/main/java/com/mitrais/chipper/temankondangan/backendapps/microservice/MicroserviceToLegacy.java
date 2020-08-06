@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMSResponseDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
@@ -20,7 +20,7 @@ public class MicroserviceToLegacy {
 		this.userRepository = userRepository;
 	}
 
-	public Profile convertFromMSProfile(ProfileMSResponseDTO msProfile) {
+	public Profile convertFromMSProfile(ProfileMicroservicesDTO msProfile) {
 		Profile profile = new Profile();
 		profile.setAboutMe(msProfile.getAboutMe());
 		profile.setCity(msProfile.getCity());

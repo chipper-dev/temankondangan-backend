@@ -1,12 +1,12 @@
 package com.mitrais.chipper.temankondangan.backendapps.service;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-
 import java.io.FileNotFoundException;
 
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+
 public interface ImageFileService {
-    Profile getImageById(String profileId) throws FileNotFoundException;
-    Profile getImageByFilename(String fileName) throws FileNotFoundException;
+    ProfileMicroservicesDTO getImageById(String header, String profileId) throws FileNotFoundException;
+    ProfileMicroservicesDTO getImageByFilename(String fileName) throws FileNotFoundException;
     byte[] readBytesFromFile(String defaultImage);
-    String getImageUrl(Profile profile);
+	String getImageUrl(ProfileMicroservicesDTO profile);
 }

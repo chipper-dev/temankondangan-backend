@@ -9,18 +9,18 @@ public interface ChatService {
 
 	void saveChat(ChatMessage chatMessage, Long roomId);
 
-	ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
+	ChatMessageListWrapper getChatListByChatroomIdAndUserId(String header, Long chatroomId, Long userId, int pageNumber,
 			int pageSize);
 
-	void markChatsAsReceived(List<Long> chatIds, Long userId);
+	void markChatsAsReceived(String header, List<Long> chatIds, Long userId);
 
-	void markChatAsReceived(Long chatId, Long userId);
+	void markChatAsReceived(String header, Long chatId, Long userId);
 
-	void markChatAsReceivedByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId);
+	void markChatAsReceivedByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId, Long userId);
 
-	void markChatsAsRead(List<Long> chatIds, Long userId);
+	void markChatsAsRead(String header, List<Long> chatIds, Long userId);
 
-	void markChatAsRead(Long chatId, Long userId);
+	void markChatAsRead(String header, Long chatId, Long userId);
 
-	void markChatAsReadByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId);
+	void markChatAsReadByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId, Long userId);
 }

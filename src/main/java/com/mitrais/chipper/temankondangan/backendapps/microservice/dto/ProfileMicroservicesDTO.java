@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProfileMSResponseDTO {
+public class ProfileMicroservicesDTO {
     private Long id;
     private Long userId;
     private String fullName;

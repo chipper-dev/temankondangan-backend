@@ -2,6 +2,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.VerificationCode;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -40,7 +41,7 @@ public class UserServiceImpl implements UserService {
 	Long expiration;
 
 	private UserRepository userRepository;
-	private ProfileRepository profileRepository;
+	private ProfileFeignClient profileFeignClient;
 	private EventRepository eventRepository;
 	private ApplicantRepository applicantRepository;
 	private PasswordEncoder passwordEncoder;
@@ -49,12 +50,12 @@ public class UserServiceImpl implements UserService {
 	private SimpleMailMessage template;
 
 	@Autowired
-	public UserServiceImpl(UserRepository userRepository, ProfileRepository profileRepository,
+	public UserServiceImpl(UserRepository userRepository, ProfileFeignClient profileFeignClient,
 			EventRepository eventRepository, ApplicantRepository applicantRepository, PasswordEncoder passwordEncoder,
 			EmailService emailService, VerificationCodeRepository verificationRepository, SimpleMailMessage template) {
 		this.userRepository = userRepository;
 		this.eventRepository = eventRepository;
-		this.profileRepository = profileRepository;
+		this.profileFeignClient = profileFeignClient;
 		this.applicantRepository = applicantRepository;
 		this.passwordEncoder = passwordEncoder;
 		this.emailService = emailService;
@@ -124,7 +125,7 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public void remove(Long userId) {
+	public void remove(String header, Long userId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
@@ -135,7 +136,7 @@ public class UserServiceImpl implements UserService {
 		});
 		
 		applicantRepository.findByUserId(userId).ifPresent(applicants -> applicantRepository.deleteAll(applicants));
-		profileRepository.findByUserId(userId).ifPresent(p -> profileRepository.delete(p));
+		profileFeignClient.deleteByUserId(header, userId);
 		userRepository.delete(user);
 
 	}

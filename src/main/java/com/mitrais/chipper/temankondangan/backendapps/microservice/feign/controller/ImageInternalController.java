@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 
 @RestController
@@ -17,7 +17,7 @@ public class ImageInternalController {
     ImageFileService imageFileService;
 
     @PostMapping("/url")
-    public String getImageUrl(@RequestBody Profile profile) {
+    public String getImageUrl(@RequestBody ProfileMicroservicesDTO profile) {
         return imageFileService.getImageUrl(profile);
     }
 }

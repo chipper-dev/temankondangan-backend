@@ -97,9 +97,10 @@ public class ChatroomController extends CommonResource {
 	@PostMapping("/set-received-chatroom")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChatroom(@RequestBody Long chatroomId, HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatroomService.markChatroomAsReceived(chatroomId, userId);
+		chatroomService.markChatroomAsReceived(header, chatroomId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -109,9 +110,10 @@ public class ChatroomController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChatrooms(@RequestBody ReadChatroomWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatroomService.markChatroomsAsReceived(wrapper.getChatroomIds(), userId);
+		chatroomService.markChatroomsAsReceived(header, wrapper.getChatroomIds(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -120,9 +122,10 @@ public class ChatroomController extends CommonResource {
 	@PostMapping("/set-read-chatroom")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatroom(@RequestBody Long chatroomId, HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatroomService.markChatroomAsRead(chatroomId, userId);
+		chatroomService.markChatroomAsRead(header, chatroomId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -132,9 +135,10 @@ public class ChatroomController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatrooms(@RequestBody ReadChatroomWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatroomService.markChatroomsAsRead(wrapper.getChatroomIds(), userId);
+		chatroomService.markChatroomsAsRead(header, wrapper.getChatroomIds(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 

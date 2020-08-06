@@ -2,6 +2,8 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.*;
 import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -30,19 +32,19 @@ public class ChatroomServiceImpl implements ChatroomService {
 	EventRepository eventRepository;
 	ApplicantRepository applicantRepository;
 	UserRepository userRepository;
-	ProfileRepository profileRepository;
+	ProfileFeignClient profileFeignClient;
 
 	@Autowired
 	public ChatroomServiceImpl(ChatroomRepository chatroomRepository, ChatroomUserRepository chatroomUserRepository,
 							   ChatRepository chatRepository, EventRepository eventRepository, ApplicantRepository applicantRepository,
-							   UserRepository userRepository, ProfileRepository profileRepository) {
+							   UserRepository userRepository, ProfileFeignClient profileFeignClient) {
 		this.chatroomRepository = chatroomRepository;
 		this.chatroomUserRepository = chatroomUserRepository;
 		this.chatRepository = chatRepository;
 		this.eventRepository = eventRepository;
 		this.applicantRepository = applicantRepository;
 		this.userRepository = userRepository;
-		this.profileRepository = profileRepository;
+		this.profileFeignClient = profileFeignClient;
 	}
 
     @Override
@@ -127,8 +129,8 @@ public class ChatroomServiceImpl implements ChatroomService {
     }
 
 	@Override
-	public void markChatroomsAsReceived(List<Long> chatroomIds, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatroomsAsReceived(String header, List<Long> chatroomIds, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		if (chatroomIds.isEmpty()) {
@@ -141,8 +143,8 @@ public class ChatroomServiceImpl implements ChatroomService {
 	}
 
 	@Override
-	public void markChatroomAsReceived(Long chatroomId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatroomAsReceived(String header, Long chatroomId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
@@ -150,8 +152,8 @@ public class ChatroomServiceImpl implements ChatroomService {
 	}
 
 	@Override
-	public void markChatroomsAsRead(List<Long> chatroomIds, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatroomsAsRead(String header, List<Long> chatroomIds, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		if (chatroomIds.isEmpty()) {
@@ -164,8 +166,8 @@ public class ChatroomServiceImpl implements ChatroomService {
 	}
 
 	@Override
-	public void markChatroomAsRead(Long chatroomId, Long userId) {
-		Profile profile = profileRepository.findByUserId(userId)
+	public void markChatroomAsRead(String header, Long chatroomId, Long userId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId, profile.getFullName(),

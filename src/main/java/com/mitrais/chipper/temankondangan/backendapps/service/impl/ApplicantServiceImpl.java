@@ -16,6 +16,9 @@ import org.springframework.stereotype.Service;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.MicroserviceToLegacy;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
@@ -34,17 +37,17 @@ public class ApplicantServiceImpl implements ApplicantService {
 	enum NotificationType {ACCEPT_APPLICANT, REJECT_APPLICANT, CANCEL_APPLICANT}
 
 	private EventRepository eventRepository;
-	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
 	private NotificationService notificationService;
+	private ProfileFeignClient profileFeignClient;
 
 	@Autowired
-	public ApplicantServiceImpl(EventRepository eventRepository, ProfileRepository profileRepository, ApplicantRepository applicantRepository,
-								NotificationService notificationService) {
+	public ApplicantServiceImpl(EventRepository eventRepository, ApplicantRepository applicantRepository,
+								NotificationService notificationService, ProfileFeignClient profileFeignClient, MicroserviceToLegacy msConverter) {
 		this.eventRepository = eventRepository;
-		this.profileRepository = profileRepository;
 		this.applicantRepository = applicantRepository;
 		this.notificationService = notificationService;
+		this.profileFeignClient = profileFeignClient;
 	}
 
 	private Map<String, Object> checkApplicant(Long userId, Long applicantId) {
@@ -70,7 +73,7 @@ public class ApplicantServiceImpl implements ApplicantService {
 	}
 	
 	@Override
-	public void accept(Long userId, Long applicantId) {
+	public void accept(String header, Long userId, Long applicantId) {
 		Map<String, Object> checkResult = checkApplicant(userId, applicantId);
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
 		Event event = (Event) checkResult.get(Entity.EVENT.getLabel());
@@ -90,12 +93,12 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.ACCEPTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.ACCEPT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(header, applicant.getEvent().getUser().getUserId(), NotificationType.ACCEPT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
 	@Override
-	public void cancelAccepted(Long userId, Long applicantId) {
+	public void cancelAccepted(String header, Long userId, Long applicantId) {
 		Map<String, Object> checkResult = checkApplicant(userId, applicantId);
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
 		Event event = (Event) checkResult.get(Entity.EVENT.getLabel());
@@ -116,12 +119,12 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.APPLIED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.CANCEL_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(header, applicant.getEvent().getUser().getUserId(), NotificationType.CANCEL_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 	
 	@Override
-	public void rejectApplicant(Long userId, Long applicantId) {
+	public void rejectApplicant(String header, Long userId, Long applicantId) {
 		Map<String, Object> checkResult = checkApplicant(userId, applicantId);
 		Applicant applicant = (Applicant) checkResult.get(Entity.APPLICANT.getLabel());
 
@@ -140,12 +143,12 @@ public class ApplicantServiceImpl implements ApplicantService {
 		applicant.setStatus(ApplicantStatus.REJECTED);
 		applicantRepository.save(applicant);
 
-		sendNotification(applicant.getEvent().getUser().getUserId(), NotificationType.REJECT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
+		sendNotification(header, applicant.getEvent().getUser().getUserId(), NotificationType.REJECT_APPLICANT, applicant.getEvent().getTitle(), applicant.getApplicantUser(), applicant.getEvent().getEventId());
 
 	}
 
-	private void sendNotification(Long userId, NotificationType type, String eventTitle, User userDestination, Long eventId) {
-		Profile profile = profileRepository.findByUserId(userId).orElse(null);
+	private void sendNotification(String header, Long userId, NotificationType type, String eventTitle, User userDestination, Long eventId) {
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId).orElse(null);
 		String name = profile == null ? DEFAULT_NO_NAME : profile.getFullName();
 		String title = titleNotificationMsg(type);
 		String body =  bodyNotificationMsg(type, name, eventTitle);

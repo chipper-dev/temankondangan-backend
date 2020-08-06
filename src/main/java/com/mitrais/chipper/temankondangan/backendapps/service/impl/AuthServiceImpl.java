@@ -2,6 +2,8 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.AuthProvider;
@@ -32,16 +34,16 @@ public class AuthServiceImpl implements AuthService {
 
 	PasswordEncoder passwordEncoder;
 	UserRepository userRepository;
-	ProfileRepository profileRepository;
+	ProfileFeignClient profileFeignClient;
 	SimpleMailMessage template;
 	ImageFileService imageService;
 
 	@Autowired
 	public AuthServiceImpl(PasswordEncoder passwordEncoder, UserRepository userRepository,
-			ProfileRepository profileRepository, ImageFileService imageService) {
+			ProfileFeignClient profileFeignClient, ImageFileService imageService) {
 		this.passwordEncoder = passwordEncoder;
 		this.userRepository = userRepository;
-		this.profileRepository = profileRepository;
+		this.profileFeignClient = profileFeignClient;
 		this.imageService = imageService;
 	}
 
@@ -98,13 +100,13 @@ public class AuthServiceImpl implements AuthService {
 		user.setDataState(DataState.ACTIVE);
 		user = userRepository.save(user);
 
-		Profile profile = new Profile();
-		profile.setUser(user);
+		ProfileMicroservicesDTO profile = new ProfileMicroservicesDTO();
+		profile.setUserId(user.getUserId());
 		profile.setFullName(register.getFullname());
 		profile.setDob(dob);
 		profile.setGender(register.getGender());
-		profile.setDataState(DataState.ACTIVE);
-		profileRepository.save(profile);
+		profile.setDeleted(false);
+		profileFeignClient.register(profile);
 
 		return user;
 	}

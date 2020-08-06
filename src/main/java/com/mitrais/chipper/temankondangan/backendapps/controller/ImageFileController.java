@@ -1,6 +1,7 @@
 package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,8 @@ public class ImageFileController extends CommonResource {
 
     @GetMapping("/download/{fileName}")
     public ResponseEntity<Resource> downloadFile(HttpServletRequest request, @PathVariable String fileName) {
-        try {
-            Profile dbFile = service.getImageByFilename(fileName);
+    	try {
+            ProfileMicroservicesDTO dbFile = service.getImageByFilename(fileName);
 
             return ResponseEntity
                     .ok()

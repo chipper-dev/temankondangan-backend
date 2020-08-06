@@ -5,7 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMSResponseDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.service.HelloService;
 
@@ -16,7 +16,7 @@ public class HelloServiceImpl implements HelloService {
 	ProfileFeignClient feign;
 	
 	@Override
-	public List<ProfileMSResponseDTO> getAllProfiles(String header) {
-		return feign.getProfiles(header);
+	public List<ProfileMicroservicesDTO> getAllProfiles(String header) {
+		return feign.findAll(header).orElse(null);
 	}
 }

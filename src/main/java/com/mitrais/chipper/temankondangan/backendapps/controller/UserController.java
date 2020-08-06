@@ -60,9 +60,10 @@ public class UserController extends CommonResource {
     @DeleteMapping("/remove")
     public ResponseEntity<ResponseBody> removeUser(HttpServletRequest request) {
         LOGGER.info("Remove user");
-        String token = getToken(request.getHeader(HEADER_AUTH));
+        String header = request.getHeader(HEADER_AUTH);
+        String token = getToken(header);
         Long userId = tokenProvider.getUserIdFromToken(token);
-        userService.remove(userId);
+        userService.remove(header, userId);
         return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, null));
 
     }

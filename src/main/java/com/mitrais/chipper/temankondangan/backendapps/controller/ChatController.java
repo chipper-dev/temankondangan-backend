@@ -36,9 +36,10 @@ public class ChatController extends CommonResource {
 	public ResponseEntity<ResponseBody> getChatByChatroomId(@RequestParam(defaultValue = "0") Long chatroomId,
 			@RequestParam(defaultValue = "1") Integer pageNumber, @RequestParam(defaultValue = "20") Integer pageSize,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		ChatMessageListWrapper chats = chatService.getChatListByChatroomIdAndUserId(chatroomId, userId, pageNumber,
+		ChatMessageListWrapper chats = chatService.getChatListByChatroomIdAndUserId(header, chatroomId, userId, pageNumber,
 				pageSize);
 
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), chats, request.getRequestURI()));
@@ -49,9 +50,10 @@ public class ChatController extends CommonResource {
 	@PostMapping("/set-received-chat")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChat(@RequestBody Long chatId, HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsReceived(chatId, userId);
+		chatService.markChatAsReceived(header, chatId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -61,9 +63,10 @@ public class ChatController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReceivedChatToLastId(@RequestBody ReceiveReadChatWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsReceivedByChatroomIdAndLastChatId(wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
+		chatService.markChatAsReceivedByChatroomIdAndLastChatId(header, wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -72,9 +75,10 @@ public class ChatController extends CommonResource {
 	@PostMapping("/set-read-chat")
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChat(@RequestBody Long chatId, HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsRead(chatId, userId);
+		chatService.markChatAsRead(header, chatId, userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 
@@ -84,9 +88,10 @@ public class ChatController extends CommonResource {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<ResponseBody> setReadChatToLastId(@RequestBody ReceiveReadChatWrapper wrapper,
 			HttpServletRequest request) {
-		String token = getToken(request.getHeader(AUTH_STRING));
+		String header = request.getHeader(AUTH_STRING);
+		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		chatService.markChatAsReadByChatroomIdAndLastChatId(wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
+		chatService.markChatAsReadByChatroomIdAndLastChatId(header, wrapper.getChatroomId(), wrapper.getLastChatId(), userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
 	}
 }

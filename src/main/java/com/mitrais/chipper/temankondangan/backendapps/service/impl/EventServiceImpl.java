@@ -47,7 +47,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestExcept
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.MicroserviceToLegacy;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMSResponseDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
@@ -91,7 +91,7 @@ public class EventServiceImpl implements EventService {
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
-	private ProfileRepository profileRepository;
+//	private ProfileRepository profileRepository;
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
 	private NotificationService notificationService;
@@ -105,14 +105,15 @@ public class EventServiceImpl implements EventService {
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-			ApplicantRepository applicantRepository, ProfileRepository profileRepository,
+			ApplicantRepository applicantRepository,
+//			ProfileRepository profileRepository,
 			ImageFileService imageFileService, NotificationService notificationService, RatingService ratingService,
 			AuditReader auditReader, ProfileFeignClient profileFeignClient, MicroserviceToLegacy msConverter) {
 
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
-		this.profileRepository = profileRepository;
+//		this.profileRepository = profileRepository;
 		this.imageFileService = imageFileService;
 		this.notificationService = notificationService;
 		this.ratingService = ratingService;
@@ -173,10 +174,10 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventFindAllResponseWrapper findAll(Integer pageNumber, Integer pageSize, String sortBy, String direction,
-			Long userId) {
+	public EventFindAllResponseWrapper findAll(String header, Integer pageNumber, Integer pageSize, String sortBy,
+			String direction, Long userId) {
 
-		Profile profile = profileRepository.findByUserId(userId).orElseThrow(
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), Entity.USER_ID.getLabel(), userId));
 		Integer age = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		ArrayList<Gender> gender = new ArrayList<>();
@@ -203,7 +204,7 @@ public class EventServiceImpl implements EventService {
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
 			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
-			profileRepository.findById(eventWrap.getProfileId())
+			profileFeignClient.findById(header, eventWrap.getProfileId())
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
@@ -218,8 +219,8 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<EventFindAllListDBResponseWrapper> findMyEvent(String sortBy, String direction, Long userId,
-			boolean current) {
+	public List<EventFindAllListDBResponseWrapper> findMyEvent(String header, String sortBy, String direction,
+			Long userId, boolean current) {
 		User user = userRepository.findById(userId).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.USER.getLabel(), Entity.USER_ID.getLabel(), userId));
 
@@ -244,7 +245,7 @@ public class EventServiceImpl implements EventService {
 		List<EventFindAllListDBResponseWrapper> eventAllDBResponse = new ArrayList<>();
 		eventWrapperPages.forEach(eventWrap -> {
 			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
-			profileRepository.findById(eventWrap.getProfileId())
+			profileFeignClient.findById(header, eventWrap.getProfileId())
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			eventWrap.setPhotoProfileUrl(photoProfileUrl.get());
@@ -257,7 +258,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public Event edit(Long userId, EditEventWrapper wrapper) {
+	public Event edit(String header, Long userId, EditEventWrapper wrapper) {
 		Event event = eventRepository.findById(wrapper.getEventId())
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", wrapper.getEventId()));
 
@@ -312,7 +313,7 @@ public class EventServiceImpl implements EventService {
 		List<String> fieldsUpdated = findFieldsUpdated(eventUpdated);
 		logger.info("Updated Fields: {}", fieldsUpdated);
 
-		sendMultipleNotification(NotificationType.EDIT_EVENT, event, fieldsUpdated);
+		sendMultipleNotification(header, NotificationType.EDIT_EVENT, event, fieldsUpdated);
 		return eventUpdated;
 	}
 
@@ -340,15 +341,17 @@ public class EventServiceImpl implements EventService {
 		User userCreator = userRepository.findById(event.getUser().getUserId()).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", event.getUser().getUserId()));
 
-		Profile profileCreator = msConverter
-				.convertFromMSProfile(profileFeignClient.findByUser(header, userCreator.getUserId()).orElseThrow(
-						() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId())));
+		ProfileMicroservicesDTO profileCreator = profileFeignClient.findByUserId(header, userCreator.getUserId())
+				.orElseThrow(
+						() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", userCreator.getUserId()));
 
 		if (userId.equals(userCreator.getUserId())) {
 			applicantRepository.findByEventId(event.getEventId()).ifPresent(a -> a.forEach(applicant -> {
-				Profile profileApplicant = profileRepository.findByUserId(applicant.getApplicantUser().getUserId())
+				ProfileMicroservicesDTO profileMS = profileFeignClient
+						.findByUserId(header, applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
+				Profile profileApplicant = msConverter.convertFromMSProfile(profileMS);
 
 				boolean isApplicantRated = ratingService.isRated(userId, event.getEventId());
 
@@ -356,7 +359,7 @@ public class EventServiceImpl implements EventService {
 					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
 					acceptedApplicant.setFullName(profileApplicant.getFullName());
 					acceptedApplicant.setGender(profileApplicant.getGender());
-					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileApplicant));
+					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileMS));
 					acceptedApplicant.setRated(isApplicantRated);
 					applicantResponseWrapperList.add(0,
 							ApplicantResponseWrapper.builder().applicantId(applicant.getId())
@@ -401,14 +404,14 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public void apply(Long userId, Long eventId) {
+	public void apply(String header, Long userId, Long eventId) {
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.EVENT.getLabel(), "id", eventId));
 
-		Profile profile = profileRepository.findByUserId(user.getUserId())
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, user.getUserId())
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id", user.getUserId()));
 
 		if (user.getUserId().equals(event.getUser().getUserId())) {
@@ -449,7 +452,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public void cancelEvent(Long userApplicantId, Long eventId) {
+	public void cancelEvent(String header, Long userApplicantId, Long eventId) {
 		Applicant applicant = applicantRepository.findByApplicantUserIdAndEventId(userApplicantId, eventId).orElseThrow(
 				() -> new ResourceNotFoundException(Entity.APPLICANT.getLabel(), Entity.EVENT_ID.getLabel(), eventId));
 		Event event = eventRepository.findById(applicant.getEvent().getEventId()).orElseThrow(
@@ -469,13 +472,14 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 
-		Profile profile = profileRepository.findByUserId(applicant.getApplicantUser().getUserId()).orElse(null);
+		ProfileMicroservicesDTO profile = profileFeignClient
+				.findByUserId(header, applicant.getApplicantUser().getUserId()).orElse(null);
 		String name = profile == null ? "Someone" : profile.getFullName();
 		sendSingleNotification(NotificationType.CANCEL_APPLY_EVENT, applicant.getEvent(), name);
 	}
 
 	@Override
-	public void creatorCancelEvent(Long userId, Long eventId) {
+	public void creatorCancelEvent(String header, Long userId, Long eventId) {
 		if (eventId == null) {
 			throw new BadRequestException("Error: eventId cannot null");
 		}
@@ -499,14 +503,14 @@ public class EventServiceImpl implements EventService {
 			event.setCancelled(true);
 			eventRepository.save(event);
 
-			sendMultipleNotification(NotificationType.CANCEL_EVENT, event, null);
+			sendMultipleNotification(header, NotificationType.CANCEL_EVENT, event, null);
 		} else {
 			throw new BadRequestException(ERROR_EVENT_START_IN_24HOURS);
 		}
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findActiveAppliedEvent(Long userId, String sortBy, String direction,
+	public List<AppliedEventWrapper> findActiveAppliedEvent(String header, Long userId, String sortBy, String direction,
 			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
 		boolean allStatus = true;
@@ -546,7 +550,7 @@ public class EventServiceImpl implements EventService {
 			wrapper.setCreatedDateTime(
 					LocalDateTime.ofInstant(event.getCreatedDate().toInstant(), ZoneId.systemDefault()));
 
-			profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+			profileFeignClient.findByUserId(header, event.getUser().getUserId()).ifPresent(profile -> {
 				wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
 				wrapper.setCreatorFullName(profile.getFullName());
 				wrapper.setCreatorGender(profile.getGender());
@@ -565,7 +569,7 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public List<AppliedEventWrapper> findPastAppliedEvent(Long userId, String sortBy, String direction,
+	public List<AppliedEventWrapper> findPastAppliedEvent(String header, Long userId, String sortBy, String direction,
 			String applicantStatusStr) {
 		List<AppliedEventWrapper> resultList = new ArrayList<>();
 		if (!(sortByCreatedDate.test(sortBy) || sortByStartDateTime.test(sortBy) || sortByLatestApplied.test(sortBy))) {
@@ -619,7 +623,7 @@ public class EventServiceImpl implements EventService {
 					wrapper.setCreatedDateTime(
 							LocalDateTime.ofInstant(event.getCreatedDate().toInstant(), ZoneId.systemDefault()));
 
-					profileRepository.findByUserId(event.getUser().getUserId()).ifPresent(profile -> {
+					profileFeignClient.findByUserId(header, event.getUser().getUserId()).ifPresent(profile -> {
 						wrapper.setPhotoProfileUrl(imageFileService.getImageUrl(profile));
 						wrapper.setCreatorFullName(profile.getFullName());
 						wrapper.setCreatorGender(profile.getGender());
@@ -639,8 +643,8 @@ public class EventServiceImpl implements EventService {
 	}
 
 	@Override
-	public EventFindAllResponseWrapper search(Long userId, Integer pageNumber, Integer pageSize, String sortBy,
-			String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
+	public EventFindAllResponseWrapper search(String header, Long userId, Integer pageNumber, Integer pageSize,
+			String sortBy, String direction, String creatorGender, Integer creatorMaximumAge, Integer creatorMinimumAge,
 			String startDate, String finishDate, List<String> startHour, List<String> finishHour, List<String> city,
 			Double zoneOffset) {
 		// check sortBy and direction
@@ -673,7 +677,7 @@ public class EventServiceImpl implements EventService {
 		}
 
 		// check user profile who is searching
-		Profile profile = profileRepository.findByUserId(userId)
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "userId", userId));
 		Integer userAge = Period.between(profile.getDob(), LocalDate.now()).getYears();
 		List<String> companionGender = Arrays.asList("B", profile.getGender().toString());
@@ -889,7 +893,7 @@ public class EventServiceImpl implements EventService {
 					.ofInstant(((Date) eventWrap.get("created_date")).toInstant(), ZoneId.systemDefault()));
 
 			AtomicReference<String> photoProfileUrl = new AtomicReference<>("");
-			profileRepository.findById(((BigInteger) eventWrap.get("profile_id")).longValue())
+			profileFeignClient.findById(header, ((BigInteger) eventWrap.get("profile_id")).longValue())
 					.ifPresent(profileCreator -> photoProfileUrl.set(imageFileService.getImageUrl(profileCreator)));
 
 			responseWrapper.setPhotoProfileUrl(photoProfileUrl.get());
@@ -935,11 +939,13 @@ public class EventServiceImpl implements EventService {
 		}
 	}
 
-	private void sendMultipleNotification(NotificationType notificationType, Event event, List<String> fields) {
+	private void sendMultipleNotification(String header, NotificationType notificationType, Event event,
+			List<String> fields) {
 		List<Applicant> applicantList = applicantRepository.findByEventIdAcceptedAndApplied(event.getEventId());
 		List<User> userList = applicantList.stream().map(Applicant::getApplicantUser).collect(Collectors.toList());
 
-		Profile profile = profileRepository.findByUserId(event.getUser().getUserId()).orElse(null);
+		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, event.getUser().getUserId())
+				.orElse(null);
 		String name = profile == null ? "Someone" : profile.getFullName();
 
 		String title = tittleNotificationMsg(notificationType);

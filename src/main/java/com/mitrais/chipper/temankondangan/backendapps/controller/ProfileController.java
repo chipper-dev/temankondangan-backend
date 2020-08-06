@@ -34,48 +34,48 @@ public class ProfileController extends CommonResource {
 	@Autowired
 	private TokenProvider tokenProvider;
 
-    @ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
-    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-    @PostMapping("/update")
-    public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
-                                               @RequestParam(value = "city", required = false) String city,
-                                               @RequestParam(value = "aboutMe", required = false) String aboutMe,
-                                               @RequestParam(value = "interest", required = false) String interest, HttpServletRequest request) {
-        LOGGER.info("Update profile");
-        String token = getToken(request.getHeader("Authorization"));
-        Long userId = tokenProvider.getUserIdFromToken(token);
-
-        Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
-        return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
-    }
-
-
-	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping("/find")
-	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
-		LOGGER.info("Find a profile from token");
-		String token = getToken(request.getHeader("Authorization"));
-		Long userId = tokenProvider.getUserIdFromToken(token);
-
-		ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
-	}
-
-	@ApiOperation(value = "Get Other Person Profile", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@GetMapping("/find-profile/{userId}")
-	public ResponseEntity<ResponseBody> findProfileCreator(HttpServletRequest request, @PathVariable Long userId) {
-    	ProfileCreatorResponseWrapper responseWrapper = profileService.findOtherPersonProfile(userId);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
-	}
-
-	@ApiOperation(value = "Create Profile", response = ResponseEntity.class)
-	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
-	@PostMapping("/create")
-	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> registerUser(@RequestBody CreateProfileWrapper wrapper, HttpServletRequest request) {
-        profileService.create(wrapper);
-		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your profile created successfully", request.getRequestURI()));
-	}
+//    @ApiOperation(value = "Update Optional Profile", response = ResponseEntity.class)
+//    @ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+//    @PostMapping("/update")
+//    public ResponseEntity<ResponseBody> update(@RequestParam(value = "file", required = false) MultipartFile file,
+//                                               @RequestParam(value = "city", required = false) String city,
+//                                               @RequestParam(value = "aboutMe", required = false) String aboutMe,
+//                                               @RequestParam(value = "interest", required = false) String interest, HttpServletRequest request) {
+//        LOGGER.info("Update profile");
+//        String token = getToken(request.getHeader("Authorization"));
+//        Long userId = tokenProvider.getUserIdFromToken(token);
+//
+//        Profile result = profileService.update(userId, new ProfileUpdateWrapper(file, city, aboutMe, interest));
+//        return ResponseEntity.ok(getResponseBody(HttpStatus.CREATED.value(), result, null));
+//    }
+//
+//
+//	@ApiOperation(value = "Get Profile From Token", response = ResponseEntity.class)
+//	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+//	@GetMapping("/find")
+//	public ResponseEntity<ResponseBody> findByUserId(HttpServletRequest request) {
+//		LOGGER.info("Find a profile from token");
+//		String token = getToken(request.getHeader("Authorization"));
+//		Long userId = tokenProvider.getUserIdFromToken(token);
+//
+//		ProfileResponseWrapper responseWrapper = profileService.findByUserId(userId);
+//		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
+//	}
+//
+//	@ApiOperation(value = "Get Other Person Profile", response = ResponseEntity.class)
+//	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+//	@GetMapping("/find-profile/{userId}")
+//	public ResponseEntity<ResponseBody> findProfileCreator(HttpServletRequest request, @PathVariable Long userId) {
+//    	ProfileCreatorResponseWrapper responseWrapper = profileService.findOtherPersonProfile(userId);
+//		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), responseWrapper, request.getRequestURI()));
+//	}
+//
+//	@ApiOperation(value = "Create Profile", response = ResponseEntity.class)
+//	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+//	@PostMapping("/create")
+//	@ResponseStatus(HttpStatus.OK)
+//	public ResponseEntity<ResponseBody> registerUser(@RequestBody CreateProfileWrapper wrapper, HttpServletRequest request) {
+//        profileService.create(wrapper);
+//		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Your profile created successfully", request.getRequestURI()));
+//	}
 }

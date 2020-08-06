@@ -13,10 +13,11 @@ public interface UserService {
 
 	public boolean createPassword(Long userId, UserCreatePasswordWrapper wrapper);
 
-	public void remove(Long userId);
+	public void remove(String header, Long userId);
 
 	void forgotPassword(String email);
 	void resetPassword(ResetPasswordWrapper wrapper);
 
 	public void saveMessagingToken(Long userId, String token);
+
 }
