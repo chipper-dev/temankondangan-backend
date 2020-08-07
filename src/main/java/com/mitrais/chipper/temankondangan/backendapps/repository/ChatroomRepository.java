@@ -36,7 +36,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "and c.data_state <> 'DELETED' "
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
-			+ "order by max(cl2.created_date) desc, max(c2.created_date) desc ", nativeQuery = true)
+			+ "order by max(case when c2.created_date is null then 0 else 1 end) desc, max(cl2.created_date) desc, max(c2.created_date) desc ", nativeQuery = true)
 	List<ChatroomDto> findChatroomListByUserIdSortByDate(@Param("userId") Long userId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
@@ -59,7 +59,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "group by c.id, c.created_by , c.created_date , c.last_modified_by , c.last_modified_date , c.event_id, c.data_state, "
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  "
 			+ "order by count(distinct ch.id) desc "
-			+ "limit :pageSize offset (:pageNumber - 1) * :pageSize ", nativeQuery = true)
+			+ "", nativeQuery = true)
 	List<ChatroomDto> findChatroomListByUserIdSortByUnreadChat(@Param("userId") Long userId);
 
 	@Query(value = "select c.id, c.created_by as createdBy , c.created_date as createdDate , c.last_modified_by as lastModifiedBy , c.last_modified_date as lastModifiedDate ,  "
@@ -75,7 +75,7 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "	inner join event e on c.event_id = e.event_id " + "	inner join users u on e.user_id = u.user_id  "
 			+ "	inner join profile p on u.user_id = p.user_id  " + "	left outer join  (   "
 			+ "		select c.id, c.chatroom_id, c.user_id chat_user_id, cl.user_id chat_log_user_id  "
-			+ "		from chat c  " + "		left outer join chat_log cl on c.id = cl.chat_id and cl.read_date = null   "
+			+ "		from chat c  " + "		left outer join chat_log cl on c.id = cl.chat_id and cl.user_id = :userId "
 			+ "		where c.user_id <> :userId and cl.read_date is null )  "
 			+ "	ch on c.id = ch.chatroom_id and ch.chat_log_user_id is null  "
 			+ "where cu.user_id = :userId and c.id = :id "
@@ -84,14 +84,14 @@ public interface ChatroomRepository extends JpaRepository<Chatroom, Long> {
 			+ "	e.additional_info , e.title , e.start_date_time , e.finish_date_time , e.cancelled, p.full_name , e.data_state  ", nativeQuery = true)
 	ChatroomDto findChatroomByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-	@Query(value = "select count(distinct c.id) from chatroom c  "
+	@Query(value = "select count(id) from (select c.id from chatroom c  "
 			+ "	inner join chatroom_user cu on c.id = cu.chatroom_id "
 			+ "	inner join event e on c.event_id = e.event_id " + "	left outer join  (   "
 			+ "		select c.id, c.chatroom_id, c.user_id chat_user_id, cl.user_id chat_log_user_id  "
 			+ "		from chat c  " + " left outer join chat_log cl on c.id = cl.chat_id and cl.user_id = :userId "
 			+ "		where c.user_id <> :userId and cl.read_date is null ) ch on c.id = ch.chatroom_id "
 			+ " where cu.user_id = :userId  " + "group by c.id "
-			+ "having count(distinct ch.id) > 0 ", nativeQuery = true)
+			+ "having count(distinct ch.id) > 0) as tbl ", nativeQuery = true)
 	public Integer getUnreadChatroom(@Param("userId") Long userId);
 
 	@Modifying
