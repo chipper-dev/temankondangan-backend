@@ -87,9 +87,29 @@ public class ChatroomServiceImpl implements ChatroomService {
         return chatroom;
     }
 
-
 	@Override
-	public ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
+	public ChatroomListResponseWrapper getChatroomListByUserId(Long userId, int pageNumber, int pageSize, String sortBy) {
+		if(pageNumber < 1) {
+			throw new BadRequestException("Error: Page Number cannot less than 1!");
+		}
+
+		if(pageSize < 1) {
+			throw new BadRequestException("Error: Page Size cannot less than 1!");
+		}
+
+		ChatroomListResponseWrapper chatrooms;
+		if ("timeReceived".equalsIgnoreCase(sortBy)) {
+			chatrooms = getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
+		} else if ("unreadMessage".equalsIgnoreCase(sortBy)) {
+			chatrooms = getChatroomListByUserIdSortByUnreadChat(userId, pageNumber, pageSize);
+		} else {
+			throw new BadRequestException("Error: Can only input timeReceived or unreadMessage for sortBy!");
+		}
+		return chatrooms;
+	}
+
+
+	private ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize) {
 		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByDate(userId);
 		setChatroomInactive(chatrooms);
 		return ChatroomListResponseWrapper
@@ -98,8 +118,7 @@ public class ChatroomServiceImpl implements ChatroomService {
 				.build();
 	}
 
-	@Override
-	public ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber,
+	private ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber,
 																			   int pageSize) {
 		List<ChatroomDto> chatrooms = chatroomRepository.findChatroomListByUserIdSortByUnreadChat(userId);
 		setChatroomInactive(chatrooms);
