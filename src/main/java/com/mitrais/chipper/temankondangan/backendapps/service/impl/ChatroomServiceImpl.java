@@ -223,7 +223,7 @@ public class ChatroomServiceImpl implements ChatroomService {
 	private void checkChatroomUserIsExist(Long chatroomId, Long userId) {
 		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
 		if(user == null ) {
-			throw new BadRequestException("Error: User are not authorized to do this operation!");
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
 		}
 	}
 
