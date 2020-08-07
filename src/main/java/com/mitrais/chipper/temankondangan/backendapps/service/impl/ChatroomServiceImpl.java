@@ -170,15 +170,19 @@ public class ChatroomServiceImpl implements ChatroomService {
 			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
 		}
 
-		chatroomIds.forEach(chatroomId ->
+		chatroomIds.forEach(chatroomId -> {
+			checkChatroomUserIsExist(chatroomId, userId);
 			chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
-					profile.getFullName(), profile.getFullName()));
+					profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
 	public void markChatroomAsReceived(Long chatroomId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
 				profile.getFullName(), profile.getFullName());
@@ -193,15 +197,19 @@ public class ChatroomServiceImpl implements ChatroomService {
 			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
 		}
 
-		chatroomIds.forEach(chatroomId ->
+		chatroomIds.forEach(chatroomId -> {
+			checkChatroomUserIsExist(chatroomId, userId);
 			chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
-					profile.getFullName(), profile.getFullName()));
+					profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
 	public void markChatroomAsRead(Long chatroomId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId, profile.getFullName(),
 				profile.getFullName());
@@ -210,6 +218,13 @@ public class ChatroomServiceImpl implements ChatroomService {
 	@Override
 	public Integer getUnreadChatroom(Long userId) {
 		return chatroomRepository.getUnreadChatroom(userId);
+	}
+
+	private void checkChatroomUserIsExist(Long chatroomId, Long userId) {
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
+		if(user == null ) {
+			throw new BadRequestException("Error: User are not authorized to do this operation!");
+		}
 	}
 
 	private void setChatroomInactive(List<ChatroomDto> chatrooms){
