@@ -9,8 +9,8 @@ public final class CommonFunction {
     }
 
     public static boolean isEventFinished(LocalDateTime startDateTime, LocalDateTime finishDateTime) {
-        return finishDateTime != null && LocalDateTime.now().isAfter(finishDateTime)
-                || LocalDateTime.now().isAfter(startDateTime);
+        return (finishDateTime != null && LocalDateTime.now().isAfter(finishDateTime))
+                || (finishDateTime == null && LocalDateTime.now().isAfter(startDateTime));
     }
 
 }

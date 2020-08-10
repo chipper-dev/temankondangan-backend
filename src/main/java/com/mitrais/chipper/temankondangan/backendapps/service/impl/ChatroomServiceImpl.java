@@ -52,7 +52,9 @@ public class ChatroomServiceImpl implements ChatroomService {
 
         if(Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: This event has been cancelled!");
-		} else if(CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
+		}
+
+        if(CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
@@ -170,15 +172,19 @@ public class ChatroomServiceImpl implements ChatroomService {
 			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
 		}
 
-		chatroomIds.forEach(chatroomId ->
+		chatroomIds.forEach(chatroomId -> {
+			checkChatroomUserIsExist(chatroomId, userId);
 			chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
-					profile.getFullName(), profile.getFullName()));
+					profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
 	public void markChatroomAsReceived(Long chatroomId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatroomRepository.markAsReceivedAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
 				profile.getFullName(), profile.getFullName());
@@ -193,15 +199,19 @@ public class ChatroomServiceImpl implements ChatroomService {
 			throw new BadRequestException(ERROR_CHATROOM_ID_EMPTY);
 		}
 
-		chatroomIds.forEach(chatroomId ->
+		chatroomIds.forEach(chatroomId -> {
+			checkChatroomUserIsExist(chatroomId, userId);
 			chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId,
-					profile.getFullName(), profile.getFullName()));
+					profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
 	public void markChatroomAsRead(Long chatroomId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatroomRepository.markAsReadAllChatInChatRoomByChatRoomIdAndUserId(chatroomId, userId, profile.getFullName(),
 				profile.getFullName());
@@ -210,6 +220,13 @@ public class ChatroomServiceImpl implements ChatroomService {
 	@Override
 	public Integer getUnreadChatroom(Long userId) {
 		return chatroomRepository.getUnreadChatroom(userId);
+	}
+
+	private void checkChatroomUserIsExist(Long chatroomId, Long userId) {
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
+		if(user == null ) {
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
+		}
 	}
 
 	private void setChatroomInactive(List<ChatroomDto> chatrooms){
