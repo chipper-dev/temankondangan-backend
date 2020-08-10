@@ -52,7 +52,9 @@ public class ChatroomServiceImpl implements ChatroomService {
 
         if(Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: This event has been cancelled!");
-		} else if(CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
+		}
+
+        if(CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
