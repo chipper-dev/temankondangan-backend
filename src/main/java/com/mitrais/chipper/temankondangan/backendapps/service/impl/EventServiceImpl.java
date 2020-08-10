@@ -17,7 +17,6 @@ import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.CommonFunction;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.envers.AuditReader;
@@ -407,7 +406,8 @@ public class EventServiceImpl implements EventService {
             throw new BadRequestException("Error: You have applied to this event");
         }
 
-        if (CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
+        if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
+                || LocalDateTime.now().isAfter(event.getStartDateTime())) {
             throw new BadRequestException("Error: This event has finished already");
         }
 

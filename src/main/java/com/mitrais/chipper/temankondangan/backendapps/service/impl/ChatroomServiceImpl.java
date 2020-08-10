@@ -1,6 +1,5 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.common.CommonFunction;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.*;
@@ -15,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +52,10 @@ public class ChatroomServiceImpl implements ChatroomService {
 
         if(Boolean.TRUE.equals(event.getCancelled())) {
 			throw new BadRequestException("Error: This event has been cancelled!");
-		} else if(CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
+		}
+
+		if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
+				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
