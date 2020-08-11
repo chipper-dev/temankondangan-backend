@@ -67,85 +67,85 @@ public class ProfileServiceTest {
 		Mockito.when(userRepository.findByEmail(Mockito.anyString())).thenReturn(userOptional);
 	}
 
-	@Test
-	public void createProfileSuccessfully() {
-		User user = User.builder().email("test@email.com").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
-
-		File file = new File(DEFAULT_IMAGE);
-		byte[] bytesArray = new byte[(int) file.length()];
-
-		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
-		Mockito.when(imageService.readBytesFromFile(Mockito.anyString())).thenReturn(bytesArray);
-
-		createProfileWrapper = CreateProfileWrapper.builder()
-				.dob("01-01-2000")
-				.email("test@email.com")
-				.fullname("full_name")
-				.gender(Gender.L)
-				.build();
-
-		Profile result = profileService.create(createProfileWrapper);
-		assertEquals("full_name", result.getFullName());
-	}
-
-	@Test
-	public void createProfileWithAgeIsUnderEighteen() {
-		LocalDate today = LocalDate.now();
-		String formattedDate = today.format(DateTimeFormatter.ofPattern("dd-MM-uuuu"));
-
-		createProfileWrapper = CreateProfileWrapper.builder()
-				.dob(formattedDate)
-				.email("test@email.com")
-				.fullname("full_name")
-				.gender(Gender.L)
-				.build();
-
-		assertThatThrownBy(() -> profileService.create(createProfileWrapper))
-				.hasMessageContaining("Error: Age should not under 18!");
-	}
-
-	@Test
-	public void updateProfileTestWithImage() {
-		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
-		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
-				"All about me", "Not interested", DataState.ACTIVE);
-		Optional<Profile> profileOptional = Optional.of(profile);
-		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
-		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenReturn(profile);
-
-		wrapper = new ProfileUpdateWrapper(multipartFile, "Klaten city", "All about me", "Not interested");
-
-		Profile result = profileService.update(1L, wrapper);
-		assertEquals("full name test", result.getFullName());
-	}
-
-	@Test
-	public void findOtherPersonProfile() {
-		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
-				"All about me", "Not interested", DataState.ACTIVE);
-		Optional<Profile> profileOptional = Optional.of(profile);
-		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
-		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
-
-		ProfileCreatorResponseWrapper result = profileService.findOtherPersonProfile(1l);
-		assertEquals("full name test", result.getFullName());
-	}
-
-	@Test
-	public void findByUserIdTest() {
-		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
-				"All about me", "Not interested", DataState.ACTIVE);
-
-		HashMap<String, Double> ratingData = new HashMap<>();
-		ratingData.put(Constants.RatingDataKey.TOT, 3.0);
-		ratingData.put(Constants.RatingDataKey.AVG, 5.0);
-
-		Optional<Profile> profileOptional = Optional.of(profile);
-		Mockito.when(ratingService.getUserRating(ArgumentMatchers.anyLong())).thenReturn(ratingData);
-		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
-		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
-
-		ProfileResponseWrapper result = profileService.findByUserId(1l);
-		assertEquals("full name test", result.getFullName());
-	}
+//	@Test
+//	public void createProfileSuccessfully() {
+//		User user = User.builder().email("test@email.com").provider(AuthProvider.google).dataState(DataState.ACTIVE).build();
+//
+//		File file = new File(DEFAULT_IMAGE);
+//		byte[] bytesArray = new byte[(int) file.length()];
+//
+//		Mockito.when(userRepository.save(ArgumentMatchers.any(User.class))).thenReturn(user);
+//		Mockito.when(imageService.readBytesFromFile(Mockito.anyString())).thenReturn(bytesArray);
+//
+//		createProfileWrapper = CreateProfileWrapper.builder()
+//				.dob("01-01-2000")
+//				.email("test@email.com")
+//				.fullname("full_name")
+//				.gender(Gender.L)
+//				.build();
+//
+//		Profile result = profileService.create(createProfileWrapper);
+//		assertEquals("full_name", result.getFullName());
+//	}
+//
+//	@Test
+//	public void createProfileWithAgeIsUnderEighteen() {
+//		LocalDate today = LocalDate.now();
+//		String formattedDate = today.format(DateTimeFormatter.ofPattern("dd-MM-uuuu"));
+//
+//		createProfileWrapper = CreateProfileWrapper.builder()
+//				.dob(formattedDate)
+//				.email("test@email.com")
+//				.fullname("full_name")
+//				.gender(Gender.L)
+//				.build();
+//
+//		assertThatThrownBy(() -> profileService.create(createProfileWrapper))
+//				.hasMessageContaining("Error: Age should not under 18!");
+//	}
+//
+//	@Test
+//	public void updateProfileTestWithImage() {
+//		multipartFile = new MockMultipartFile("file", "test.jpg", "image/jpeg", "test image content".getBytes());
+//		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
+//				"All about me", "Not interested", DataState.ACTIVE);
+//		Optional<Profile> profileOptional = Optional.of(profile);
+//		Mockito.when(profileRepository.findByUserId(Mockito.any(Long.class))).thenReturn(profileOptional);
+//		Mockito.when(profileRepository.save(Mockito.any(Profile.class))).thenReturn(profile);
+//
+//		wrapper = new ProfileUpdateWrapper(multipartFile, "Klaten city", "All about me", "Not interested");
+//
+//		Profile result = profileService.update(1L, wrapper);
+//		assertEquals("full name test", result.getFullName());
+//	}
+//
+//	@Test
+//	public void findOtherPersonProfile() {
+//		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
+//				"All about me", "Not interested", DataState.ACTIVE);
+//		Optional<Profile> profileOptional = Optional.of(profile);
+//		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
+//		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
+//
+//		ProfileCreatorResponseWrapper result = profileService.findOtherPersonProfile(1l);
+//		assertEquals("full name test", result.getFullName());
+//	}
+//
+//	@Test
+//	public void findByUserIdTest() {
+//		Profile profile = new Profile((long) 1, user, "full name test", LocalDate.now(), Gender.L, null, "test.jpg", "Klaten city",
+//				"All about me", "Not interested", DataState.ACTIVE);
+//
+//		HashMap<String, Double> ratingData = new HashMap<>();
+//		ratingData.put(Constants.RatingDataKey.TOT, 3.0);
+//		ratingData.put(Constants.RatingDataKey.AVG, 5.0);
+//
+//		Optional<Profile> profileOptional = Optional.of(profile);
+//		Mockito.when(ratingService.getUserRating(ArgumentMatchers.anyLong())).thenReturn(ratingData);
+//		Mockito.when(profileRepository.findByUserId(ArgumentMatchers.anyLong())).thenReturn(profileOptional);
+//		Mockito.when(imageService.getImageUrl(profile)).thenReturn("test");
+//
+//		ProfileResponseWrapper result = profileService.findByUserId(1l);
+//		assertEquals("full name test", result.getFullName());
+//	}
 }

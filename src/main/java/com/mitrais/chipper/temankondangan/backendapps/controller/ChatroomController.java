@@ -62,7 +62,9 @@ public class ChatroomController extends CommonResource {
     @PostMapping("/delete-room")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ResponseBody> deleteChatrooms(@RequestBody DeleteChatroomWrapper wrapper, HttpServletRequest request) {
-        chatroomService.deleteChatrooms(wrapper.getChatroomId());
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+    	chatroomService.deleteChatrooms(wrapper.getChatroomId(), userId);
         return ResponseEntity.ok(
                 getResponseBody(HttpStatus.OK.value(), null, request.getRequestURI()));
     }
@@ -73,21 +75,13 @@ public class ChatroomController extends CommonResource {
 	@ApiResponses(value = { @ApiResponse(response = ChatroomListResponseWrapper.class, code = 200, message = ""), })
 	@GetMapping("/get-chatroom-list")
 	@ResponseStatus(HttpStatus.OK)
-	public ResponseEntity<ResponseBody> getChatroomList(@RequestParam(defaultValue = "0") Integer pageNumber,
+	public ResponseEntity<ResponseBody> getChatroomList(@RequestParam(defaultValue = "1") Integer pageNumber,
 			@RequestParam(defaultValue = "10") Integer pageSize,
 			@ApiParam(value = "input timeReceived or unreadMessage") @RequestParam(defaultValue = "timeReceived") String sortBy,
 			HttpServletRequest request) {
 		String token = getToken(request.getHeader(AUTH_STRING));
 		Long userId = tokenProvider.getUserIdFromToken(token);
-		ChatroomListResponseWrapper chatrooms;
-
-		if ("timeReceived".equalsIgnoreCase(sortBy)) {
-			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
-		} else if ("unreadMessage".equalsIgnoreCase(sortBy)) {
-			chatrooms = chatroomService.getChatroomListByUserIdSortByUnreadChat(userId, pageNumber, pageSize);
-		} else {
-			chatrooms = chatroomService.getChatroomListByUserIdSortByDate(userId, pageNumber, pageSize);
-		}
+		ChatroomListResponseWrapper chatrooms = chatroomService.getChatroomListByUserId(userId, pageNumber, pageSize, sortBy);
 
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), chatrooms, request.getRequestURI()));
 	}

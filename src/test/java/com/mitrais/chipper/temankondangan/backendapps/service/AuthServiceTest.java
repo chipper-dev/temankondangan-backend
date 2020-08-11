@@ -61,24 +61,24 @@ public class AuthServiceTest {
 				.thenReturn(Optional.of(user));
 	}
 
-	@Test
-	public void testRegisteringNewUser() {
-		LocalDate eighteenYearsAgo = LocalDate.now().minusYears(18);
-		int day = eighteenYearsAgo.getDayOfMonth();
-		int month = eighteenYearsAgo.getMonthValue();
-		int year = eighteenYearsAgo.getYear();
-		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
-
-		RegisterUserWrapper wrapper = new RegisterUserWrapper();
-		wrapper.setEmail("test@example.com");
-		wrapper.setPassword("p@ssword123");
-		wrapper.setConfirmPassword("p@ssword123");
-		wrapper.setDob(dob);
-		wrapper.setFullname("test");
-		wrapper.setGender(Gender.L);
-		User user = authService.save(wrapper);
-		Assert.notNull(user.getUserId(), "id is null");
-	}
+//	@Test
+//	public void testRegisteringNewUser() {
+//		LocalDate eighteenYearsAgo = LocalDate.now().minusYears(18);
+//		int day = eighteenYearsAgo.getDayOfMonth();
+//		int month = eighteenYearsAgo.getMonthValue();
+//		int year = eighteenYearsAgo.getYear();
+//		String dob = String.format("%02d",day) + "-" + String.format("%02d",month) + "-" + year;
+//
+//		RegisterUserWrapper wrapper = new RegisterUserWrapper();
+//		wrapper.setEmail("test@example.com");
+//		wrapper.setPassword("p@ssword123");
+//		wrapper.setConfirmPassword("p@ssword123");
+//		wrapper.setDob(dob);
+//		wrapper.setFullname("test");
+//		wrapper.setGender(Gender.L);
+//		User user = authService.save(wrapper);
+//		Assert.notNull(user.getUserId(), "id is null");
+//	}
 
 	@Test
 	public void testRegisteringNewUserWithDifferentPassword() {

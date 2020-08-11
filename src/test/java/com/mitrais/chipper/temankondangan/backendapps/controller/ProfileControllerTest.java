@@ -88,64 +88,64 @@ public class ProfileControllerTest {
 		token = tokenProvider.createToken(authentication);
 	}
 
-	@Test
-	public void updateProfileTest() throws Exception {
-		Profile profile = Profile.builder().profileId(1L).build();
-
-		Mockito.when(profileService.update(anyLong(), Mockito.any(ProfileUpdateWrapper.class))).thenReturn(profile);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/profile/update")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content.profileId").value(1L));
-	}
-
-	@Test
-	public void findProfileTest() throws Exception {
-		ProfileResponseWrapper responseWrapper = ProfileResponseWrapper.builder().profileId(1L).aboutMe("aboutme test")
-				.city("city test").dob(LocalDate.now().minusYears(25)).email("email@com").fullName("name test")
-				.gender(Gender.L).hasPassword(true).interest("interest test").photoProfileUrl("photoProfileUrl test")
-				.ratingData(null).build();
-
-		Mockito.when(profileService.findByUserId(anyLong())).thenReturn(responseWrapper);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find").header("Authorization",
-				"Bearer " + token);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content.profileId").value(1L));
-	}
-
-	@Test
-	public void findProfileCreatorTest() throws Exception {
-		ProfileCreatorResponseWrapper responseWrapper = ProfileCreatorResponseWrapper.builder().fullName("name test")
-				.build();
-
-		Mockito.when(profileService.findOtherPersonProfile(anyLong())).thenReturn(responseWrapper);
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find-profile/1")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
-				.accept(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content.fullName").value("name test"));
-	}
-
-	@Test
-	public void registerUserTest() throws Exception {
-		CreateProfileWrapper responseWrapper = CreateProfileWrapper.builder().fullname("name test").build();
-
-		Mockito.when(profileService.create(Mockito.any(CreateProfileWrapper.class))).thenReturn(new Profile());
-
-		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/profile/create")
-				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
-				.content(asJsonString(responseWrapper)).accept(MediaType.APPLICATION_JSON);
-
-		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
-				.andExpect(jsonPath("$.content").value("Your profile created successfully"));
-	}
+//	@Test
+//	public void updateProfileTest() throws Exception {
+//		Profile profile = Profile.builder().profileId(1L).build();
+//
+//		Mockito.when(profileService.update(anyLong(), Mockito.any(ProfileUpdateWrapper.class))).thenReturn(profile);
+//
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/profile/update")
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+//				.accept(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content.profileId").value(1L));
+//	}
+//
+//	@Test
+//	public void findProfileTest() throws Exception {
+//		ProfileResponseWrapper responseWrapper = ProfileResponseWrapper.builder().profileId(1L).aboutMe("aboutme test")
+//				.city("city test").dob(LocalDate.now().minusYears(25)).email("email@com").fullName("name test")
+//				.gender(Gender.L).hasPassword(true).interest("interest test").photoProfileUrl("photoProfileUrl test")
+//				.ratingData(null).build();
+//
+//		Mockito.when(profileService.findByUserId(anyLong())).thenReturn(responseWrapper);
+//
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find").header("Authorization",
+//				"Bearer " + token);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content.profileId").value(1L));
+//	}
+//
+//	@Test
+//	public void findProfileCreatorTest() throws Exception {
+//		ProfileCreatorResponseWrapper responseWrapper = ProfileCreatorResponseWrapper.builder().fullName("name test")
+//				.build();
+//
+//		Mockito.when(profileService.findOtherPersonProfile(anyLong())).thenReturn(responseWrapper);
+//
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.get("/profile/find-profile/1")
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+//				.accept(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content.fullName").value("name test"));
+//	}
+//
+//	@Test
+//	public void registerUserTest() throws Exception {
+//		CreateProfileWrapper responseWrapper = CreateProfileWrapper.builder().fullname("name test").build();
+//
+//		Mockito.when(profileService.create(Mockito.any(CreateProfileWrapper.class))).thenReturn(new Profile());
+//
+//		RequestBuilder requestBuilder = MockMvcRequestBuilders.post("/profile/create")
+//				.header("Authorization", "Bearer " + token).contentType(MediaType.APPLICATION_JSON)
+//				.content(asJsonString(responseWrapper)).accept(MediaType.APPLICATION_JSON);
+//
+//		mockMvc.perform(requestBuilder).andExpect(status().isOk()).andExpect(jsonPath("$.content").isNotEmpty())
+//				.andExpect(jsonPath("$.content").value("Your profile created successfully"));
+//	}
 
 	public static String asJsonString(final Object obj) {
 		try {

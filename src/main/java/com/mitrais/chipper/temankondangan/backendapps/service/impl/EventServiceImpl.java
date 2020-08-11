@@ -43,15 +43,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.google.firebase.messaging.FirebaseMessagingException;
+import com.mitrais.chipper.temankondangan.backendapps.common.CommonFunction;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.UnauthorizedException;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.MicroserviceToLegacy;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
 import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.model.Event;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.User;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ApplicantStatus;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.DataState;
@@ -67,7 +66,6 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllLis
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
-import com.mitrais.chipper.temankondangan.backendapps.repository.ProfileRepository;
 import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 import com.mitrais.chipper.temankondangan.backendapps.service.ImageFileService;
@@ -76,6 +74,7 @@ import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 
 @Service
 public class EventServiceImpl implements EventService {
+
 	private static final Logger logger = LoggerFactory.getLogger(EventServiceImpl.class);
 	private static final String ERROR_SORT_DIRECTION = "Error: Can only input ASC or DESC for direction!";
 	private static final String ERROR_EVENT_START_IN_24HOURS = "Error: The event will be started in less than 24 hours";
@@ -91,35 +90,30 @@ public class EventServiceImpl implements EventService {
 
 	private EventRepository eventRepository;
 	private UserRepository userRepository;
-//	private ProfileRepository profileRepository;
+	private ProfileFeignClient profileFeignClient;
 	private ApplicantRepository applicantRepository;
 	private ImageFileService imageFileService;
 	private NotificationService notificationService;
 	private RatingService ratingService;
 	private AuditReader auditReader;
-	private ProfileFeignClient profileFeignClient;
-	private MicroserviceToLegacy msConverter;
 
 	@Value("${app.eventCancelationValidMaxMsec}")
 	Long cancelationMax;
 
 	@Autowired
 	public EventServiceImpl(EventRepository eventRepository, UserRepository userRepository,
-			ApplicantRepository applicantRepository,
-//			ProfileRepository profileRepository,
+			ApplicantRepository applicantRepository, ProfileFeignClient profileFeignClient,
 			ImageFileService imageFileService, NotificationService notificationService, RatingService ratingService,
-			AuditReader auditReader, ProfileFeignClient profileFeignClient, MicroserviceToLegacy msConverter) {
+			AuditReader auditReader) {
 
 		this.eventRepository = eventRepository;
 		this.userRepository = userRepository;
 		this.applicantRepository = applicantRepository;
-//		this.profileRepository = profileRepository;
+		this.profileFeignClient = profileFeignClient;
 		this.imageFileService = imageFileService;
 		this.notificationService = notificationService;
 		this.ratingService = ratingService;
 		this.auditReader = auditReader;
-		this.profileFeignClient = profileFeignClient;
-		this.msConverter = msConverter;
 	}
 
 	@Override
@@ -351,25 +345,23 @@ public class EventServiceImpl implements EventService {
 						.findByUserId(header, applicant.getApplicantUser().getUserId())
 						.orElseThrow(() -> new ResourceNotFoundException(Entity.PROFILE.getLabel(), "id",
 								applicant.getApplicantUser().getUserId()));
-				Profile profileApplicant = msConverter.convertFromMSProfile(profileMS);
 
 				boolean isApplicantRated = ratingService.isRated(userId, event.getEventId());
 
 				if (applicant.getStatus().equals(ApplicantStatus.ACCEPTED)) {
-					acceptedApplicant.setUserId(profileApplicant.getUser().getUserId());
-					acceptedApplicant.setFullName(profileApplicant.getFullName());
-					acceptedApplicant.setGender(profileApplicant.getGender());
+					acceptedApplicant.setUserId(profileMS.getUserId());
+					acceptedApplicant.setFullName(profileMS.getFullName());
+					acceptedApplicant.setGender(profileMS.getGender());
 					acceptedApplicant.setPhotoProfileUrl(imageFileService.getImageUrl(profileMS));
 					acceptedApplicant.setRated(isApplicantRated);
 					applicantResponseWrapperList.add(0,
 							ApplicantResponseWrapper.builder().applicantId(applicant.getId())
-									.fullName(profileApplicant.getFullName())
-									.userId(applicant.getApplicantUser().getUserId()).status(applicant.getStatus())
-									.isRated(isApplicantRated).build());
+									.fullName(profileMS.getFullName()).userId(applicant.getApplicantUser().getUserId())
+									.status(applicant.getStatus()).isRated(isApplicantRated).build());
 
 				} else {
 					applicantResponseWrapperList.add(ApplicantResponseWrapper.builder().applicantId(applicant.getId())
-							.fullName(profileApplicant.getFullName()).userId(applicant.getApplicantUser().getUserId())
+							.fullName(profileMS.getFullName()).userId(applicant.getApplicantUser().getUserId())
 							.status(applicant.getStatus()).isRated(isApplicantRated).build());
 
 				}
@@ -426,8 +418,7 @@ public class EventServiceImpl implements EventService {
 			throw new BadRequestException("Error: You have applied to this event");
 		}
 
-		if ((event.getFinishDateTime() != null && LocalDateTime.now().isAfter(event.getFinishDateTime()))
-				|| LocalDateTime.now().isAfter(event.getStartDateTime())) {
+		if (CommonFunction.isEventFinished(event.getStartDateTime(), event.getFinishDateTime())) {
 			throw new BadRequestException("Error: This event has finished already");
 		}
 
@@ -587,6 +578,7 @@ public class EventServiceImpl implements EventService {
 
 		if (EnumUtils.isValidEnum(ApplicantStatus.class, applicantStatusStr)) {
 			applicantStatus = ApplicantStatus.valueOf(applicantStatusStr);
+
 //			if any applicant status besides ALLSTATUS
 			if (!applicantStatus.equals(ApplicantStatus.ALLSTATUS)) {
 				allStatus = false;

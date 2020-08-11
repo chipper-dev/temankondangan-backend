@@ -1,25 +1,31 @@
 package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 
-import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
-import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
-import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
-import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
-import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
-import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
-import com.mitrais.chipper.temankondangan.backendapps.repository.*;
-import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
+import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
+import com.mitrais.chipper.temankondangan.backendapps.microservice.feign.ProfileFeignClient;
+import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
+import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
+import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageWrapper;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ApplicantRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ChatRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ChatroomRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.ChatroomUserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.EventRepository;
+import com.mitrais.chipper.temankondangan.backendapps.repository.UserRepository;
+import com.mitrais.chipper.temankondangan.backendapps.service.ChatService;
 
 @Service
 public class ChatServiceImpl implements ChatService {
@@ -62,8 +68,21 @@ public class ChatServiceImpl implements ChatService {
 	}
 
 	@Override
-	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(String header, Long chatroomId, Long userId, int pageNumber,
-			int pageSize) {
+	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(String header, Long chatroomId, Long userId,
+			int pageNumber, int pageSize) {
+
+		if (chatroomId < 1) {
+			throw new BadRequestException("Error: Chatroom ID cannot null or less than 1!");
+		}
+
+		if (pageNumber < 1) {
+			throw new BadRequestException("Error: Page Number cannot less than 1!");
+		}
+
+		if (pageSize < 1) {
+			throw new BadRequestException("Error: Page Size cannot less than 1!");
+		}
+
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
@@ -78,8 +97,8 @@ public class ChatServiceImpl implements ChatService {
 		}
 
 		return ChatMessageListWrapper.builder().pageNumber(pageNumber).pageSize(pageSize).actualSize(chats.size())
-				.contentList(
-						chats.stream().skip((long)(pageNumber - 1) * pageSize).limit(pageSize).collect(Collectors.toList()))
+				.contentList(chats.stream().skip((long) (pageNumber - 1) * pageSize).limit(pageSize)
+						.collect(Collectors.toList()))
 				.build();
 	}
 
@@ -92,9 +111,10 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId ->
-			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName())
-		);
+		chatIds.forEach(chatId -> {
+			checkChatroomUserIsExistByChatId(chatId, userId);
+			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
@@ -102,13 +122,18 @@ public class ChatServiceImpl implements ChatService {
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
+		checkChatroomUserIsExistByChatId(chatId, userId);
+
 		chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
 	}
 
 	@Override
-	public void markChatAsReceivedByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId, Long userId) {
+	public void markChatAsReceivedByChatroomIdAndLastChatId(String header, Long chatroomId, Long lastChatId,
+			Long userId) {
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatRepository.markAsReceivedToLastId(chatroomId, lastChatId, userId, profile.getFullName(),
 				profile.getFullName());
@@ -123,9 +148,10 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId ->
-			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName())
-		);
+		chatIds.forEach(chatId -> {
+			checkChatroomUserIsExistByChatId(chatId, userId);
+			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
 
 	}
 
@@ -133,6 +159,8 @@ public class ChatServiceImpl implements ChatService {
 	public void markChatAsRead(String header, Long chatId, Long userId) {
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExistByChatId(chatId, userId);
 
 		chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
 
@@ -143,6 +171,24 @@ public class ChatServiceImpl implements ChatService {
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
+		checkChatroomUserIsExist(chatroomId, userId);
+
 		chatRepository.markAsReadToLastId(chatroomId, lastChatId, userId, profile.getFullName(), profile.getFullName());
+	}
+
+	private void checkChatroomUserIsExist(Long chatroomId, Long userId) {
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
+		if (user == null) {
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
+		}
+	}
+
+	private void checkChatroomUserIsExistByChatId(Long chatId, Long userId) {
+		Chat chat = chatRepository.getOne(chatId);
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chat.getChatroom().getId())
+				.orElse(null);
+		if (user == null) {
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
+		}
 	}
 }

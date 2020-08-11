@@ -10,13 +10,11 @@ public interface ChatroomService {
 
 	Chatroom createChatroom(Long eventId);
 
-	ChatroomListResponseWrapper getChatroomListByUserIdSortByDate(Long userId, int pageNumber, int pageSize);
-
-	ChatroomListResponseWrapper getChatroomListByUserIdSortByUnreadChat(Long userId, int pageNumber, int pageSize);
+	ChatroomListResponseWrapper getChatroomListByUserId(Long userId, int pageNumber, int pageSize, String sortBy);
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
 
-	void deleteChatrooms(List<Long> chatroomIds);
+	void deleteChatrooms(List<Long> chatroomIds, Long userId);
 
 	void markChatroomsAsReceived(String header, List<Long> chatroomIds, Long userId);
 
