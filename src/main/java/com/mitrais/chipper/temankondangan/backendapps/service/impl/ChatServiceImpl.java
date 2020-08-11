@@ -3,6 +3,7 @@ package com.mitrais.chipper.temankondangan.backendapps.service.impl;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
+import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
@@ -62,6 +63,19 @@ public class ChatServiceImpl implements ChatService {
 	@Override
 	public ChatMessageListWrapper getChatListByChatroomIdAndUserId(Long chatroomId, Long userId, int pageNumber,
 			int pageSize) {
+
+		if(chatroomId < 1) {
+			throw new BadRequestException("Error: Chatroom ID cannot null or less than 1!");
+		}
+
+		if(pageNumber < 1) {
+			throw new BadRequestException("Error: Page Number cannot less than 1!");
+		}
+
+		if(pageSize < 1) {
+			throw new BadRequestException("Error: Page Size cannot less than 1!");
+		}
+
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
@@ -90,15 +104,18 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId ->
-			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName())
-		);
+		chatIds.forEach(chatId -> {
+			checkChatroomUserIsExistByChatId(chatId, userId);
+			chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
 	}
 
 	@Override
 	public void markChatAsReceived(Long chatId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExistByChatId(chatId, userId);
 
 		chatRepository.markAsReceivedById(chatId, userId, profile.getFullName(), profile.getFullName());
 	}
@@ -107,6 +124,8 @@ public class ChatServiceImpl implements ChatService {
 	public void markChatAsReceivedByChatroomIdAndLastChatId(Long chatroomId, Long lastChatId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExist(chatroomId, userId);
 
 		chatRepository.markAsReceivedToLastId(chatroomId, lastChatId, userId, profile.getFullName(),
 				profile.getFullName());
@@ -121,9 +140,10 @@ public class ChatServiceImpl implements ChatService {
 			throw new BadRequestException("Error: ChatIds Id cannot be empty!");
 		}
 
-		chatIds.forEach(chatId ->
-			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName())
-		);
+		chatIds.forEach(chatId -> {
+			checkChatroomUserIsExistByChatId(chatId, userId);
+			chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
+		});
 
 	}
 
@@ -131,6 +151,8 @@ public class ChatServiceImpl implements ChatService {
 	public void markChatAsRead(Long chatId, Long userId) {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		checkChatroomUserIsExistByChatId(chatId, userId);
 
 		chatRepository.markAsReadById(chatId, userId, profile.getFullName(), profile.getFullName());
 
@@ -141,6 +163,22 @@ public class ChatServiceImpl implements ChatService {
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
 
+		checkChatroomUserIsExist(chatroomId, userId);
+
 		chatRepository.markAsReadToLastId(chatroomId, lastChatId, userId, profile.getFullName(), profile.getFullName());
+	}
+
+	private void checkChatroomUserIsExist(Long chatroomId, Long userId) {
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chatroomId).orElse(null);
+		if(user == null ) {
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
+		}
+	}
+	private void checkChatroomUserIsExistByChatId(Long chatId, Long userId) {
+		Chat chat = chatRepository.getOne(chatId);
+		ChatroomUser user = chatroomUserRepository.findByUserIdAndChatroomId(userId, chat.getChatroom().getId()).orElse(null);
+		if(user == null ) {
+			throw new BadRequestException("Error: Only the receiver can set as read the message!");
+		}
 	}
 }
