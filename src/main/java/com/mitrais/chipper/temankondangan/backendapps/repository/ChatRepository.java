@@ -17,7 +17,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
 			+ "case when  count(distinct cu.id) - case when c.user.userId = :userId then 1 else 2 end > count(distinct cl.id) then false else true end as isReceived, "
 			+ "case when  count(distinct cu.id) - case when c.user.userId = :userId then 1 else 2 end > sum(case when cl.readDate is not null then 1 else 0 end) then false else true end as isRead) "
 			+ "from Chat c " + "join c.chatroom cr " + "join ChatroomUser cu on cu.chatroom.id = cr.id "
-			+ "left join ChatLog cl on c.id = cl.chat.id " + "WHERE c.chatroom.id = :chatroomId " + "GROUP BY c "
+			+ "left join ChatLog cl on c.id = cl.chat.id " + "WHERE c.chatroom.id = :chatroomId " + "AND user.userId = :userId " + "GROUP BY c "
 			+ "ORDER BY c.createdDate desc, c.id desc")
 	List<ChatMessageWrapper> findAllByChatroomIdAndUserId(@Param("chatroomId") Long chatroomId,
 			@Param("userId") Long userId);
