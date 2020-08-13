@@ -5,6 +5,7 @@ import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFound
 import com.mitrais.chipper.temankondangan.backendapps.model.Chat;
 import com.mitrais.chipper.temankondangan.backendapps.model.ChatroomUser;
 import com.mitrais.chipper.temankondangan.backendapps.model.Profile;
+import com.mitrais.chipper.temankondangan.backendapps.model.dto.ChatroomDto;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.ChatMessage;
 import com.mitrais.chipper.temankondangan.backendapps.model.en.Entity;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.ChatMessageListWrapper;
@@ -78,6 +79,11 @@ public class ChatServiceImpl implements ChatService {
 
 		Profile profile = profileRepository.findByUserId(userId)
 				.orElseThrow(() -> new ResourceNotFoundException(Entity.USER.getLabel(), "id", userId));
+
+		ChatroomDto activeChatroom = chatroomRepository.findChatroomByIdAndUserId(chatroomId, userId);
+		if (activeChatroom == null) {
+			throw new ResourceNotFoundException(Entity.CHATROOM.getLabel(), "id", chatroomId);
+		}
 
 		List<ChatMessageWrapper> chats = chatRepository.findAllByChatroomIdAndUserId(chatroomId, userId);
 
