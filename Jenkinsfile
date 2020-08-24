@@ -20,7 +20,7 @@ node{
         string(credentialsId: 'team6-firebase-database', variable: 'firebaseDb'),
         usernamePassword(credentialsId: 'team6-emailAuth', passwordVariable: 'emailPassword', usernameVariable: 'emailUser')
         ]) {
-            sh "${mvnCMD} clean verify -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/backend-config/serviceAccountKey.json -Dspring.mail.username=$env.emailUser -Dspring.mail.password=$env.emailPassword"
+            sh "${mvnCMD} clean verify -Dspring.datasource.url=jdbc:postgresql://chippermitrais.ddns.net:5432/postgres -Dspring.datasource.username=$env.dbAuthUser -Dspring.datasource.password=$env.dbAuthPassword -Dapp.firebase.databaseUrl=$env.firebaseDb -Dapp.firebase.googleCredentials=/team6-backend-config/serviceAccountKey.json -Dspring.mail.username=$env.emailUser -Dspring.mail.password=$env.emailPassword"
         }
     }
     stage('SonarQube analysis') {
