@@ -10,6 +10,8 @@ public interface ChatroomService {
 
 	Chatroom createChatroom(Long eventId);
 
+	List<Chatroom> getActiveChatroomListByEventIdAndUserId(Long eventId, Long userId);
+	
 	ChatroomListResponseWrapper getChatroomListByUserId(Long userId, int pageNumber, int pageSize, String sortBy);
 
 	ChatroomDto getChatroomByIdAndUserId(Long chatroomId, Long userId);
@@ -25,4 +27,6 @@ public interface ChatroomService {
 	void markChatroomAsRead(Long chatroomId, Long userId);
 
 	Integer getUnreadChatroom(Long userId);
+	
+	void markAsInactiveAllActiveChatRoomByEventIdAndUserId(Long eventId, Long userId);
 }

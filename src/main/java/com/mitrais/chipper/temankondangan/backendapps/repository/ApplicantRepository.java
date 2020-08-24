@@ -14,6 +14,9 @@ import java.util.Optional;
 
 @Repository
 public interface ApplicantRepository extends JpaRepository<Applicant, Long> {
+	@Query("SELECT a from Applicant a WHERE a.id = :applicantId")
+    Applicant findByApplicantId(@Param("applicantId")Long applicantId);
+	
     @Query("SELECT a from Applicant a WHERE a.event.eventId = :eventId")
     Optional<List<Applicant>> findByEventId(@Param("eventId")Long eventId);
 
