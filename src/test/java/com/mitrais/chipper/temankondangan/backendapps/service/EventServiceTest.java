@@ -244,10 +244,10 @@ public class EventServiceTest {
 		wrapper.setMaximumAge(40);
 		wrapper.setMinimumAge(18);
 		wrapper.setStartDateTime(LocalDateTime.now().plusDays(3).format(dfDateTime));
-		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(4).format(dfDateTime));
+		wrapper.setFinishDateTime(LocalDateTime.now().plusDays(5).format(dfDateTime));
 
 		assertThatThrownBy(() -> eventService.create(1L, wrapper))
-				.hasMessageContaining("Error: Start date and finish date must be the same day!")
+				.hasMessageContaining("Error: Finish date can’t be more than H+1 from start date!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
@@ -1164,7 +1164,7 @@ public class EventServiceTest {
 	}
 
 	@Test
-	public void shouldThrowBadRequestException_WhenEditEventToStartTimeAndFinishTimeDifferentDay() {
+	public void shouldThrowBadRequestException_WhenFinishTimeMoreThan1DayFromStartTimeInEditEvent() {
 		event = new Event();
 		event.setEventId(1L);
 		event.setUser(user);
@@ -1191,12 +1191,12 @@ public class EventServiceTest {
 		editEvent.setAdditionalInfo("info test");
 		editEvent.setCompanionGender(Gender.P);
 		editEvent.setStartDateTime(LocalDateTime.now().plusDays(10).format(formatter));
-		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(11).format(formatter));
+		editEvent.setFinishDateTime(LocalDateTime.now().plusDays(12).format(formatter));
 		editEvent.setMaximumAge(40);
 		editEvent.setMinimumAge(18);
 
 		assertThatThrownBy(() -> eventService.edit(1L, editEvent))
-				.hasMessageContaining("Error: Start date and finish date must be the same day!")
+				.hasMessageContaining("Error: Finish date can’t be more than H+1 from start date!")
 				.isInstanceOf(BadRequestException.class);
 	}
 
