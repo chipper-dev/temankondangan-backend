@@ -189,4 +189,9 @@ public class ApplicantServiceImpl implements ApplicantService {
 		}
 	}
 
+	@Override
+	public Applicant getApplicantById(Long applicantId) {
+		return applicantRepository.findByApplicantId(applicantId);		
+	}
+
 }

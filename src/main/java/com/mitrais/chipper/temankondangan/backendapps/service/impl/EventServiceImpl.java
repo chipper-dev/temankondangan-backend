@@ -139,10 +139,10 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
-			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
-				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			if (!(startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())
+					|| startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate().plusDays(1)))) {
+				throw new BadRequestException("Error: Finish date can’t be more than H+1 from start date!");
 			}
-
 		}
 
 		int maxAge = wrapper.getMaximumAge();
@@ -283,8 +283,9 @@ public class EventServiceImpl implements EventService {
 			if (startDateTime.isAfter(finishDateTime)) {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
-			if (!startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())) {
-				throw new BadRequestException("Error: Start date and finish date must be the same day!");
+			if (!(startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())
+					|| startDateTime.toLocalDate().plusDays(1).isEqual(finishDateTime.toLocalDate()))) {
+				throw new BadRequestException("Error: Finish date can’t be more than H+1 from start date!");
 			}
 
 		}
@@ -313,6 +314,7 @@ public class EventServiceImpl implements EventService {
 
 	@Override
 	public EventDetailResponseWrapper findEventDetail(String header, String eventIdStr, Long userId) {
+
 		List<ApplicantResponseWrapper> applicantResponseWrapperList = new ArrayList<>();
 		boolean isApplied = false;
 		boolean isCreatorRated = false;
@@ -938,6 +940,7 @@ public class EventServiceImpl implements EventService {
 
 		ProfileMicroservicesDTO profile = profileFeignClient.findByUserId(header, event.getUser().getUserId())
 				.orElse(null);
+
 		String name = profile == null ? "Someone" : profile.getFullName();
 
 		String title = tittleNotificationMsg(notificationType);
@@ -1063,7 +1066,12 @@ public class EventServiceImpl implements EventService {
 
 	private Event getPreviousEvent(Event event) {
 		List<Number> revNumbers = auditReader.getRevisions(Event.class, event.getEventId());
-		return auditReader.find(Event.class, event.getEventId(), revNumbers.get(revNumbers.size() - 2));
+
+		if (revNumbers.size() >= 2) {
+			return auditReader.find(Event.class, event.getEventId(), revNumbers.get(revNumbers.size() - 2));
+		}
+		return auditReader.find(Event.class, event.getEventId(), revNumbers.get(revNumbers.size() - 1));
+
 	}
 
 	private String splitCamelCase(String s) {

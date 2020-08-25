@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import javax.servlet.http.HttpServletRequest;
 
 @Api(value = "Chatroom Management System")
@@ -145,5 +147,19 @@ public class ChatroomController extends CommonResource {
 		Long userId = tokenProvider.getUserIdFromToken(token);
 		Integer unreadChatroom = chatroomService.getUnreadChatroom(userId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), unreadChatroom, request.getRequestURI()));
+	}
+	
+	@ApiOperation(value = "Get Active Chatroom List By Event Id and User Id", response = ResponseEntity.class)
+	@ApiImplicitParam(name = "Authorization", value = "Access Token", required = true, allowEmptyValue = false, paramType = "header", dataTypeClass = String.class, example = "Bearer <access_token>")
+	@ApiResponses(value = { @ApiResponse(code = 200, message = ""), })
+	@GetMapping("/get-active-chatroom-list")
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<ResponseBody> getActiveChatroomListByEventIdAndUserId(@RequestParam Long eventId,
+			HttpServletRequest request) {
+		String token = getToken(request.getHeader(AUTH_STRING));
+		Long userId = tokenProvider.getUserIdFromToken(token);
+		List<Chatroom> chatrooms = chatroomService.getActiveChatroomListByEventIdAndUserId(eventId, userId);
+
+		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), chatrooms, request.getRequestURI()));
 	}
 }

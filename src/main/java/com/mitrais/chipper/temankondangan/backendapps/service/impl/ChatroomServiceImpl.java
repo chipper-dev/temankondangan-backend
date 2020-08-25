@@ -240,4 +240,14 @@ public class ChatroomServiceImpl implements ChatroomService {
 			}
 		});
 	}
+
+	@Override
+	public List<Chatroom> getActiveChatroomListByEventIdAndUserId(Long eventId, Long userId) {
+		return chatroomRepository.findActiveChatroomByEventIdAndUserId(eventId, userId).orElse(null);
+	}
+
+	@Override
+	public void markAsInactiveAllActiveChatRoomByEventIdAndUserId(Long eventId, Long userId) {
+		chatroomRepository.markAsInactiveAllActiveChatRoomByEventIdAndUserId(eventId, userId);
+	}
 }

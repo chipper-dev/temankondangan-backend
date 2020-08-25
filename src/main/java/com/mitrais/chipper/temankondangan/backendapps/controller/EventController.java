@@ -28,6 +28,7 @@ import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllLis
 import com.mitrais.chipper.temankondangan.backendapps.model.json.EventFindAllResponseWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.model.json.RatingWrapper;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
+import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
 import com.mitrais.chipper.temankondangan.backendapps.service.EventService;
 import com.mitrais.chipper.temankondangan.backendapps.service.RatingService;
 
@@ -49,6 +50,9 @@ public class EventController extends CommonResource {
 
 	@Autowired
 	private RatingService ratingService;
+	
+	@Autowired
+	private ChatroomService chatroomService;
 
 	@Autowired
 	private TokenProvider tokenProvider;
@@ -145,7 +149,9 @@ public class EventController extends CommonResource {
 		String header = request.getHeader(AUTH_STRING);
 		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
+
 		eventService.cancelEvent(header, userId, eventId);
+		chatroomService.markAsInactiveAllActiveChatRoomByEventIdAndUserId(eventId, userId);
 		return ResponseEntity.ok(
 				getResponseBody(HttpStatus.OK.value(), "The event was canceled successfully", request.getRequestURI()));
 	}

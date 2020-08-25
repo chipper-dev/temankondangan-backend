@@ -2,8 +2,11 @@ package com.mitrais.chipper.temankondangan.backendapps.controller;
 
 import com.mitrais.chipper.temankondangan.backendapps.common.CommonResource;
 import com.mitrais.chipper.temankondangan.backendapps.common.response.ResponseBody;
+import com.mitrais.chipper.temankondangan.backendapps.model.Applicant;
 import com.mitrais.chipper.temankondangan.backendapps.security.TokenProvider;
 import com.mitrais.chipper.temankondangan.backendapps.service.ApplicantService;
+import com.mitrais.chipper.temankondangan.backendapps.service.ChatroomService;
+
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,9 @@ public class ApplicantController extends CommonResource {
 
 	@Autowired
 	private ApplicantService applicantService;
+	
+	@Autowired
+	private ChatroomService chatroomService;
 
 	@Autowired
 	private TokenProvider tokenProvider;
@@ -65,8 +71,16 @@ public class ApplicantController extends CommonResource {
 		String header = request.getHeader(AUTH_STRING);
 		String token = getToken(header);
 		Long userId = tokenProvider.getUserIdFromToken(token);
+
+		Applicant applicant =applicantService.getApplicantById(applicantId);
+		if (applicant != null) {
+			Long eventId = applicant.getEvent().getEventId();
+			Long applicantUserId = applicant.getApplicantUser().getUserId();
+			
+			applicantService.cancelAccepted(header, userId, applicantId);
+			chatroomService.markAsInactiveAllActiveChatRoomByEventIdAndUserId(eventId, applicantUserId);
+		}		
 		
-		applicantService.cancelAccepted(header, userId, applicantId);
 		return ResponseEntity.ok(getResponseBody(HttpStatus.OK.value(), "Successfully cancel the accepted applicant",
 				request.getRequestURI()));
 
