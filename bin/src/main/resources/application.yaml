@@ -1,0 +1,68 @@
+server:
+  port: 8181
+
+spring:
+  application:
+    name: backend-service
+  datasource:
+    hikari:
+      connectionTimeout: 20000
+      maximumPoolSize: 5
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_USER}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: validate
+      naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+app:
+  auth:
+    tokenSecret: ${TOKEN_SECRET}
+#    tokenExpirationMsec: 864000000 #10 days
+#    tokenExpirationMsec: 300000 #5 mins
+#    tokenExpirationMsec: 600000 #10 mins
+#    tokenExpirationMsec: 3600000 #1 hour
+    tokenExpirationMsec: 7200000 #2 hours
+#    tokenExpirationMsec: 86400000 #1 days
+  firebase:
+    databaseUrl: ${FIREBASE_DATABASE}
+    googleCredentials: ${GOOGLE_APPLICATION_CREDENTIALS}
+  verificationExpirationMsec: 300000 #5 mins
+  eventCancelationValidMaxMsec: 86400000 #24 hours
+  rateUserValidMaxMsec: 172800000 #48 hours‬
+
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 2
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL}/eureka/
+    healthcheck:
+      enabled: true
+    lease:
+      duration: 5
