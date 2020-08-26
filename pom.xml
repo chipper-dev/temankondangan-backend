@@ -10,9 +10,9 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.mitrais.chipper.temankondangan</groupId>
-	<artifactId>chipper-backend</artifactId>
+	<artifactId>temankondangan-ms</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>chipper-backend</name>
+	<name>temankondangan-ms</name>
 	<description>The Backend of TemanKondangan App</description>
 
 	<properties>
