@@ -21,6 +21,15 @@ local.properties
 .loadpath
 .recommenders
 
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
 # External tool builders
 .externalToolBuilders/
 
