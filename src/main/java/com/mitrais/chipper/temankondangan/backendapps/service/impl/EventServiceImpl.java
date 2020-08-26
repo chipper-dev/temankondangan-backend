@@ -140,7 +140,7 @@ public class EventServiceImpl implements EventService {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
 			if (!(startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())
-					|| startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate().plusDays(1)))) {
+					|| startDateTime.toLocalDate().plusDays(1).isEqual(finishDateTime.toLocalDate()))) {
 				throw new BadRequestException("Error: Finish date can’t be more than H+1 from start date!");
 			}
 		}
