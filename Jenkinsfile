@@ -2,7 +2,7 @@ node{
     def app
     def build = "${env.BUILD_NUMBER}"
     def version = "6"
-    def image = 'chippermitrais/temankondangan-backend:'+ version +'.'+ build
+    def image = 'chippermitrais/temankondangan-ms-backend:'+ version +'.'+ build
     def containerName = 'chipper-backend'
     def mvnHome = tool name: 'maven-default', type: 'maven'
     def mvnCMD = "${mvnHome}/bin/mvn"
@@ -65,7 +65,7 @@ node{
                     echo 'Done.'
                 }
 
-                sshCommand remote: remote, command: "docker images chippermitrais/temankondangan-backend -q | xargs --no-run-if-empty docker rmi -f"
+                sshCommand remote: remote, command: "docker images chippermitrais/temankondangan-ms-backend -q | xargs --no-run-if-empty docker rmi -f"
 
                 db_username = env.dbAuthUser
                 db_password = env.dbAuthPassword
