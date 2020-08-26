@@ -62,7 +62,7 @@ eureka:
     hostname: localhost
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_SERVER_URL}/eureka/
+      defaultZone: ${EUREKA_SERVER_URL}
     healthcheck:
       enabled: true
     lease:
