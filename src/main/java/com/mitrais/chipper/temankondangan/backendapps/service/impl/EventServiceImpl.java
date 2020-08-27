@@ -1010,7 +1010,7 @@ public class EventServiceImpl implements EventService {
 						// Finish Date Time Adjust
 						if (Objects.nonNull(currFinishDateTime) && Objects.nonNull(prevFinishDateTime)) {
 							if (!currFinishDateTime.toLocalDate().isEqual(prevFinishDateTime.toLocalDate())) {
-								fieldListResult.add("Date");
+								fieldListResult.add("End Date");
 							}
 
 							if (name.equals("finishDateTime")) {
@@ -1027,7 +1027,7 @@ public class EventServiceImpl implements EventService {
 						}
 						// Start Date Time Adjust
 						if (!currStartDateTime.toLocalDate().isEqual(prevStartDateTime.toLocalDate())) {
-							fieldListResult.add("Date");
+							fieldListResult.add("Start Date");
 						}
 						if (name.equals("startDateTime")) {
 							if (!currStartDateTime.toLocalTime().equals(prevStartDateTime.toLocalTime())) {
