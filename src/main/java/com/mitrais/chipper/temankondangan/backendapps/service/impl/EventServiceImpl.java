@@ -130,7 +130,7 @@ public class EventServiceImpl implements EventService {
 				throw new BadRequestException("Error: Start time must be earlier than finish time!");
 			}
 			if (!(startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate())
-					|| startDateTime.toLocalDate().isEqual(finishDateTime.toLocalDate().plusDays(1)))) {
+					|| startDateTime.toLocalDate().plusDays(1).isEqual(finishDateTime.toLocalDate()))) {
 				throw new BadRequestException("Error: Finish date can’t be more than H+1 from start date!");
 			}
 		}
@@ -1010,7 +1010,7 @@ public class EventServiceImpl implements EventService {
 						// Finish Date Time Adjust
 						if (Objects.nonNull(currFinishDateTime) && Objects.nonNull(prevFinishDateTime)) {
 							if (!currFinishDateTime.toLocalDate().isEqual(prevFinishDateTime.toLocalDate())) {
-								fieldListResult.add("Date");
+								fieldListResult.add("End Date");
 							}
 
 							if (name.equals("finishDateTime")) {
@@ -1027,7 +1027,7 @@ public class EventServiceImpl implements EventService {
 						}
 						// Start Date Time Adjust
 						if (!currStartDateTime.toLocalDate().isEqual(prevStartDateTime.toLocalDate())) {
-							fieldListResult.add("Date");
+							fieldListResult.add("Start Date");
 						}
 						if (name.equals("startDateTime")) {
 							if (!currStartDateTime.toLocalTime().equals(prevStartDateTime.toLocalTime())) {
