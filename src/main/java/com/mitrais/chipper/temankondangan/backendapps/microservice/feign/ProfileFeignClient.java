@@ -28,7 +28,7 @@ public interface ProfileFeignClient {
 	Optional<ProfileMicroservicesDTO> findById(@RequestHeader(HttpHeaders.AUTHORIZATION) String header,
 			@PathVariable("id") Long id);
 
-	@GetMapping("/find/{photoProfileName}")
+	@GetMapping("/findPhoto/{photoProfileName}")
 	Optional<ProfileMicroservicesDTO> findByPhotoProfileName(@PathVariable("photoProfileName") String photoProfileName);
 
 	@GetMapping("/findall")
