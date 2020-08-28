@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: legacy-service
+    name: legacy-service-clone
   datasource:
     hikari:
       connectionTimeout: 20000
