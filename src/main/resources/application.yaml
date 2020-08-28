@@ -3,7 +3,7 @@ server:
 
 spring:
   application:
-    name: backend-service
+    name: legacy-service
   datasource:
     hikari:
       connectionTimeout: 20000
