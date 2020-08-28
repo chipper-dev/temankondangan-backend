@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.LegacyProfileRequestDTO;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileMicroservicesDTO;
 
 @FeignClient(name = "profile-service")

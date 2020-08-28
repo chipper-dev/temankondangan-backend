@@ -17,7 +17,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.mitrais.chipper.temankondangan.backendapps"))
+                .apis(RequestHandlerSelectors.basePackage("com.mitrais.chipper.temankondangan.backendapps.controller"))
                 .paths(PathSelectors.any())
                 .build().apiInfo(apiEndPointsInfo());
     }

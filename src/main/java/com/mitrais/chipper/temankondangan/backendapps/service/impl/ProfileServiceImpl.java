@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.google.common.base.Optional;
 import com.mitrais.chipper.temankondangan.backendapps.exception.BadRequestException;
 import com.mitrais.chipper.temankondangan.backendapps.exception.ResourceNotFoundException;
 import com.mitrais.chipper.temankondangan.backendapps.microservice.dto.ProfileLegacyResponseDTO;
@@ -151,7 +152,8 @@ public class ProfileServiceImpl implements ProfileService {
 	@Override
 	public List<ProfileLegacyResponseDTO> fetchAllProfiles() {
 		List<ProfileLegacyResponseDTO> response = new ArrayList<>();
-		profileRepository.findAll().forEach(profile -> {
+		List<Profile> emptyProfiles = new ArrayList<>();
+		profileRepository.fetchAllProfiles().orElse(emptyProfiles).forEach(profile -> {
 			response.add(new ProfileLegacyResponseDTO(profile));
 		});
 		return response;
